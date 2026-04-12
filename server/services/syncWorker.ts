@@ -14,6 +14,7 @@
  */
 
 import * as ghl from "./ghl";
+import { getGhlCredentials, updateGhlJwt } from "./credentials";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface SyncWorkerConfig {
@@ -51,6 +52,7 @@ interface WorkerTask {
 class SyncWorkerManager {
   private state: SyncJobState = this.defaultState();
   private creds: ghl.GhlCredentials | null = null;
+  private userId: number | null = null;
   private config: SyncWorkerConfig = {
     workerCount: 4,
     delayPerCall: 100,
@@ -117,13 +119,15 @@ class SyncWorkerManager {
     rows: Record<string, string>[],
     creds: ghl.GhlCredentials,
     config?: Partial<SyncWorkerConfig>,
-    resumeFromRow = 0
+    resumeFromRow = 0,
+    userId?: number
   ): Promise<void> {
     if (this.state.status === "running") {
       throw new Error("A sync job is already running. Pause or cancel it first.");
     }
 
     this.creds = creds;
+    this.userId = userId || null;
     if (config) {
       this.config = { ...this.config, ...config };
     }
@@ -261,6 +265,71 @@ class SyncWorkerManager {
     return { retried, succeeded };
   }
 
+  /**
+   * Attempt to auto-refresh the GHL JWT token using the refresh endpoint.
+   * If that fails, try reading from the token file (written by CDP daemon).
+   * Returns true if token was refreshed successfully.
+   */
+  private async autoRefreshToken(): Promise<boolean> {
+    if (!this.creds) return false;
+    
+    console.log(`[SyncWorker] Auto-refreshing token...`);
+    
+    // Method 1: API refresh
+    if (this.creds.refreshToken && this.creds.authToken) {
+      try {
+        const result = await ghl.refreshToken(this.creds);
+        if (result.success && result.newCreds) {
+          if (result.newCreds.jwt) this.creds.jwt = result.newCreds.jwt;
+          if (result.newCreds.refreshToken) this.creds.refreshToken = result.newCreds.refreshToken;
+          if (result.newCreds.authToken) this.creds.authToken = result.newCreds.authToken;
+          
+          const newRemaining = ghl.getJwtRemainingMinutes(this.creds.jwt!);
+          console.log(`[SyncWorker] API refresh OK. Token valid for ${newRemaining.toFixed(0)}min`);
+          
+          // Persist to DB if we have a userId
+          if (this.userId) {
+            try {
+              await updateGhlJwt(this.userId, this.creds.jwt!, {
+                refreshToken: this.creds.refreshToken,
+                authToken: this.creds.authToken,
+              });
+            } catch (e) {
+              console.warn(`[SyncWorker] Failed to persist refreshed token to DB:`, e);
+            }
+          }
+          return true;
+        }
+      } catch (e) {
+        console.warn(`[SyncWorker] API refresh failed:`, e);
+      }
+    }
+    
+    // Method 2: Read from token file (written by CDP auto-refresh daemon)
+    try {
+      const fs = await import("fs");
+      const tokenPath = "/home/ubuntu/master_db/ghl_token.json";
+      if (fs.existsSync(tokenPath)) {
+        const data = JSON.parse(fs.readFileSync(tokenPath, "utf-8"));
+        if (data.jwt) {
+          const fileRemaining = ghl.getJwtRemainingMinutes(data.jwt);
+          if (fileRemaining > 10) {
+            this.creds.jwt = data.jwt;
+            if (data.refreshToken) this.creds.refreshToken = data.refreshToken;
+            if (data.authToken) this.creds.authToken = data.authToken;
+            console.log(`[SyncWorker] Token file refresh OK. Token valid for ${fileRemaining.toFixed(0)}min`);
+            return true;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn(`[SyncWorker] Token file read failed:`, e);
+    }
+    
+    console.warn(`[SyncWorker] All refresh methods failed.`);
+    return false;
+  }
+
   // ─── Internal Worker ────────────────────────────────────────────────────
   private async runWorker(workerId: number): Promise<void> {
     this.activeWorkers++;
@@ -269,15 +338,29 @@ class SyncWorkerManager {
       // Check abort
       if (this.abortController?.signal.aborted) break;
 
-      // Check token expiry
+      // Check token expiry — auto-refresh if < 10 min remaining
       if (this.creds?.jwt) {
         const remaining = ghl.getJwtRemainingMinutes(this.creds.jwt);
-        if (remaining < 5) {
-          console.log(`[SyncWorker] W${workerId}: Token expiring in ${remaining.toFixed(0)}min. Pausing.`);
-          this.state.status = "token_expired";
-          this.isPaused = true;
-          this.notifyProgress();
-          break;
+        if (remaining < 10) {
+          // Only one worker should attempt refresh
+          if (workerId === 0) {
+            const refreshed = await this.autoRefreshToken();
+            if (!refreshed && remaining < 2) {
+              console.log(`[SyncWorker] W${workerId}: Token critically low (${remaining.toFixed(0)}min) and refresh failed. Pausing.`);
+              this.state.status = "token_expired";
+              this.isPaused = true;
+              this.notifyProgress();
+              break;
+            }
+          } else if (remaining < 2) {
+            // Non-zero workers just wait for worker 0 to refresh
+            await this.sleep(5000);
+            const newRemaining = ghl.getJwtRemainingMinutes(this.creds.jwt);
+            if (newRemaining < 2) {
+              this.isPaused = true;
+              break;
+            }
+          }
         }
       }
 

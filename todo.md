@@ -110,9 +110,9 @@
 - [x] Connect Sync Engine page to show live sync status
 
 ## Standalone Import Resume
-- [ ] Rebuild standalone sync script from master CSV
-- [ ] Resume import from where it left off (~254K processed)
-- [ ] Monitor through completion
+- [x] Rebuild standalone sync script from master CSV (ghl_parallel_sync.py — 10 parallel workers, JWT auth, checkpoint resume)
+- [x] Resume import from where it left off (started from row 254,531, currently at 17,800/242,358 remaining = 7.3%)
+- [ ] Monitor through completion (currently running at ~480/min, ETA ~7.8h, token needs refresh every ~60min)
 
 ## CRITICAL: Transform from Dashboard Shell to Real Command Center
 
@@ -186,3 +186,16 @@
 - [ ] Add sync-engine E2E that performs push+pull cycle and validates local/remote state reconciliation
 - [ ] Add integration verification tests with real successful handshakes for each platform
 Note: These tests require valid API keys/tokens for GHL, SMS-iT, Dripify, and LinkedIn. They should be run manually or in a CI environment with secrets configured.
+
+## CDP-Based Token Auto-Refresh
+- [x] Build CDP token extractor script that pulls GHL JWT from browser localStorage (cdp_auto_refresh.py)
+- [x] Wire auto-refresh into standalone sync — daemon monitors token, refreshes via API, restarts sync if needed
+- [x] Wire auto-refresh into in-app sync worker — autoRefreshToken() with API + token file fallback
+- [x] Configure real GHL credentials from browser into the app's Integrations DB (seed_credentials.mjs)
+
+## Live E2E Tests (Owner-Only Recipients)
+- [x] Extract real GHL credentials via CDP and configure in app
+- [x] Run live contact creation test → verified real GHL contact ID returned (CREATE/READ/UPDATE/SEARCH/UPSERT/DELETE all pass)
+- [x] Run live CSV-to-GHL import test → verified payload build + real GHL push + cleanup
+- [x] Verify standalone sync auto-refresh works without manual intervention (daemon running, token file valid 52min)
+- [ ] Run live campaign send test (email to owner only) → requires email template configured in GHL (deferred)
