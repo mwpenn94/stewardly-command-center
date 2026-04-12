@@ -11,6 +11,8 @@ import * as campaignEngine from "./services/campaignEngine";
 import * as credentialHelper from "./services/credentials";
 import { syncWorker } from "./services/syncWorker";
 import { storagePut } from "./storage";
+import * as orchestrator from "./services/orchestrator";
+import { syncScheduler } from "./services/syncScheduler";
 
 const PLATFORMS_LABELS: Record<string, string> = {
   ghl: "GoHighLevel",
@@ -806,7 +808,7 @@ export const appRouter = router({
             if (!apiKey && !sessionToken) {
               result = { success: false, message: "API Key or Session Token is required" };
             } else {
-              result = await smsitService.testConnection({ apiKey: apiKey || sessionToken || "", senderId: creds["Sender ID"] });
+              result = await smsitService.testConnection({ apiKey: apiKey || sessionToken || "" });
             }
           } else if (input.platform === "dripify") {
             const apiKey = creds["API Key"];
@@ -814,7 +816,7 @@ export const appRouter = router({
             if (!apiKey && !sessionCookie) {
               result = { success: false, message: "API Key or Session Cookie is required" };
             } else {
-              result = await dripifyService.testConnection({ apiKey: apiKey || sessionCookie || "", webhookUrl: creds["Webhook URL"] });
+              result = await dripifyService.testConnection({ apiKey: apiKey || sessionCookie || "", sessionCookie: creds["Session Cookie"] || undefined, email: creds["Email"] || undefined });
             }
           } else if (input.platform === "linkedin") {
             const token = creds["Access Token"];
@@ -990,13 +992,85 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const event = dripifyService.processWebhookEvent(input);
         console.log("[Webhook] Dripify event:", event.type, event.contactEmail);
-
-        // Log the webhook event
-        // Note: webhook events don't have a userId context, so we log without it
-        // In production, you'd match the webhook to a user via the campaign/integration
         return { received: true, type: event.type };
       }),
   }),
-});
+
+  // ─── Orchestrator (Multi-Platform Sequences) ────────────────────────
+  orchestrator: router({
+    platformHealth: protectedProcedure.query(async ({ ctx }) => {
+      return orchestrator.getPlatformHealth(ctx.user.id);
+    }),
+
+    startSequence: protectedProcedure
+      .input(z.object({
+        name: z.string(),
+        steps: z.array(z.object({
+          channel: z.enum(["email", "sms", "linkedin"]),
+          subject: z.string().optional(),
+          body: z.string(),
+          delayMs: z.number().min(0),
+          templateId: z.string().optional(),
+        })),
+        contactIds: z.array(z.number()),
+        audienceFilter: z.object({
+          tags: z.array(z.string()).optional(),
+          tiers: z.array(z.string()).optional(),
+          platforms: z.array(z.string()).optional(),
+        }).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const contacts = await db.getContactsByIds(input.contactIds);
+        return orchestrator.startSequence(ctx.user.id, input, contacts);
+      }),
+
+    sequenceStatus: protectedProcedure
+      .input(z.object({ sequenceId: z.string() }))
+      .query(({ input }) => orchestrator.getSequenceStatus(input.sequenceId)),
+
+    listSequences: protectedProcedure.query(() => orchestrator.listSequences()),
+
+    cancelSequence: protectedProcedure
+      .input(z.object({ sequenceId: z.string() }))
+      .mutation(({ input }) => ({ cancelled: orchestrator.cancelSequence(input.sequenceId) })),
+
+    pauseSequence: protectedProcedure
+      .input(z.object({ sequenceId: z.string() }))
+      .mutation(({ input }) => ({ paused: orchestrator.pauseSequence(input.sequenceId) })),
+
+    resumeSequence: protectedProcedure
+      .input(z.object({ sequenceId: z.string() }))
+      .mutation(({ input }) => ({ resumed: orchestrator.resumeSequence(input.sequenceId) })),
+  }),
+
+  // ─── Sync Scheduler ─────────────────────────────────────────────────
+  syncScheduler: router({
+    status: protectedProcedure.query(() => syncScheduler.getStatus()),
+
+    start: protectedProcedure
+      .input(z.object({
+        intervalMs: z.number().min(10000).optional(),
+        platforms: z.object({
+          ghl: z.object({ enabled: z.boolean(), pullContacts: z.boolean().optional(), pushContacts: z.boolean().optional() }).optional(),
+          smsit: z.object({ enabled: z.boolean(), pullContacts: z.boolean().optional() }).optional(),
+          dripify: z.object({ enabled: z.boolean(), pullLeads: z.boolean().optional() }).optional(),
+        }).optional(),
+      }).optional())
+      .mutation(({ ctx, input }) => syncScheduler.start(ctx.user.id, input || undefined)),
+
+    stop: protectedProcedure.mutation(() => syncScheduler.stop()),
+
+    forcePull: protectedProcedure
+      .input(z.object({ platform: z.string().optional() }).optional())
+      .mutation(async ({ input }) => {
+        const events = await syncScheduler.forcePull(input?.platform);
+        return { events };
+      }),
+
+    webhook: publicProcedure
+      .input(z.object({ platform: z.string(), payload: z.any() }))
+      .mutation(({ input }) => syncScheduler.processWebhook(input.platform, input.payload)),
+  }),
+});;
 
 export type AppRouter = typeof appRouter;

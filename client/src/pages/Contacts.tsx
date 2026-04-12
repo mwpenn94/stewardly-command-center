@@ -126,7 +126,7 @@ export default function Contacts() {
                 <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Segment</th>
                 <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Tier</th>
                 <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Score</th>
-                <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Sync</th>
+                <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Platforms</th>
                 <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -158,11 +158,10 @@ export default function Contacts() {
                     </td>
                     <td className="p-3 text-muted-foreground tabular-nums">{c.propensityScore || "—"}</td>
                     <td className="p-3">
-                      <div className="flex items-center gap-1.5">
-                        <div className={`h-2 w-2 rounded-full ${c.syncStatus === "synced" ? "bg-emerald-400" : c.syncStatus === "error" ? "bg-red-400" : c.syncStatus === "pending" ? "bg-amber-400" : "bg-muted-foreground/30"}`} />
-                        {c.ghlContactId && (
-                          <span className="text-[9px] text-muted-foreground/50 font-mono">{c.ghlContactId.slice(0, 8)}</span>
-                        )}
+                      <div className="flex items-center gap-1">
+                        <div className={`h-5 px-1.5 rounded text-[9px] flex items-center gap-0.5 ${c.ghlContactId ? "bg-blue-500/15 text-blue-400" : "bg-muted/30 text-muted-foreground/30"}`} title={c.ghlContactId ? `GHL: ${c.ghlContactId}` : "Not in GHL"}>GHL</div>
+                        <div className={`h-5 px-1.5 rounded text-[9px] flex items-center gap-0.5 ${c.phone ? "bg-emerald-500/15 text-emerald-400" : "bg-muted/30 text-muted-foreground/30"}`} title={c.phone ? "Has phone for SMS-iT" : "No phone"}>SMS</div>
+                        <div className={`h-5 px-1.5 rounded text-[9px] flex items-center gap-0.5 ${c.linkedinUrl ? "bg-sky-500/15 text-sky-400" : "bg-muted/30 text-muted-foreground/30"}`} title={c.linkedinUrl ? "Has LinkedIn" : "No LinkedIn"}>LI</div>
                       </div>
                     </td>
                     <td className="p-3 text-right">

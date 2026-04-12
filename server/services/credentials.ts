@@ -54,7 +54,7 @@ export async function getSmsitCredentials(userId: number): Promise<SmsitCredenti
 
   return {
     apiKey,
-    senderId: creds["Sender ID"] || undefined,
+    sessionToken: creds["Session Token"] || undefined,
   };
 }
 
@@ -71,7 +71,10 @@ export async function getDripifyCredentials(userId: number): Promise<DripifyCred
 
   return {
     apiKey,
-    webhookUrl: creds["Webhook URL"] || undefined,
+    userId: creds["User ID"] || undefined,
+    email: creds["Email"] || undefined,
+    sessionCookie: creds["Session Cookie"] || undefined,
+    expiresAt: creds["Expires At"] ? Number(creds["Expires At"]) : undefined,
   };
 }
 

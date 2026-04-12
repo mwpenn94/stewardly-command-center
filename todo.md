@@ -205,3 +205,40 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] Set up bidirectional sync (failover: polling-based pull via listContacts + getContact)
 - [x] Run live campaign email send to owner (Michael Penn) → SUCCESS: messageId WBPk8AsFuwsaLv2FwJxD
 - [x] Run live sync-engine push+pull cycle → SUCCESS: full PUSH/PULL/RECONCILE/LIST/SEARCH/CLEANUP verified
+
+## Live E2E Tests: SMS-iT & Dripify (NEW)
+- [x] Seed real SMS-iT API key into integrations DB
+- [x] Seed real Dripify Firebase token into integrations DB
+- [x] SMS-iT: testConnection with real API key → verified connected
+- [x] SMS-iT: checkCreditBalance → verified balance retrieval
+- [x] SMS-iT: listContacts → verified contact listing
+- [x] SMS-iT: getTemplates → verified template retrieval
+- [x] Dripify: testConnection with real Firebase token → verified connected
+- [x] Dripify: getProfile → verified profile retrieval
+- [x] Dripify: listCampaigns → verified campaign listing (Arizona FP, AZ R1 Lead Gen, Mohave County Lead Gen)
+- [x] Dripify: refreshFirebaseToken → verified token refresh works
+- [x] Dripify: isTokenExpired → verified expiry detection
+- [x] Dripify: processWebhookEvent → verified webhook processing
+- [x] Cross-platform credential loading from DB → all 3 platforms loaded
+
+## Live E2E Tests: Orchestrator & Sync Scheduler (NEW)
+- [x] Orchestrator: getPlatformHealth → all 3 platforms connected (GHL, SMS-iT, Dripify)
+- [x] Orchestrator: startSequence → multi-step sequence created and executed
+- [x] Orchestrator: getSequenceStatus → status tracking verified
+- [x] Orchestrator: listSequences → sequence listing verified
+- [x] Orchestrator: pause/resume/cancel lifecycle → all transitions verified
+- [x] Orchestrator: sequence completion with step results → verified
+- [x] SyncScheduler: start with config → scheduler running with 60s interval
+- [x] SyncScheduler: getStatus → status reporting verified
+- [x] SyncScheduler: forcePull GHL → contacts pulled successfully
+- [x] SyncScheduler: forcePull SMS-iT → contacts pulled successfully
+- [x] SyncScheduler: forcePull Dripify → campaigns pulled successfully
+- [x] SyncScheduler: forcePull ALL → multi-platform pull verified
+- [x] SyncScheduler: processWebhook → webhook event processing verified
+- [x] SyncScheduler: stop → scheduler stopped cleanly
+- [x] SyncScheduler: sync counts verified after full cycle
+- [x] Integration: credentials available for all orchestrator channels
+- [x] Integration: health check + sync cycle → 3/3 platforms connected, sync events generated
+
+## Test Fix: e2e.test.ts GHL Contact Sync
+- [x] Fix e2e.test.ts assertion — now that real GHL creds are in DB, ghlContactId is populated (not undefined)

@@ -337,3 +337,11 @@ export async function getDashboardStats(userId: number) {
     recentActivity,
   };
 }
+
+
+// ─── Batch Contact Retrieval ─────────────────────────────────────────────────
+export async function getContactsByIds(ids: number[]) {
+  const db = await getDb();
+  if (!db || ids.length === 0) return [];
+  return db.select().from(contacts).where(inArray(contacts.id, ids));
+}

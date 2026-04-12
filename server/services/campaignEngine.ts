@@ -157,7 +157,7 @@ async function executeSmsCampaign(
   const smsResult = await smsit.sendBulkSms(config.smsitCreds, messages);
   result.sent = smsResult.sent;
   result.failed = smsResult.failed;
-  result.success = smsResult.success;
+  result.success = smsResult.failed === 0;
 
   smsResult.results.forEach((r, i) => {
     if (!r.success) {
