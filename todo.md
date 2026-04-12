@@ -84,3 +84,18 @@
 - [x] Backups tests
 - [x] Activity feed tests
 - [x] Import jobs tests
+
+## In-App Platform Credential Management (All Platforms)
+- [x] Enhanced Integrations page with connection testing for all platforms
+- [x] GHL: in-app CRUD for API Key, Location ID, Company ID with connection test
+- [x] Dripify: in-app CRUD for API Key, Webhook URL with connection test
+- [x] LinkedIn: in-app CRUD for Access Token with connection test
+- [x] SMS-iT: in-app CRUD for API Key, Sender ID with connection test
+- [x] First-login onboarding banner prompting platform setup
+- [x] Server-side credential reader from DB for all API calls
+- [x] Auto-seed owner role from first GHL connection
+
+## Integration Refinements
+- [x] Wire connection-test outcomes to persist lastCheckedAt and status on integration record
+- [x] Implement owner auto-seeding: first valid GHL save promotes user to admin and stores GHL IDs on user record
+- [x] Add informative test messages for Dripify/LinkedIn/SMS-iT explaining deferred verification

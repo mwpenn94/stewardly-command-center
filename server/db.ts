@@ -63,6 +63,12 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function updateUserGhlIds(userId: number, data: { ghlLocationId?: string | null; ghlCompanyId?: string | null }) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(users).set({ ...data, role: "admin" }).where(eq(users.id, userId));
+}
+
 // ─── Contacts ────────────────────────────────────────────────────────────────
 export async function getContacts(userId: number, opts: {
   search?: string; segment?: string; tier?: string; limit?: number; offset?: number;
@@ -132,6 +138,19 @@ export async function getIntegrations(userId: number) {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(integrations).where(eq(integrations.userId, userId)).orderBy(asc(integrations.platform));
+}
+
+export async function getIntegrationByPlatform(userId: number, platform: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(integrations).where(and(eq(integrations.userId, userId), eq(integrations.platform, platform as any))).limit(1);
+  return result.length > 0 ? result[0] : null;
+}
+
+export async function getIntegrationCredentials(userId: number, platform: string): Promise<Record<string, string> | null> {
+  const integration = await getIntegrationByPlatform(userId, platform);
+  if (!integration?.credentials) return null;
+  try { return JSON.parse(integration.credentials); } catch { return null; }
 }
 
 export async function upsertIntegration(data: InsertIntegration) {

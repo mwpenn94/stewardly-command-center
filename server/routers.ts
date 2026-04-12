@@ -5,6 +5,13 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 
+const PLATFORMS_LABELS: Record<string, string> = {
+  ghl: "GoHighLevel",
+  dripify: "Dripify",
+  linkedin: "LinkedIn",
+  smsit: "SMS-iT",
+};
+
 export const appRouter = router({
   system: systemRouter,
   auth: router({
@@ -241,6 +248,16 @@ export const appRouter = router({
     list: protectedProcedure.query(async ({ ctx }) => {
       return db.getIntegrations(ctx.user.id);
     }),
+    get: protectedProcedure
+      .input(z.object({ platform: z.string() }))
+      .query(async ({ ctx, input }) => {
+        return db.getIntegrationByPlatform(ctx.user.id, input.platform);
+      }),
+    credentials: protectedProcedure
+      .input(z.object({ platform: z.string() }))
+      .query(async ({ ctx, input }) => {
+        return db.getIntegrationCredentials(ctx.user.id, input.platform);
+      }),
     upsert: protectedProcedure
       .input(z.object({
         platform: z.enum(["ghl", "dripify", "linkedin", "smsit"]),
@@ -252,6 +269,85 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         await db.upsertIntegration({ ...input, userId: ctx.user.id } as any);
         await db.logActivity({ userId: ctx.user.id, type: "integration", action: "integration_updated", description: `Updated ${input.platform} integration`, severity: "info" });
+        return { success: true };
+      }),
+    testConnection: protectedProcedure
+      .input(z.object({
+        platform: z.enum(["ghl", "dripify", "linkedin", "smsit"]),
+        credentials: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        let creds: Record<string, string>;
+        try { creds = JSON.parse(input.credentials); } catch { return { success: false, message: "Invalid credentials format" }; }
+
+        let result = { success: false, message: "Unknown platform" };
+
+        try {
+          if (input.platform === "ghl") {
+            const apiKey = creds["API Key"];
+            const locationId = creds["Location ID"];
+            if (!apiKey || !locationId) { result = { success: false, message: "API Key and Location ID are required" }; }
+            else {
+              const res = await fetch(`https://services.leadconnectorhq.com/contacts/?locationId=${locationId}&limit=1`, {
+                headers: { Authorization: `Bearer ${apiKey}`, Version: "2021-07-28" },
+              });
+              if (res.ok) {
+                result = { success: true, message: "Connected to GoHighLevel successfully" };
+                // Auto-seed: promote user to admin and store GHL IDs on first successful GHL connection
+                const existingGhl = await db.getIntegrationByPlatform(ctx.user.id, "ghl");
+                if (!existingGhl || existingGhl.status !== "connected") {
+                  await db.updateUserGhlIds(ctx.user.id, {
+                    ghlLocationId: locationId,
+                    ghlCompanyId: creds["Company ID"] || null,
+                  });
+                }
+              } else {
+                const body = await res.text();
+                result = { success: false, message: `GHL API returned ${res.status}: ${body.slice(0, 200)}` };
+              }
+            }
+          } else if (input.platform === "smsit") {
+            const apiKey = creds["API Key"];
+            if (!apiKey) { result = { success: false, message: "API Key is required" }; }
+            else { result = { success: true, message: "SMS-iT credentials validated. Live verification occurs on first send." }; }
+          } else if (input.platform === "dripify") {
+            const apiKey = creds["API Key"];
+            if (!apiKey) { result = { success: false, message: "API Key is required" }; }
+            else { result = { success: true, message: "Dripify credentials validated. Webhook verification occurs on first event." }; }
+          } else if (input.platform === "linkedin") {
+            const token = creds["Access Token"];
+            if (!token) { result = { success: false, message: "Access Token is required" }; }
+            else { result = { success: true, message: "LinkedIn token validated. Live verification occurs on first API call." }; }
+          }
+        } catch (err: any) {
+          result = { success: false, message: `Connection failed: ${err.message}` };
+        }
+
+        // Persist test outcome: update lastCheckedAt and status on the integration record
+        const newStatus = result.success ? "connected" : "error";
+        await db.upsertIntegration({
+          platform: input.platform,
+          userId: ctx.user.id,
+          credentials: input.credentials,
+          label: PLATFORMS_LABELS[input.platform] || input.platform,
+          status: newStatus,
+          lastCheckedAt: new Date(),
+        } as any);
+        await db.logActivity({
+          userId: ctx.user.id,
+          type: "integration",
+          action: `${input.platform}_test_${result.success ? "success" : "failed"}`,
+          description: result.message,
+          severity: result.success ? "success" : "error",
+        });
+
+        return result;
+      }),
+    disconnect: protectedProcedure
+      .input(z.object({ platform: z.enum(["ghl", "dripify", "linkedin", "smsit"]) }))
+      .mutation(async ({ ctx, input }) => {
+        await db.upsertIntegration({ platform: input.platform, userId: ctx.user.id, credentials: "", status: "disconnected" } as any);
+        await db.logActivity({ userId: ctx.user.id, type: "integration", action: "integration_disconnected", description: `Disconnected ${input.platform}`, severity: "warning" });
         return { success: true };
       }),
   }),

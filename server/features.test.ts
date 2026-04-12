@@ -146,7 +146,7 @@ describe("Sync Engine", () => {
   });
 });
 
-describe("Integrations", () => {
+describe("Integrations CRUD", () => {
   it("lists integrations", async () => {
     const { ctx } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
@@ -154,16 +154,132 @@ describe("Integrations", () => {
     expect(Array.isArray(result)).toBe(true);
   });
 
-  it("upserts an integration", async () => {
+  it("upserts a GHL integration with credentials", async () => {
     const { ctx } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
     const result = await caller.integrations.upsert({
       platform: "ghl",
       label: "GoHighLevel",
-      credentials: JSON.stringify({ "API Key": "test-key" }),
+      credentials: JSON.stringify({ "API Key": "test-key-123", "Location ID": "loc-456", "Company ID": "comp-789" }),
       status: "connected",
     });
+    expect(result).toEqual({ success: true });
+  });
+
+  it("retrieves a specific integration by platform", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.integrations.get({ platform: "ghl" });
     expect(result).toBeDefined();
+    expect(result?.platform).toBe("ghl");
+    expect(result?.status).toBe("connected");
+  });
+
+  it("retrieves parsed credentials for a platform", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const creds = await caller.integrations.credentials({ platform: "ghl" });
+    expect(creds).toBeDefined();
+    expect(creds?.["API Key"]).toBe("test-key-123");
+    expect(creds?.["Location ID"]).toBe("loc-456");
+  });
+
+  it("upserts a Dripify integration", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.integrations.upsert({
+      platform: "dripify",
+      label: "Dripify",
+      credentials: JSON.stringify({ "API Key": "drip-key-abc", "Webhook URL": "https://hooks.example.com/dripify" }),
+      status: "connected",
+    });
+    expect(result).toEqual({ success: true });
+  });
+
+  it("upserts an SMS-iT integration", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.integrations.upsert({
+      platform: "smsit",
+      label: "SMS-iT",
+      credentials: JSON.stringify({ "API Key": "smsit-key-xyz", "Sender ID": "STEWARDLY" }),
+      status: "connected",
+    });
+    expect(result).toEqual({ success: true });
+  });
+
+  it("upserts a LinkedIn integration", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.integrations.upsert({
+      platform: "linkedin",
+      label: "LinkedIn",
+      credentials: JSON.stringify({ "Access Token": "li-token-def" }),
+      status: "connected",
+    });
+    expect(result).toEqual({ success: true });
+  });
+
+  it("tests connection for Dripify (credential validation)", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.integrations.testConnection({
+      platform: "dripify",
+      credentials: JSON.stringify({ "API Key": "drip-key-abc" }),
+    });
+    expect(result.success).toBe(true);
+    expect(result.message).toContain("Dripify");
+  });
+
+  it("tests connection for SMS-iT (credential validation)", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.integrations.testConnection({
+      platform: "smsit",
+      credentials: JSON.stringify({ "API Key": "smsit-key-xyz" }),
+    });
+    expect(result.success).toBe(true);
+    expect(result.message).toContain("SMS-iT");
+  });
+
+  it("tests connection for LinkedIn (credential validation)", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.integrations.testConnection({
+      platform: "linkedin",
+      credentials: JSON.stringify({ "Access Token": "li-token-def" }),
+    });
+    expect(result.success).toBe(true);
+    expect(result.message).toContain("LinkedIn");
+  });
+
+  it("rejects test with missing required credentials", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.integrations.testConnection({
+      platform: "ghl",
+      credentials: JSON.stringify({ "API Key": "" }),
+    });
+    expect(result.success).toBe(false);
+    expect(result.message).toContain("required");
+  });
+
+  it("disconnects an integration", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.integrations.disconnect({ platform: "linkedin" });
+    expect(result).toEqual({ success: true });
+
+    // Verify it's now disconnected
+    const integration = await caller.integrations.get({ platform: "linkedin" });
+    expect(integration?.status).toBe("disconnected");
+  });
+
+  it("returns null credentials for non-existent platform", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const creds = await caller.integrations.credentials({ platform: "nonexistent" });
+    expect(creds).toBeNull();
   });
 });
 
