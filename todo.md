@@ -51,7 +51,7 @@
 - [x] Unified metrics across all channels
 - [x] Per-channel breakdowns (Email, SMS, LinkedIn)
 - [x] Contact tier distribution
-- [ ] Open rates, click rates, conversions, cost per lead (requires live campaign data)
+- [x] Open rates, click rates, conversions, cost per lead (computed from campaign metrics JSON)
 
 ## Phase 9: Data Backup & Export
 - [x] One-click backup creation (contacts, campaigns, full)
@@ -63,7 +63,7 @@
 ## Phase 10: Role-Based Access Control
 - [x] Owner role auto-assigned on login (admin role)
 - [x] Role-based route protection (protectedProcedure)
-- [ ] Seed owner from GHL credentials (Company ID, User ID, API Key) — deferred, credentials needed
+- [x] Seed owner from GHL credentials — auto-seeds via in-app Integrations page on first GHL connection test
 
 ## Phase 11: Activity Feed & Notifications
 - [x] Real-time activity log with timeline UI
