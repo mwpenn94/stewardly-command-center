@@ -1,31 +1,123 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { getLoginUrl } from "@/const";
-import { Streamdown } from 'streamdown';
+import { trpc } from "@/lib/trpc";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Users, Megaphone, RefreshCw, Plug, Activity, TrendingUp, ArrowUpRight } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
- */
+const severityColors: Record<string, string> = {
+  success: "text-emerald-400",
+  info: "text-blue-400",
+  warning: "text-amber-400",
+  error: "text-red-400",
+};
+
 export default function Home() {
-  // The userAuth hooks provides authentication state
-  // To implement login/logout functionality, simply call logout() or redirect to getLoginUrl()
-  let { user, loading, error, isAuthenticated, logout } = useAuth();
+  const { user } = useAuth();
+  const { data: stats, isLoading } = trpc.dashboard.stats.useQuery();
+  const { data: contactStats } = trpc.dashboard.contactStats.useQuery();
 
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
+  const statCards = [
+    { label: "Total Contacts", value: stats?.contacts ?? 0, icon: Users, accent: "text-blue-400" },
+    { label: "Active Campaigns", value: stats?.campaigns ?? 0, icon: Megaphone, accent: "text-emerald-400" },
+    { label: "Sync Queue", value: stats?.syncPending ?? 0, icon: RefreshCw, accent: "text-amber-400" },
+    { label: "Connected Platforms", value: stats?.integrations ?? 0, icon: Plug, accent: "text-violet-400" },
+  ];
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="space-y-1">
+        <h1 className="text-3xl tracking-tight text-foreground">
+          Welcome back{user?.name ? `, ${user.name.split(" ")[0]}` : ""}
+        </h1>
+        <p className="text-muted-foreground text-sm">
+          Your marketing command center at a glance.
+        </p>
+      </div>
+
+      {/* Stat Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map((s) => (
+          <Card key={s.label} className="card-hover bg-card border-border/50">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{s.label}</p>
+                  <p className="text-2xl font-semibold text-foreground tabular-nums">
+                    {isLoading ? "—" : s.value.toLocaleString()}
+                  </p>
+                </div>
+                <div className={`h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center ${s.accent}`}>
+                  <s.icon className="h-5 w-5" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Segment Breakdown */}
+        <Card className="lg:col-span-2 bg-card border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium text-foreground">Contact Segments</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {contactStats?.bySegment?.length ? (
+              contactStats.bySegment.map((s: any) => {
+                const pct = contactStats.total > 0 ? ((s.count / contactStats.total) * 100).toFixed(1) : "0";
+                return (
+                  <div key={s.segment} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-primary/60" />
+                      <span className="text-muted-foreground capitalize">{(s.segment || "other").replace("_", "/")}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-foreground tabular-nums font-medium">{s.count.toLocaleString()}</span>
+                      <span className="text-muted-foreground text-xs w-12 text-right">{pct}%</span>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <p className="text-sm text-muted-foreground">No contacts yet. Import or create contacts to see segment breakdown.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity */}
+        <Card className="lg:col-span-3 bg-card border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium text-foreground flex items-center gap-2">
+              <Activity className="h-4 w-4 text-muted-foreground" />
+              Recent Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {stats?.recentActivity?.length ? (
+              <div className="space-y-3">
+                {stats.recentActivity.map((a: any) => (
+                  <div key={a.id} className="flex items-start gap-3 text-sm">
+                    <div className={`mt-1 h-1.5 w-1.5 rounded-full shrink-0 ${severityColors[a.severity] || "text-muted-foreground"}`} style={{ backgroundColor: "currentColor" }} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-foreground truncate">{a.description || a.action}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {formatDistanceToNow(new Date(a.createdAt), { addSuffix: true })}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] shrink-0 capitalize">
+                      {a.type}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No activity yet. Actions across the platform will appear here.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
