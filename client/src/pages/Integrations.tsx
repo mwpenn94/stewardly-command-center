@@ -17,8 +17,9 @@ const PLATFORMS = [
     name: "GoHighLevel",
     description: "CRM, contacts, campaigns, and automation",
     fields: [
-      { key: "API Key", required: true, hint: "Found in Settings → Business Profile → API Key" },
-      { key: "Location ID", required: true, hint: "Found in Settings → Business Profile → Location ID" },
+      { key: "API Key", required: false, hint: "Found in Settings → Business Profile → API Key (use this OR JWT Token)" },
+      { key: "JWT Token", required: false, hint: "Paste from browser localStorage for internal API access (use this OR API Key)" },
+      { key: "Location ID", required: false, hint: "Auto-extracted from JWT, or enter manually for API Key auth" },
       { key: "Company ID", required: false, hint: "Found in Settings → Company → Company ID (optional)" },
     ],
     color: "text-blue-400",
@@ -111,11 +112,18 @@ export default function Integrations() {
 
   const handleSave = () => {
     if (!activePlatform) return;
-    // Validate required fields
-    const missing = activePlatform.fields.filter(f => f.required && !creds[f.key]?.trim());
-    if (missing.length > 0) {
-      toast.error(`Missing required fields: ${missing.map(f => f.key).join(", ")}`);
-      return;
+    // GHL special validation: need either API Key or JWT Token
+    if (activePlatform.id === "ghl") {
+      if (!creds["API Key"]?.trim() && !creds["JWT Token"]?.trim()) {
+        toast.error("Either API Key or JWT Token is required for GoHighLevel");
+        return;
+      }
+    } else {
+      const missing = activePlatform.fields.filter(f => f.required && !creds[f.key]?.trim());
+      if (missing.length > 0) {
+        toast.error(`Missing required fields: ${missing.map(f => f.key).join(", ")}`);
+        return;
+      }
     }
     upsertMut.mutate({
       platform: activePlatform.id,
@@ -128,10 +136,17 @@ export default function Integrations() {
 
   const handleTestAndSave = async () => {
     if (!activePlatform) return;
-    const missing = activePlatform.fields.filter(f => f.required && !creds[f.key]?.trim());
-    if (missing.length > 0) {
-      toast.error(`Missing required fields: ${missing.map(f => f.key).join(", ")}`);
-      return;
+    if (activePlatform.id === "ghl") {
+      if (!creds["API Key"]?.trim() && !creds["JWT Token"]?.trim()) {
+        toast.error("Either API Key or JWT Token is required for GoHighLevel");
+        return;
+      }
+    } else {
+      const missing = activePlatform.fields.filter(f => f.required && !creds[f.key]?.trim());
+      if (missing.length > 0) {
+        toast.error(`Missing required fields: ${missing.map(f => f.key).join(", ")}`);
+        return;
+      }
     }
     setTestResult(null);
     const result = await testMut.mutateAsync({

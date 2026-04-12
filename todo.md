@@ -99,3 +99,82 @@
 - [x] Wire connection-test outcomes to persist lastCheckedAt and status on integration record
 - [x] Implement owner auto-seeding: first valid GHL save promotes user to admin and stores GHL IDs on user record
 - [x] Add informative test messages for Dripify/LinkedIn/SMS-iT explaining deferred verification
+
+## Server-Side GHL Sync Worker (In-App)
+- [x] Add GHL sync worker service that pushes contacts to GHL via API
+- [x] Real-time progress tracking via tRPC subscription/polling
+- [x] Checkpoint-based resume capability (track last processed row)
+- [x] Rate limiting and token auto-refresh logic
+- [x] DLQ integration for failed contact pushes
+- [x] Connect Bulk Import page to the real backend sync worker
+- [x] Connect Sync Engine page to show live sync status
+
+## Standalone Import Resume
+- [ ] Rebuild standalone sync script from master CSV
+- [ ] Resume import from where it left off (~254K processed)
+- [ ] Monitor through completion
+
+## CRITICAL: Transform from Dashboard Shell to Real Command Center
+
+### Failover Auth for All Platforms
+- [x] GHL: Add localStorage token paste method (like sync script uses) as alternative to API key
+- [x] GHL: Wire existing credentials (companyId, userId, apiKey, jwt) from token file
+- [ ] Dripify: Add cookie/session paste method as failover auth
+- [ ] LinkedIn: Add session cookie paste method as failover auth
+- [ ] SMS-iT: Add alternative auth methods beyond API key
+
+### Real Contact CRUD (not just local DB)
+- [x] Contact create → actually POST to GHL API
+- [x] Contact update → actually PUT to GHL API
+- [x] Contact delete → actually DELETE from GHL API
+- [x] Contact list → local DB with GHL search (searchGhl procedure for live GHL queries)
+- [x] Bidirectional sync: pull GHL changes back to local DB (pullFromGhl procedure)
+- [x] Tag management synced to GHL
+
+### Real Campaign Functionality (not just cards)
+- [x] Campaign create → configure actual sends across platforms
+- [x] Email campaigns → send via GHL email API
+- [x] SMS campaigns → send via SMS-iT API
+- [x] LinkedIn campaigns → create via Dripify API
+- [x] Campaign execution engine: schedule, send, track
+- [x] Template library with actual send capability
+- [x] Audience segmentation that feeds into real campaign sends
+
+### Real Bulk Import (not just UI)
+- [x] File upload → trigger actual GHL push worker
+- [x] Real-time progress tracking from active sync process
+- [x] Checkpoint resume from server-side state
+- [x] Master CSV backup download
+
+### Real Sync Engine (not just status cards)
+- [x] Bidirectional GHL sync worker running on server
+- [x] Dripify webhook event processor (processWebhookEvent helper; endpoint to be added when Dripify webhook URL is configured)
+- [x] Conflict resolution logic
+- [x] DLQ with actual retry execution
+- [x] Sync health computed from real operations
+
+### End-to-End Virtual User Testing
+- [ ] Test: Create contact → verify in GHL
+- [ ] Test: Create campaign → verify sends
+- [ ] Test: Upload CSV → verify import runs
+- [ ] Test: Sync engine → verify bidirectional flow
+- [ ] Test: All integrations connect successfully
+
+## Parallel Sync & In-App Sync Engine
+- [x] Standalone sync running (started earlier this session, currently processing ~518/min)
+- [x] Build server-side GHL sync worker into the app with parallel import capability
+- [x] Add start/pause/resume controls in Bulk Import page
+- [x] Add worker count configuration (1-8 parallel workers)
+
+## Service-Level Tests (services.test.ts)
+- [x] GHL JWT decode/expiry/remaining minutes tests
+- [x] GHL JWT location and company extraction tests
+- [x] GHL phone formatting tests (10-digit, 11-digit, international, edge cases)
+- [x] GHL buildPayloadFromCsvRow tests (complete row, empty row, custom fields, trimming)
+- [x] Campaign engine type validation and missing-credential error tests
+- [x] Dripify webhook event processing tests
+- [x] Router integration: import job creation
+- [x] Router integration: sync progress polling (idle state)
+- [x] Router integration: startSync rejection without GHL credentials
+- [x] Router integration: expired token rejection
+- [x] Router integration: campaign launch rejection for non-existent campaign

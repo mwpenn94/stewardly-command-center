@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
-import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Tag, X, Users } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Tag, X, Users, RefreshCw, ExternalLink } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 
 const SEGMENTS = ["all", "residential", "commercial", "agricultural", "cpa_tax", "estate_attorney", "hr_benefits", "insurance", "nonprofit", "other"];
 const TIERS = ["all", "gold", "silver", "bronze", "unscored"];
@@ -157,7 +158,12 @@ export default function Contacts() {
                     </td>
                     <td className="p-3 text-muted-foreground tabular-nums">{c.propensityScore || "—"}</td>
                     <td className="p-3">
-                      <div className={`h-2 w-2 rounded-full inline-block ${c.syncStatus === "synced" ? "bg-emerald-400" : c.syncStatus === "error" ? "bg-red-400" : c.syncStatus === "pending" ? "bg-amber-400" : "bg-muted-foreground/30"}`} />
+                      <div className="flex items-center gap-1.5">
+                        <div className={`h-2 w-2 rounded-full ${c.syncStatus === "synced" ? "bg-emerald-400" : c.syncStatus === "error" ? "bg-red-400" : c.syncStatus === "pending" ? "bg-amber-400" : "bg-muted-foreground/30"}`} />
+                        {c.ghlContactId && (
+                          <span className="text-[9px] text-muted-foreground/50 font-mono">{c.ghlContactId.slice(0, 8)}</span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-3 text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -268,6 +274,20 @@ export default function Contacts() {
                 <Input value={form.postalCode || ""} onChange={(e) => setForm({ ...form, postalCode: e.target.value })} className="bg-muted/30" />
               </div>
             </div>
+          </div>
+          {/* GHL Sync Toggle */}
+          <div className="flex items-center justify-between px-1 py-2 border-t border-border/30">
+            <div className="flex items-center gap-2">
+              <RefreshCw className="h-3.5 w-3.5 text-muted-foreground" />
+              <div>
+                <p className="text-xs font-medium text-foreground">Sync to GoHighLevel</p>
+                <p className="text-[10px] text-muted-foreground">Create/update this contact in GHL when saving</p>
+              </div>
+            </div>
+            <Switch
+              checked={form.syncToGhl !== false}
+              onCheckedChange={(v) => setForm({ ...form, syncToGhl: v })}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => { setCreateOpen(false); setEditOpen(false); }}>Cancel</Button>
