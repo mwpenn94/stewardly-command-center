@@ -48,10 +48,12 @@ export async function getSmsitCredentials(userId: number): Promise<SmsitCredenti
   const creds = await db.getIntegrationCredentials(userId, "smsit");
   if (!creds) return null;
 
-  if (!creds["API Key"]) return null;
+  // Support both API Key and Session Token as failover
+  const apiKey = creds["API Key"] || creds["Session Token"];
+  if (!apiKey) return null;
 
   return {
-    apiKey: creds["API Key"],
+    apiKey,
     senderId: creds["Sender ID"] || undefined,
   };
 }
@@ -63,10 +65,12 @@ export async function getDripifyCredentials(userId: number): Promise<DripifyCred
   const creds = await db.getIntegrationCredentials(userId, "dripify");
   if (!creds) return null;
 
-  if (!creds["API Key"]) return null;
+  // Support both API Key and Session Cookie as failover
+  const apiKey = creds["API Key"] || creds["Session Cookie"];
+  if (!apiKey) return null;
 
   return {
-    apiKey: creds["API Key"],
+    apiKey,
     webhookUrl: creds["Webhook URL"] || undefined,
   };
 }

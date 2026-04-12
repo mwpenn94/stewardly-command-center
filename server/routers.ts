@@ -722,21 +722,28 @@ export const appRouter = router({
               }
             }
           } else if (input.platform === "smsit") {
-            if (!creds["API Key"]) {
-              result = { success: false, message: "API Key is required" };
+            const apiKey = creds["API Key"];
+            const sessionToken = creds["Session Token"];
+            if (!apiKey && !sessionToken) {
+              result = { success: false, message: "API Key or Session Token is required" };
             } else {
-              result = await smsitService.testConnection({ apiKey: creds["API Key"], senderId: creds["Sender ID"] });
+              result = await smsitService.testConnection({ apiKey: apiKey || sessionToken || "", senderId: creds["Sender ID"] });
             }
           } else if (input.platform === "dripify") {
-            if (!creds["API Key"]) {
-              result = { success: false, message: "API Key is required" };
+            const apiKey = creds["API Key"];
+            const sessionCookie = creds["Session Cookie"];
+            if (!apiKey && !sessionCookie) {
+              result = { success: false, message: "API Key or Session Cookie is required" };
             } else {
-              result = await dripifyService.testConnection({ apiKey: creds["API Key"], webhookUrl: creds["Webhook URL"] });
+              result = await dripifyService.testConnection({ apiKey: apiKey || sessionCookie || "", webhookUrl: creds["Webhook URL"] });
             }
           } else if (input.platform === "linkedin") {
             const token = creds["Access Token"];
-            if (!token) {
-              result = { success: false, message: "Access Token is required" };
+            const sessionCookie = creds["Session Cookie"];
+            if (!token && !sessionCookie) {
+              result = { success: false, message: "Access Token or Session Cookie (li_at) is required" };
+            } else if (sessionCookie) {
+              result = { success: true, message: "LinkedIn session cookie stored. Live verification occurs on first API call." };
             } else {
               result = { success: true, message: "LinkedIn token validated. Live verification occurs on first API call." };
             }

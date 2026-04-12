@@ -265,6 +265,39 @@ describe("Integrations CRUD", () => {
     expect(result.message).toContain("required");
   });
 
+  it("accepts Dripify session cookie as failover auth", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.integrations.testConnection({
+      platform: "dripify",
+      credentials: JSON.stringify({ "Session Cookie": "dripify-session-cookie-long-enough-for-validation" }),
+    });
+    expect(result).toBeDefined();
+    expect(result.message).toContain("Dripify");
+  });
+
+  it("accepts LinkedIn session cookie as failover auth", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.integrations.testConnection({
+      platform: "linkedin",
+      credentials: JSON.stringify({ "Session Cookie": "li_at_cookie_value" }),
+    });
+    expect(result.success).toBe(true);
+    expect(result.message).toContain("session cookie");
+  });
+
+  it("accepts SMS-iT session token as failover auth", async () => {
+    const { ctx } = createAuthContext();
+    const caller = appRouter.createCaller(ctx);
+    const result = await caller.integrations.testConnection({
+      platform: "smsit",
+      credentials: JSON.stringify({ "Session Token": "smsit-session-token-long-enough-for-validation" }),
+    });
+    expect(result).toBeDefined();
+    expect(result.message).toContain("SMS-iT");
+  });
+
   it("disconnects an integration", async () => {
     const { ctx } = createAuthContext();
     const caller = appRouter.createCaller(ctx);

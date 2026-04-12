@@ -30,7 +30,8 @@ const PLATFORMS = [
     name: "Dripify",
     description: "LinkedIn outreach automation and drip campaigns",
     fields: [
-      { key: "API Key", required: true, hint: "Found in Dripify → Settings → API" },
+      { key: "API Key", required: false, hint: "Found in Dripify → Settings → API (use this OR Session Cookie)" },
+      { key: "Session Cookie", required: false, hint: "Paste your Dripify session cookie from browser DevTools as failover auth" },
       { key: "Webhook URL", required: false, hint: "Auto-generated webhook endpoint for event ingestion" },
     ],
     color: "text-violet-400",
@@ -41,7 +42,9 @@ const PLATFORMS = [
     name: "LinkedIn",
     description: "Professional network data and Sales Navigator",
     fields: [
-      { key: "Access Token", required: true, hint: "OAuth token from LinkedIn Developer Portal" },
+      { key: "Access Token", required: false, hint: "OAuth token from LinkedIn Developer Portal (use this OR Session Cookie)" },
+      { key: "Session Cookie", required: false, hint: "Paste li_at cookie from browser DevTools as failover auth" },
+      { key: "JSESSIONID", required: false, hint: "Paste JSESSIONID cookie (optional, improves session stability)" },
     ],
     color: "text-sky-400",
     bgColor: "bg-sky-500/10",
@@ -51,8 +54,10 @@ const PLATFORMS = [
     name: "SMS-iT",
     description: "SMS messaging and campaign delivery",
     fields: [
-      { key: "API Key", required: true, hint: "Found in SMS-iT → Settings → API Keys" },
+      { key: "API Key", required: false, hint: "Found in SMS-iT → Settings → API Keys (primary auth method)" },
+      { key: "Session Token", required: false, hint: "Paste session token from SMS-iT dashboard as failover auth" },
       { key: "Sender ID", required: false, hint: "Your registered sender ID for outbound SMS" },
+      { key: "Webhook Secret", required: false, hint: "Webhook signing secret for delivery status callbacks" },
     ],
     color: "text-emerald-400",
     bgColor: "bg-emerald-500/10",
@@ -112,16 +117,25 @@ export default function Integrations() {
 
   const handleSave = () => {
     if (!activePlatform) return;
-    // GHL special validation: need either API Key or JWT Token
+    // Platform-specific validation with failover auth support
     if (activePlatform.id === "ghl") {
       if (!creds["API Key"]?.trim() && !creds["JWT Token"]?.trim()) {
         toast.error("Either API Key or JWT Token is required for GoHighLevel");
         return;
       }
-    } else {
-      const missing = activePlatform.fields.filter(f => f.required && !creds[f.key]?.trim());
-      if (missing.length > 0) {
-        toast.error(`Missing required fields: ${missing.map(f => f.key).join(", ")}`);
+    } else if (activePlatform.id === "dripify") {
+      if (!creds["API Key"]?.trim() && !creds["Session Cookie"]?.trim()) {
+        toast.error("Either API Key or Session Cookie is required for Dripify");
+        return;
+      }
+    } else if (activePlatform.id === "linkedin") {
+      if (!creds["Access Token"]?.trim() && !creds["Session Cookie"]?.trim()) {
+        toast.error("Either Access Token or Session Cookie (li_at) is required for LinkedIn");
+        return;
+      }
+    } else if (activePlatform.id === "smsit") {
+      if (!creds["API Key"]?.trim() && !creds["Session Token"]?.trim()) {
+        toast.error("Either API Key or Session Token is required for SMS-iT");
         return;
       }
     }
@@ -141,10 +155,19 @@ export default function Integrations() {
         toast.error("Either API Key or JWT Token is required for GoHighLevel");
         return;
       }
-    } else {
-      const missing = activePlatform.fields.filter(f => f.required && !creds[f.key]?.trim());
-      if (missing.length > 0) {
-        toast.error(`Missing required fields: ${missing.map(f => f.key).join(", ")}`);
+    } else if (activePlatform.id === "dripify") {
+      if (!creds["API Key"]?.trim() && !creds["Session Cookie"]?.trim()) {
+        toast.error("Either API Key or Session Cookie is required for Dripify");
+        return;
+      }
+    } else if (activePlatform.id === "linkedin") {
+      if (!creds["Access Token"]?.trim() && !creds["Session Cookie"]?.trim()) {
+        toast.error("Either Access Token or Session Cookie (li_at) is required for LinkedIn");
+        return;
+      }
+    } else if (activePlatform.id === "smsit") {
+      if (!creds["API Key"]?.trim() && !creds["Session Token"]?.trim()) {
+        toast.error("Either API Key or Session Token is required for SMS-iT");
         return;
       }
     }
