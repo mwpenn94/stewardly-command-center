@@ -89,34 +89,33 @@ async function executeEmailCampaign(
     }
 
     try {
-      // GHL email sending via internal API
-      const useInternal = !!config.ghlCreds.jwt;
-      const baseUrl = useInternal ? "https://backend.leadconnectorhq.com" : "https://services.leadconnectorhq.com";
-      const headers: Record<string, string> = useInternal
-        ? { Authorization: `Bearer ${config.ghlCreds.jwt}`, "Content-Type": "application/json", Source: "WEB_USER", Channel: "APP", Version: "2021-07-28" }
-        : { Authorization: `Bearer ${config.ghlCreds.apiKey}`, "Content-Type": "application/json", Version: "2021-07-28" };
+      if (!contact.ghlContactId) {
+        result.failed++;
+        result.errors.push({ contactId: contact.id, error: "No GHL contact ID — contact must be synced to GHL first" });
+        continue;
+      }
 
-      const emailPayload = {
-        type: "Email",
+      const interpolatedBody = interpolateTemplate(config.body, contact);
+      const emailResult = await ghl.sendEmail(config.ghlCreds!, {
         contactId: contact.ghlContactId,
         subject: config.subject || config.campaignName,
-        body: interpolateTemplate(config.body, contact),
-        html: interpolateTemplate(config.body, contact),
-      };
-
-      const res = await fetch(`${baseUrl}/conversations/messages`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(emailPayload),
+        html: interpolatedBody,
+        message: interpolatedBody.replace(/<[^>]*>/g, ""), // strip HTML for plain text
+        emailTo: contact.email,
       });
 
-      if (res.ok) {
+      if (emailResult.success) {
         result.sent++;
-        result.platformResults.push({ contactId: contact.id, status: "sent", platform: "ghl" });
+        result.platformResults.push({
+          contactId: contact.id,
+          status: "sent",
+          platform: "ghl",
+          messageId: emailResult.messageId,
+          conversationId: emailResult.conversationId,
+        });
       } else {
         result.failed++;
-        const text = await res.text();
-        result.errors.push({ contactId: contact.id, error: `GHL email ${res.status}: ${text.slice(0, 100)}` });
+        result.errors.push({ contactId: contact.id, error: emailResult.error || "GHL email send failed" });
       }
     } catch (err: any) {
       result.failed++;

@@ -244,7 +244,58 @@ export const appRouter = router({
         const result = await ghlService.searchContacts(ghlCreds, input.query, input.limit || 20);
         return result;
       }),
-    // Pull a contact from GHL into local DB
+    // Pull a batch of contacts from GHL (polling-based bidirectional sync)
+    pullBatch: protectedProcedure
+      .input(z.object({ limit: z.number().min(1).max(100).optional(), startAfterId: z.string().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const ghlCreds = await credentialHelper.getGhlCredentials(ctx.user.id);
+        if (!ghlCreds) throw new Error("GHL not configured");
+        const result = await ghlService.listContacts(ghlCreds, { limit: input.limit || 20, startAfterId: input.startAfterId });
+        if (!result.success) throw new Error(result.error || "Failed to list GHL contacts");
+
+        let synced = 0;
+        let skipped = 0;
+        for (const c of result.contacts || []) {
+          try {
+            // Check if contact already exists locally
+            const existingResult = await db.getContacts(ctx.user.id, { search: c.email || c.id, limit: 1 });
+            if (existingResult.contacts.length > 0) {
+              skipped++;
+              continue;
+            }
+            await db.createContact({
+              userId: ctx.user.id,
+              ghlContactId: c.id,
+              firstName: c.firstName || "",
+              lastName: c.lastName || "",
+              email: c.email || "",
+              phone: c.phone || "",
+              address: c.address1 || "",
+              city: c.city || "",
+              state: c.state || "",
+              postalCode: c.postalCode || "",
+              companyName: c.companyName || "",
+              tags: c.tags ? JSON.stringify(c.tags) : null,
+              syncStatus: "synced",
+              lastSyncedAt: new Date(),
+            } as any);
+            synced++;
+          } catch (err) {
+            skipped++;
+          }
+        }
+
+        await db.logActivity({
+          userId: ctx.user.id,
+          type: "sync",
+          action: "pull_batch",
+          description: `Pulled ${synced} contacts from GHL (${skipped} skipped)`,
+          severity: "info",
+        });
+
+        return { synced, skipped, total: result.total, hasMore: (result.contacts?.length || 0) >= (input.limit || 20) };
+      }),
+    // Pull a single contact from GHL into local DB
     pullFromGhl: protectedProcedure
       .input(z.object({ ghlContactId: z.string() }))
       .mutation(async ({ ctx, input }) => {
@@ -373,6 +424,34 @@ export const appRouter = router({
         });
 
         return { success: true, jobId: input.importId };
+      }),
+    // Send a direct email via GHL Conversations API
+    sendEmail: protectedProcedure
+      .input(z.object({
+        contactId: z.string(),
+        subject: z.string(),
+        html: z.string(),
+        message: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const ghlCreds = await credentialHelper.getGhlCredentials(ctx.user.id);
+        if (!ghlCreds) throw new Error("GHL not configured");
+        const result = await ghlService.sendEmail(ghlCreds, {
+          contactId: input.contactId,
+          subject: input.subject,
+          html: input.html,
+          message: input.message,
+        });
+        if (result.success) {
+          await db.logActivity({
+            userId: ctx.user.id,
+            type: "campaign",
+            action: "email_sent",
+            description: `Email sent to GHL contact ${input.contactId}: ${input.subject}`,
+            severity: "info",
+          });
+        }
+        return result;
       }),
     // Get live sync progress
     syncProgress: protectedProcedure.query(async () => {

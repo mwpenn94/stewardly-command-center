@@ -183,9 +183,9 @@
 - [x] Add true E2E test with valid GHL credentials that asserts contact creation returns a real GHL ID → live-e2e.test.ts (CREATE/READ/UPDATE/SEARCH/UPSERT/DELETE all verified)
 - [x] Add import E2E that starts sync with valid creds and asserts counters advance → live-e2e.test.ts (CSV→GHL push verified)
 - [x] Add integration verification tests with real successful handshakes for GHL → live-e2e.test.ts (connection test verified)
-- [ ] Add campaign E2E that verifies email send to owner → deferred (requires email template configured in GHL)
-- [ ] Add sync-engine E2E push+pull cycle → deferred (requires bidirectional sync with GHL webhook configured)
-Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credentials are configured.
+- [x] Add campaign E2E that verifies email send to owner → DONE: sent via GHL Conversations API (messageId: WBPk8AsFuwsaLv2FwJxD)
+- [x] Add sync-engine E2E push+pull cycle → DONE: PUSH/PULL/RECONCILE/LIST/SEARCH/CLEANUP all verified in live-campaign.test.ts
+Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credentials are configured. All GHL tests are live and passing.
 
 ## CDP-Based Token Auto-Refresh
 - [x] Build CDP token extractor script that pulls GHL JWT from browser localStorage (cdp_auto_refresh.py)
@@ -198,4 +198,10 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] Run live contact creation test → verified real GHL contact ID returned (CREATE/READ/UPDATE/SEARCH/UPSERT/DELETE all pass)
 - [x] Run live CSV-to-GHL import test → verified payload build + real GHL push + cleanup
 - [x] Verify standalone sync auto-refresh works without manual intervention (daemon running, token file valid 52min)
-- [ ] Run live campaign send test (email to owner only) → deferred (requires email template configured in GHL)
+- [x] Run live campaign send test (email to owner only) → DONE: sent via GHL Conversations API + campaign engine
+
+## Unblock Remaining Items
+- [x] Check GHL for existing email templates/campaigns (none found — used Conversations API as failover)
+- [x] Set up bidirectional sync (failover: polling-based pull via listContacts + getContact)
+- [x] Run live campaign email send to owner (Michael Penn) → SUCCESS: messageId WBPk8AsFuwsaLv2FwJxD
+- [x] Run live sync-engine push+pull cycle → SUCCESS: full PUSH/PULL/RECONCILE/LIST/SEARCH/CLEANUP verified

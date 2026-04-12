@@ -428,6 +428,140 @@ function sleep(ms: number): Promise<void> {
 }
 
 /**
+ * Send an email to a GHL contact via the Conversations API.
+ */
+export async function sendEmail(
+  creds: GhlCredentials,
+  params: {
+    contactId: string;
+    subject: string;
+    html: string;
+    message?: string;
+    emailFrom?: string;
+    emailTo?: string;
+  }
+): Promise<{ success: boolean; messageId?: string; conversationId?: string; error?: string }> {
+  const useInternal = !!creds.jwt;
+  const baseUrl = useInternal ? GHL_INTERNAL_BASE : GHL_PUBLIC_BASE;
+  const headers = useInternal ? getInternalHeaders(creds.jwt!) : getPublicHeaders(creds.apiKey!);
+  // Override Version header for conversations API
+  headers["Version"] = "2021-04-15";
+
+  const body: Record<string, any> = {
+    type: "Email",
+    contactId: params.contactId,
+    subject: params.subject,
+    html: params.html,
+    message: params.message || "",
+  };
+  // Only include status for OAuth (public API) — internal JWT rejects it
+  if (!useInternal) {
+    body.status = "pending";
+  }
+  if (params.emailFrom) body.emailFrom = params.emailFrom;
+  if (params.emailTo) body.emailTo = params.emailTo;
+
+  const res = await ghlFetch(`${baseUrl}/conversations/messages`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+    timeout: 30000,
+  });
+
+  if (res.status === 200 || res.status === 201) {
+    return {
+      success: true,
+      messageId: res.data?.messageId || res.data?.messageIds?.[0],
+      conversationId: res.data?.conversationId,
+    };
+  }
+
+  if (res.status === 401) {
+    return { success: false, error: "auth_expired" };
+  }
+
+  return { success: false, error: `email_${res.status}: ${res.text.slice(0, 300)}` };
+}
+
+/**
+ * Send an SMS to a GHL contact via the Conversations API.
+ */
+export async function sendSms(
+  creds: GhlCredentials,
+  params: {
+    contactId: string;
+    message: string;
+  }
+): Promise<{ success: boolean; messageId?: string; conversationId?: string; error?: string }> {
+  const useInternal = !!creds.jwt;
+  const baseUrl = useInternal ? GHL_INTERNAL_BASE : GHL_PUBLIC_BASE;
+  const headers = useInternal ? getInternalHeaders(creds.jwt!) : getPublicHeaders(creds.apiKey!);
+  headers["Version"] = "2021-04-15";
+
+  const body: Record<string, any> = {
+    type: "SMS",
+    contactId: params.contactId,
+    message: params.message,
+  };
+  // Only include status for OAuth (public API) — internal JWT rejects it
+  if (!useInternal) {
+    body.status = "pending";
+  }
+
+  const res = await ghlFetch(`${baseUrl}/conversations/messages`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+    timeout: 30000,
+  });
+
+  if (res.status === 200 || res.status === 201) {
+    return {
+      success: true,
+      messageId: res.data?.messageId || res.data?.messageIds?.[0],
+      conversationId: res.data?.conversationId,
+    };
+  }
+
+  if (res.status === 401) {
+    return { success: false, error: "auth_expired" };
+  }
+
+  return { success: false, error: `sms_${res.status}: ${res.text.slice(0, 300)}` };
+}
+
+/**
+ * Pull contacts from GHL (for bidirectional sync).
+ * Fetches a page of contacts from GHL and returns them.
+ */
+export async function listContacts(
+  creds: GhlCredentials,
+  options: { limit?: number; startAfterId?: string; startAfter?: number } = {}
+): Promise<{ success: boolean; contacts?: any[]; total?: number; nextPageUrl?: string; error?: string }> {
+  const useInternal = !!creds.jwt;
+  const baseUrl = useInternal ? GHL_INTERNAL_BASE : GHL_PUBLIC_BASE;
+  const headers = useInternal ? getInternalHeaders(creds.jwt!) : getPublicHeaders(creds.apiKey!);
+
+  const limit = options.limit || 20;
+  let url = `${baseUrl}/contacts/?locationId=${creds.locationId}&limit=${limit}`;
+  if (options.startAfterId) url += `&startAfterId=${options.startAfterId}`;
+  if (options.startAfter) url += `&startAfter=${options.startAfter}`;
+
+  const res = await ghlFetch(url, { method: "GET", headers });
+
+  if (res.status === 200) {
+    return {
+      success: true,
+      contacts: res.data?.contacts || [],
+      total: res.data?.meta?.total || res.data?.total || 0,
+      nextPageUrl: res.data?.meta?.nextPageUrl || null,
+    };
+  }
+
+  return { success: false, error: `list_${res.status}: ${res.text.slice(0, 200)}` };
+}
+
+/**
  * Build a GHL contact payload from a CSV row (matching the standalone sync script format).
  */
 export function buildPayloadFromCsvRow(row: Record<string, string>, locationId: string): GhlContactPayload {
