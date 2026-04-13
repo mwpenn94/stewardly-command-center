@@ -18,6 +18,7 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 const Backups = lazy(() => import("./pages/Backups"));
 const ActivityFeed = lazy(() => import("./pages/ActivityFeed"));
 const Settings = lazy(() => import("./pages/Settings"));
+const AIInsights = lazy(() => import("./pages/AIInsights"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 function PageLoader() {
@@ -44,6 +45,7 @@ function Router() {
           <Route path="/backups" component={Backups} />
           <Route path="/activity" component={ActivityFeed} />
           <Route path="/settings" component={Settings} />
+          <Route path="/ai-insights" component={AIInsights} />
           <Route path="/404" component={NotFound} />
           <Route component={NotFound} />
         </Switch>

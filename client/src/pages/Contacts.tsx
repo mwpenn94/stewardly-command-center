@@ -109,7 +109,7 @@ export default function Contacts() {
               />
             </div>
             <Select value={segment} onValueChange={(v) => { setSegment(v); setPage(0); }}>
-              <SelectTrigger className="w-[160px] bg-muted/30 border-border/50">
+              <SelectTrigger className="w-full sm:w-[160px] bg-muted/30 border-border/50">
                 <SelectValue placeholder="Segment" />
               </SelectTrigger>
               <SelectContent>
@@ -119,7 +119,7 @@ export default function Contacts() {
               </SelectContent>
             </Select>
             <Select value={tier} onValueChange={(v) => { setTier(v); setPage(0); }}>
-              <SelectTrigger className="w-[140px] bg-muted/30 border-border/50">
+              <SelectTrigger className="w-full sm:w-[140px] bg-muted/30 border-border/50">
                 <SelectValue placeholder="Tier" />
               </SelectTrigger>
               <SelectContent>
@@ -172,7 +172,7 @@ export default function Contacts() {
               ))}
             </div>
           ) : (
-            <div className="p-12 text-center">
+            <div className="p-6 sm:p-12 text-center">
               <Users className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-muted-foreground">No contacts found</p>
               <p className="text-xs text-muted-foreground/60 mt-1">Import contacts or create one to get started.</p>
@@ -246,7 +246,7 @@ export default function Contacts() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="p-12 text-center">
+                  <td colSpan={7} className="p-6 sm:p-12 text-center">
                     <Users className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
                     <p className="text-muted-foreground">No contacts found</p>
                     <p className="text-xs text-muted-foreground/60 mt-1">Import contacts or create one to get started.</p>
@@ -263,10 +263,10 @@ export default function Contacts() {
               Page {page + 1} of {totalPages}
             </p>
             <div className="flex gap-1">
-              <Button variant="outline" size="icon" className="h-7 w-7" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
+              <Button variant="outline" size="icon" className="h-9 w-9 sm:h-7 sm:w-7" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" className="h-7 w-7" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
+              <Button variant="outline" size="icon" className="h-9 w-9 sm:h-7 sm:w-7" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

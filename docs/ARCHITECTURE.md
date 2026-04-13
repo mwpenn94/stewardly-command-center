@@ -50,6 +50,7 @@ Wouter lightweight client-side routing with a single layout wrapping all pages. 
 | `/backups` | Backups | Data export and backup management |
 | `/activity` | ActivityFeed | System audit log with filtering |
 | `/settings` | Settings | Theme, notifications, timezone, integrations links |
+| `/ai-insights` | AIInsights | AI engine: health scores, recommendations, predictions, lead scoring |
 | `/404` | NotFound | 404 page (also used as catch-all) |
 
 ## State Management
@@ -102,6 +103,7 @@ Mobile-first breakpoints: `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1
 | `syncScheduler.ts` | 205 | Periodic cross-platform sync scheduling |
 | `smsit.ts` | 181 | SMS-iT: send, balance, contacts, templates |
 | `credentials.ts` | 124 | DB credential loading + format normalization |
+| `aiEngine.ts` | 350 | AI/agentic engine: health scores, predictions, recommendations, lead scoring |
 
 ## Custom Components
 
@@ -163,8 +165,23 @@ Test isolation: non-live tests use `userId: 9999` to avoid overwriting productio
 - Test isolation prevents credential corruption (`userId: 9999`)
 - Role-based access: admin (owner) vs user (member)
 
+## AI/Agentic Continuous Improvement Engine
+
+The AI engine (`server/services/aiEngine.ts`) provides three analytical layers:
+
+1. **Retrospective** — Historical trend analysis from activity logs, campaign metrics, and sync history
+2. **Real-time** — Live health scores computed from current system state across 5 categories (contacts, campaigns, sync, integrations, data quality)
+3. **Predictive** — Trend-based forecasting for contact growth, campaign engagement, sync reliability, and data completeness
+
+Key capabilities:
+- **Health scoring** — 0-100 scores per category with overall weighted composite
+- **Recommendations** — Prioritized (critical/high/medium/low) with actionable CTAs and progress metrics
+- **Lead scoring** — Data-completeness + engagement-based algorithm that auto-assigns Gold/Silver/Bronze tiers
+- **Segment analysis** — Contact distribution, tier breakdown, and engagement metrics per segment
+- **Campaign performance** — Per-channel metrics (open rate, click rate, conversion) with trend direction
+
 ## Future Architecture (Planned)
 
 1. **Real-time WebSocket** — Live sync status and notification streaming
-2. **AI/LLM Engine** — Natural language queries, predictive analytics, churn prediction
+2. **LLM Integration** — Natural language queries for contact and campaign insights
 3. **OAuth2 Flows** — Standard auth for GHL and LinkedIn (currently uses JWT/cookie extraction)

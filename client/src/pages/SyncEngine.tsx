@@ -223,7 +223,7 @@ export default function SyncEngine() {
           })
         ) : (
           <Card className="bg-card border-border/50">
-            <CardContent className="p-12 text-center">
+            <CardContent className="p-6 sm:p-12 text-center">
               <Inbox className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-muted-foreground">Sync queue is empty</p>
               <p className="text-xs text-muted-foreground/60 mt-1">Items will appear here when contacts are synced across platforms.</p>

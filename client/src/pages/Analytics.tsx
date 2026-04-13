@@ -254,7 +254,7 @@ export default function Analytics() {
               Conversion Funnel
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-12 text-center">
+          <CardContent className="p-6 sm:p-12 text-center">
             <p className="text-muted-foreground text-sm">Campaign funnel will populate as campaigns run and collect metrics.</p>
             <p className="text-xs text-muted-foreground/60 mt-1">Open rates, click rates, conversions, and cost per lead tracked per channel.</p>
           </CardContent>

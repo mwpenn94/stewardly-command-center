@@ -13,6 +13,7 @@ import { syncWorker } from "./services/syncWorker";
 import { storagePut } from "./storage";
 import * as orchestrator from "./services/orchestrator";
 import { syncScheduler } from "./services/syncScheduler";
+import * as aiEngine from "./services/aiEngine";
 
 const PLATFORMS_LABELS: Record<string, string> = {
   ghl: "GoHighLevel",
@@ -1071,6 +1072,59 @@ export const appRouter = router({
       .input(z.object({ platform: z.string(), payload: z.any() }))
       .mutation(({ input }) => syncScheduler.processWebhook(input.platform, input.payload)),
   }),
-});;
+
+  // ─── AI / Agentic Continuous Improvement Engine ─────────────────────
+  ai: router({
+    insights: protectedProcedure.query(async ({ ctx }) => {
+      return aiEngine.generateInsightsReport(ctx.user.id);
+    }),
+
+    healthScore: protectedProcedure.query(async ({ ctx }) => {
+      const report = await aiEngine.generateInsightsReport(ctx.user.id);
+      return report.healthScore;
+    }),
+
+    recommendations: protectedProcedure.query(async ({ ctx }) => {
+      const report = await aiEngine.generateInsightsReport(ctx.user.id);
+      return report.recommendations;
+    }),
+
+    predictions: protectedProcedure.query(async ({ ctx }) => {
+      const report = await aiEngine.generateInsightsReport(ctx.user.id);
+      return report.predictions;
+    }),
+
+    leadScore: protectedProcedure
+      .input(z.object({ contactId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const contact = await db.getContactById(input.contactId, ctx.user.id);
+        if (!contact) return null;
+        return aiEngine.computeLeadScore(contact);
+      }),
+
+    bulkLeadScore: protectedProcedure.mutation(async ({ ctx }) => {
+      const { contacts } = await db.getContacts(ctx.user.id, { limit: 200 });
+      let updated = 0;
+      for (const contact of contacts) {
+        const { score, tier } = aiEngine.computeLeadScore(contact);
+        if (contact.tier !== tier || contact.propensityScore !== String(score)) {
+          await db.updateContact(contact.id, ctx.user.id, {
+            propensityScore: String(score),
+            tier,
+          });
+          updated++;
+        }
+      }
+      await db.logActivity({
+        userId: ctx.user.id,
+        type: "enrichment",
+        action: "bulk_lead_score",
+        description: `AI engine scored ${updated} contacts out of ${contacts.length}`,
+        severity: "success",
+      });
+      return { scored: updated, total: contacts.length };
+    }),
+  }),
+});
 
 export type AppRouter = typeof appRouter;

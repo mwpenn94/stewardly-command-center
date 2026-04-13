@@ -33,8 +33,8 @@
 | G21 | Multi-platform campaign orchestration | Done | 3 | Orchestrator: sequences, health checks, pause/resume/cancel | legacy |
 | G22 | Test suite (10 files, 3 tiers) | Done | 4 | Unit + integration + live E2E across 10 files | legacy |
 | G23 | Notification center | Done | 3 | Bell icon in header with popover, shows recent activity with severity badges, auto-refresh 30s | Pass 13 |
-| G24 | AI/Agentic continuous improvement engine | Open | 0 | Future: LLM integration, predictive analytics, churn prediction | — |
-| G25 | Predictive analytics | Open | 0 | Future: ML-based forecasting, propensity modeling | — |
+| G24 | AI/Agentic continuous improvement engine | Done | 4 | Health scores, recommendations, predictions, lead scoring, segment analysis, campaign performance, automation summary | Pass 18 |
+| G25 | Predictive analytics | Done | 3 | Trend-based forecasting for contacts, campaigns, sync, data quality; confidence scores | Pass 18 |
 | G26 | OAuth2 standard auth flows | Open | 0 | Currently JWT/cookie extraction; needs standard OAuth2 | — |
 | G27 | Light mode theme polish | Done | 4 | Full OKLCH light theme with warm gold accents, card hover adjustments | Pass 10 |
 | G28 | Code splitting / lazy loading | Done | 5 | Lazy routes + vendor chunks: main 346KB, vendors 204KB, pages 3-34KB | Pass 12 |
@@ -58,6 +58,9 @@
 | G46 | Backup status alignment | Done | 2 | Status badges use actual schema values (ready/expired) instead of wrong literals (completed/failed) | Pass 16 |
 | G47 | Documentation accuracy overhaul | Done | 5 | All docs rewritten: README, DOCUMENTATION, ARCHITECTURE, CHANGELOG, PARITY — correct counts, line numbers, inventories | Pass 17 |
 | G48 | Portable build config | Done | 3 | Manus-specific Vite plugins load conditionally; build works in any environment | Pass 17 |
+| G49 | Mobile responsiveness deep fix | Done | 4 | Responsive grids on BulkImport, full-width selects on mobile, reduced empty state padding (p-6 sm:p-12), dialog width fix | Pass 18 |
+| G50 | AI lead scoring engine | Done | 3 | Data-completeness + engagement-based scoring algorithm, bulk scoring mutation, tier auto-assignment | Pass 18 |
+| G51 | AI Insights page (full dashboard) | Done | 4 | Health gauges, recommendations with actionable CTAs, predictions with confidence, segment + campaign analysis, automation summary | Pass 18 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -79,6 +82,10 @@
 - All dialogs have explicit Cancel buttons for clear dismissal UX
 - Documentation accuracy: all counts, line numbers, and inventories verified against source
 - Portable build: Vite config works with or without Manus-specific plugins
+- AI/Agentic engine: health scores, recommendations, predictions, lead scoring
+- AI Insights page accessible in sidebar navigation at /ai-insights
+- Mobile-responsive empty states (p-6 sm:p-12) across all pages
+- Full-width select filters on mobile for ActivityFeed, Backups, Contacts
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -109,3 +116,4 @@
 - Pass 15 · keyboard shortcuts + campaign mobile + dev ergonomics · G40,G41 done; ? help dialog, G+nav, campaign tabs responsive · 4a20e16 · 2 items completed · G24,G25,G26 deferred
 - Pass 16 · dialog UX + type safety + security · G42-G46 done; Cancel buttons, 0 TS errors in pages, masked JWT, disabled coming-soon, backup status fix · PENDING · 5 items completed · G24,G25,G26 deferred
 - Pass 17 · documentation accuracy + build fix · G47,G48 done; all 5 doc files rewritten with verified counts, CHANGELOG purged of property-mgmt entries, vite config portable · PENDING · 2 items completed · G24,G25,G26 deferred
+- Pass 18 · AI engine + mobile deep fix + build health · G24,G25,G49-G51 done; AI insights page, lead scoring engine, 15+ mobile fixes, build verified · PENDING · 5 items completed · G26 deferred

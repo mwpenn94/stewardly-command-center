@@ -41,9 +41,9 @@ export default function ActivityFeed() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[150px] bg-muted/30 border-border/50"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[150px] bg-muted/30 border-border/50"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="sync">Sync</SelectItem>
@@ -56,7 +56,7 @@ export default function ActivityFeed() {
           </SelectContent>
         </Select>
         <Select value={severityFilter} onValueChange={setSeverityFilter}>
-          <SelectTrigger className="w-[140px] bg-muted/30 border-border/50"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[140px] bg-muted/30 border-border/50"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Severity</SelectItem>
             <SelectItem value="info">Info</SelectItem>

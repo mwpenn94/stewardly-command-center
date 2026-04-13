@@ -245,7 +245,7 @@ export default function BulkImport() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
               <div className="text-center">
                 <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Created</p>
                 <p className="text-sm font-semibold text-emerald-400 tabular-nums">{syncProgress.created.toLocaleString()}</p>
@@ -520,7 +520,7 @@ export default function BulkImport() {
                       <span className="tabular-nums font-medium text-foreground">{pct}%</span>
                     </div>
                     <Progress value={pct} className="h-1.5" />
-                    <div className="grid grid-cols-4 gap-4 pt-1">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 pt-1">
                       <div className="text-center">
                         <p className="text-xs text-muted-foreground">Created</p>
                         <p className="text-sm font-medium text-emerald-400 tabular-nums">{(imp.createdCount || 0).toLocaleString()}</p>
@@ -545,7 +545,7 @@ export default function BulkImport() {
           })
         ) : (
           <Card className="bg-card border-border/50">
-            <CardContent className="p-12 text-center">
+            <CardContent className="p-6 sm:p-12 text-center">
               <FileText className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-muted-foreground">No imports yet</p>
               <p className="text-xs text-muted-foreground/60 mt-1">Upload a CSV file to start importing contacts to GHL.</p>

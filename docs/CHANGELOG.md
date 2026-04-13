@@ -4,6 +4,19 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.0] - 2026-04-13
+
+### Added
+- **AI/Agentic Continuous Improvement Engine** — Full backend service (`server/services/aiEngine.ts`) computing health scores, predictions, recommendations, and lead scores from real data across contacts, campaigns, sync, and integrations
+- **AI Insights page** — New `/ai-insights` route with system health gauges (overall + 5 categories), prioritized recommendations with actionable CTAs, trend-based predictions with confidence scores, campaign performance by channel, segment analysis, and automation summary
+- **AI lead scoring** — Data-completeness + engagement-based scoring algorithm with bulk scoring mutation that auto-assigns Gold/Silver/Bronze tiers
+- **tRPC AI router** — 6 new procedures: `ai.insights`, `ai.healthScore`, `ai.recommendations`, `ai.predictions`, `ai.leadScore`, `ai.bulkLeadScore`
+- AI Insights entry in sidebar navigation with Brain icon
+
+### Fixed
+- **Mobile responsiveness deep fix** — BulkImport stats grid (6-col → 2/3/6 responsive), import history grid (4-col → 2/4 responsive), ManusDialog width (fixed 400px → responsive calc), SelectTrigger widths now full-width on mobile across Backups, ActivityFeed, Contacts; pagination buttons use 36px on mobile; all empty state padding reduced from p-12 to p-6 sm:p-12 (9 instances across 7 pages)
+- Backup create form layout now stacks on mobile instead of forced flex-row
+
 ## [1.0.0] - 2026-04-13
 
 ### Added

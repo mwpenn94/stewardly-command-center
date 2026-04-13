@@ -256,7 +256,7 @@ export default function Campaigns() {
             })
           ) : (
             <Card className="bg-card border-border/50">
-              <CardContent className="p-12 text-center">
+              <CardContent className="p-6 sm:p-12 text-center">
                 <Megaphone className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-muted-foreground">No campaigns yet</p>
                 <p className="text-xs text-muted-foreground/60 mt-1">Create your first campaign to start outreach.</p>
@@ -329,7 +329,7 @@ export default function Campaigns() {
             ))
           ) : (
             <Card className="bg-card border-border/50">
-              <CardContent className="p-12 text-center">
+              <CardContent className="p-6 sm:p-12 text-center">
                 <Zap className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-muted-foreground">No sequences yet</p>
                 <p className="text-xs text-muted-foreground/60 mt-1">Create a multi-step sequence to coordinate outreach across Email, SMS, and LinkedIn.</p>
@@ -359,7 +359,7 @@ export default function Campaigns() {
             })
           ) : (
             <Card className="bg-card border-border/50">
-              <CardContent className="p-12 text-center">
+              <CardContent className="p-6 sm:p-12 text-center">
                 <FileText className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
                 <p className="text-muted-foreground">No templates yet</p>
               </CardContent>

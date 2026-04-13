@@ -58,11 +58,11 @@ export default function Backups() {
           <CardTitle className="text-base font-medium text-foreground">Create Backup</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-3 items-end">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:items-end">
             <div className="space-y-2">
               <label className="text-xs text-muted-foreground">Data Type</label>
               <Select value={backupType} onValueChange={(v) => setBackupType(v as "contacts" | "campaigns" | "full")}>
-                <SelectTrigger className="w-[160px] bg-muted/30 border-border/50"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-[160px] bg-muted/30 border-border/50"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="full">Full Backup</SelectItem>
                   <SelectItem value="contacts">Contacts Only</SelectItem>
@@ -74,7 +74,7 @@ export default function Backups() {
             <div className="space-y-2">
               <label className="text-xs text-muted-foreground">Format</label>
               <Select value={format} onValueChange={(v) => setFormat(v as "csv" | "json")}>
-                <SelectTrigger className="w-[120px] bg-muted/30 border-border/50"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full sm:w-[120px] bg-muted/30 border-border/50"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="csv">CSV</SelectItem>
                   <SelectItem value="json">JSON</SelectItem>
@@ -138,7 +138,7 @@ export default function Backups() {
           })
         ) : (
           <Card className="bg-card border-border/50">
-            <CardContent className="p-12 text-center">
+            <CardContent className="p-6 sm:p-12 text-center">
               <Database className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-muted-foreground">No backups yet</p>
               <p className="text-xs text-muted-foreground/60 mt-1">Create your first backup to protect your data.</p>

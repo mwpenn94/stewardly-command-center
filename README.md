@@ -85,6 +85,16 @@ A full-stack marketing operations platform that unifies contact management, mult
 - Auto-refreshes every 30 seconds
 - Alert badge count for warnings/errors
 
+### AI Insights (Continuous Improvement Engine)
+- System health score with 5-category breakdown (Contacts, Campaigns, Sync, Integrations, Data Quality)
+- Prioritized recommendations with actionable CTAs and progress metrics
+- Predictive analytics: trend-based forecasting for contact growth, campaign engagement, sync reliability, data quality
+- Campaign performance analysis by channel (open rate, click rate, conversion)
+- Contact segment analysis with tier distribution
+- One-click bulk lead scoring: auto-assigns Gold/Silver/Bronze tiers based on data completeness and engagement
+- Automation summary tracking completed/pending actions
+- Auto-refreshes every 2 minutes
+
 ### Platform Features
 - Dark/light theme with warm gold accent palette (OKLCH color space)
 - Plus Jakarta Sans + Instrument Serif typography
@@ -107,7 +117,7 @@ A full-stack marketing operations platform that unifies contact management, mult
 | Routing | Wouter |
 | Styling | Tailwind CSS 4 + shadcn/ui (53 Radix components) |
 | Server State | TanStack React Query + tRPC 11 |
-| Backend | Express 4 + tRPC (59 procedures) |
+| Backend | Express 4 + tRPC (65 procedures) |
 | Database | Drizzle ORM + MySQL (TiDB) — 9 tables |
 | Icons | Lucide React |
 | Animations | Framer Motion |
@@ -172,6 +182,7 @@ client/src/
     Backups.tsx           # Export management (151 lines)
     ActivityFeed.tsx      # Audit log (123 lines)
     Settings.tsx          # Preferences (226 lines)
+    AIInsights.tsx        # AI continuous improvement engine dashboard
     NotFound.tsx          # 404 page (52 lines)
   contexts/
     ThemeContext.tsx       # Light/dark theme with localStorage
