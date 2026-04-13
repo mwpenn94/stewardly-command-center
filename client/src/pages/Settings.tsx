@@ -11,14 +11,19 @@ import { toast } from "sonner";
 import { useState } from "react";
 import {
   Sun, Moon, Bell, Shield, Globe, Palette, User, Mail, Clock,
-  ChevronRight, Plug
+  ChevronRight, Plug, Archive, Radio, Brain, BarChart3, Upload,
+  CheckCircle2, XCircle
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { trpc } from "@/lib/trpc";
+import { Badge } from "@/components/ui/badge";
 
 export default function Settings() {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [, setLocation] = useLocation();
+  const { data: stats } = trpc.dashboard.stats.useQuery();
+  const { data: platformHealth } = trpc.orchestrator.platformHealth.useQuery();
 
   // Notification preferences (persisted in localStorage)
   const [emailNotifications, setEmailNotifications] = useState(() =>
@@ -197,28 +202,76 @@ export default function Settings() {
         </CardContent>
       </Card>
 
-      {/* Quick Links */}
+      {/* System Status */}
       <Card className="bg-card border-border/50">
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-medium text-foreground flex items-center gap-2">
             <Shield className="h-4 w-4 text-muted-foreground" />
-            Account & Integrations
+            System Status
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="p-3 rounded-lg bg-muted/10">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Contacts</p>
+              <p className="text-lg font-semibold text-foreground tabular-nums">{stats?.contacts?.toLocaleString() ?? "—"}</p>
+            </div>
+            <div className="p-3 rounded-lg bg-muted/10">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Campaigns</p>
+              <p className="text-lg font-semibold text-foreground tabular-nums">{stats?.campaigns?.toLocaleString() ?? "—"}</p>
+            </div>
+          </div>
+          <Separator />
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Platform Connections</p>
+            {(platformHealth || []).map((p) => (
+              <div key={p.platform} className="flex items-center gap-2">
+                {p.connected ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> : <XCircle className="h-3.5 w-3.5 text-red-400" />}
+                <span className="text-sm text-foreground capitalize">{p.platform === "ghl" ? "GoHighLevel" : p.platform === "smsit" ? "SMS-iT" : "Dripify"}</span>
+                <Badge variant="outline" className={`text-[9px] ml-auto ${p.connected ? "text-emerald-400" : "text-red-400"}`}>
+                  {p.connected ? "Connected" : "Disconnected"}
+                </Badge>
+              </div>
+            ))}
+            {(!platformHealth || platformHealth.length === 0) && (
+              <p className="text-xs text-muted-foreground">No platform connections configured.</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick Links */}
+      <Card className="bg-card border-border/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-medium text-foreground flex items-center gap-2">
+            <Globe className="h-4 w-4 text-muted-foreground" />
+            Quick Links
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-1">
-          <button
-            onClick={() => setLocation("/integrations")}
-            className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-muted/20 transition-colors min-h-[44px]"
-          >
-            <div className="flex items-center gap-3">
-              <Plug className="h-4 w-4 text-muted-foreground" />
-              <div className="text-left">
-                <p className="text-sm font-medium text-foreground">Platform Integrations</p>
-                <p className="text-xs text-muted-foreground">Manage GHL, SMS-iT, Dripify connections</p>
+          {[
+            { icon: Plug, label: "Platform Integrations", desc: "Manage GHL, SMS-iT, Dripify connections", path: "/integrations" },
+            { icon: Radio, label: "Channel Management", desc: "Configure 13 channels with providers and limits", path: "/channels" },
+            { icon: Archive, label: "Backups & Export", desc: "Create backups and export contact data", path: "/backups" },
+            { icon: Brain, label: "AI Insights", desc: "Health scores, recommendations, predictions", path: "/ai-insights" },
+            { icon: BarChart3, label: "Analytics", desc: "Campaign metrics and conversion funnel", path: "/analytics" },
+            { icon: Upload, label: "Bulk Import", desc: "Import contacts from CSV files", path: "/import" },
+          ].map((link) => (
+            <button
+              key={link.path}
+              onClick={() => setLocation(link.path)}
+              className="flex items-center justify-between w-full p-3 rounded-lg hover:bg-muted/20 transition-colors min-h-[44px]"
+            >
+              <div className="flex items-center gap-3">
+                <link.icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                <div className="text-left">
+                  <p className="text-sm font-medium text-foreground">{link.label}</p>
+                  <p className="text-xs text-muted-foreground">{link.desc}</p>
+                </div>
               </div>
-            </div>
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          </button>
+              <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
+            </button>
+          ))}
         </CardContent>
       </Card>
     </div>

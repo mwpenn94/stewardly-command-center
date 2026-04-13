@@ -10,9 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Global search — page navigation** — ⌘K search now surfaces all 13 app pages matching by label and keywords (e.g., type "ai" → AI Insights, "sync" → Sync Engine, "import" → Bulk Import). Pages appear in results before contacts and campaigns for faster navigation
 - **Analytics campaign performance chart** — New "Campaign Performance" section shows top 8 campaigns sorted by send volume with proportional bar charts, channel icons, and status badges; provides campaign-level drill-down for analytics
 - **Accessibility — ARIA on data visualizations** — `role="meter"` with `aria-valuenow`/`aria-valuemin`/`aria-valuemax` on Enrichment data completeness bars and Analytics conversion funnel steps; `aria-hidden` on decorative icons; `role="status"` with `aria-label` on campaign detail MetricCard components; `role="region"` with label on Analytics campaign performance section
+- **Settings page — system status** — Settings page now shows live contact/campaign counts, platform connection status with connected/disconnected badges, and 6 quick links to key app areas (Integrations, Channels, Backups, AI Insights, Analytics, Import)
 
 ### Fixed
 - **GlobalSearch type safety** — Replaced `any` types in contact and campaign search result callbacks with explicit typed interfaces
+- **Home.tsx type safety** — Eliminated all 5 `any` casts in Home.tsx; explicit typed interfaces for crossChannelMetrics, aiRecommendations, contactStats segments, activityLog entries, and platformHealth results
 
 ## [2.2.0] - 2026-04-13
 
