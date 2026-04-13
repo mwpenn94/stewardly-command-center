@@ -291,6 +291,51 @@ export default function Analytics() {
         </Card>
       )}
 
+      {/* Top Campaigns */}
+      {campaigns && campaigns.length > 0 && (
+        <Card className="bg-card border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium text-foreground flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              Campaign Performance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {campaigns
+                .map(c => ({ ...c, m: parseMetrics(c.metrics) }))
+                .sort((a, b) => (b.m.sent || 0) - (a.m.sent || 0))
+                .slice(0, 8)
+                .map((c) => {
+                  const sent = c.m.sent || 0;
+                  const maxSent = Math.max(...campaigns.map(cc => parseMetrics(cc.metrics).sent || 0), 1);
+                  const chCfg = channelConfig.find(ch => ch.key === c.channel);
+                  const Icon = chCfg?.icon || Mail;
+                  const color = chCfg?.color || "text-muted-foreground";
+                  return (
+                    <div key={c.id} className="flex items-center gap-3 p-2 rounded bg-muted/10">
+                      <Icon className={`h-4 w-4 ${color} shrink-0`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-xs font-medium text-foreground truncate">{c.name}</p>
+                          <Badge variant="outline" className="text-[9px] shrink-0">{c.status}</Badge>
+                        </div>
+                        <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
+                          <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${maxSent > 0 ? (sent / maxSent) * 100 : 0}%` }} />
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xs font-medium text-foreground tabular-nums">{formatNum(sent)}</p>
+                        <p className="text-[10px] text-muted-foreground">sent</p>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Tier Distribution */}
       <Card className="bg-card border-border/50">
         <CardHeader className="pb-3">

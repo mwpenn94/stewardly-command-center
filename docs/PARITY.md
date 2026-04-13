@@ -118,6 +118,8 @@
 | G106 | Mobile touch targets — dashboard badges | Done | 2 | Campaign lifecycle badges on dashboard have 44px min-height on mobile, keyboard accessible with role="button" | Pass 39 |
 | G107 | Contact campaign attribution — mobile | Done | 2 | Campaign channel text hidden on mobile (sm:inline) to prevent text overflow on 375px screens | Pass 39 |
 | G108 | TIMELINE_CHANNEL_ICONS typed | Done | 2 | Changed from Record<string, any> to Record<string, LucideIcon> in Contacts.tsx — removes another any type | Pass 39 |
+| G109 | Global search — page navigation | Done | 3 | ⌘K search now surfaces all 13 pages by label and keywords (e.g. type "ai" → AI Insights, type "sync" → Sync Engine); pages shown before contacts/campaigns; `any` types in search results replaced with explicit types | Pass 40 |
+| G110 | Analytics campaign performance chart | Done | 3 | Top 8 campaigns sorted by send volume with proportional bar chart, channel icon, status badge; campaign-level drill-down for analytics | Pass 40 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -184,6 +186,8 @@
 - Dashboard campaign lifecycle: status breakdown badges with click-to-navigate
 - Data completeness analytics: per-field completeness bars on Enrichment page
 - TIMELINE_CHANNEL_ICONS typed as Record<string, LucideIcon> (no any)
+- Global search surfaces all 13 pages by label + keywords, plus contacts and campaigns
+- Analytics campaign performance: top campaigns sorted by send volume with proportional bars
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -235,4 +239,5 @@
 - Pass 36 · contact interaction logging + unified timeline · G96 done; "Log Interaction" feature on contact detail timeline with 13-channel select, direction toggle, auto-typed mutations · PENDING · 1 item completed · none deferred
 - Pass 37 · functional gaps + documentation accuracy + campaign detail · G97-G101 done; campaign detail dialog with overview+timeline, campaigns.get+interactions.byCampaign tRPC, dead code removed, metrics type fixed, all docs updated with accurate counts · 79b846b · 5 items completed · none deferred
 - Pass 38 · campaign lifecycle + contact attribution + dashboard metrics · G102-G104 done; pause/resume/cancel in campaign detail, contact campaign attribution section, dashboard campaign lifecycle badges, contacts.campaigns tRPC, getCampaignsForContact DB · 46d24d9 · 3 items completed · none deferred
-- Pass 39 · mobile UX + data completeness + type safety · G105-G108 done; Enrichment page data completeness bars, dashboard badge 44px targets, contact campaign mobile fix, TIMELINE_CHANNEL_ICONS typed · PENDING · 4 items completed · none deferred
+- Pass 39 · mobile UX + data completeness + type safety · G105-G108 done; Enrichment page data completeness bars, dashboard badge 44px targets, contact campaign mobile fix, TIMELINE_CHANNEL_ICONS typed · 2d360b6 · 4 items completed · none deferred
+- Pass 40 · unified search + analytics drill-down · G109-G110 done; global search now surfaces all 13 pages by keywords, analytics campaign performance chart with top 8 campaigns; any types eliminated in GlobalSearch · PENDING · 2 items completed · none deferred
