@@ -4,6 +4,15 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.9.0] - 2026-04-13
+
+### Fixed
+- **AI segment engagement — real data** — Replaced `Math.random()` placeholder in AI Insights segment analysis with a real weighted engagement score computed from email coverage (25%), phone coverage (15%), tier scoring (25%), sync status (20%), and enrichment status (15%) per segment
+- **AI cross-channel patterns — data-driven scoring** — Cross-channel pattern confidence and conversion lift are now computed from actual campaign counts and interaction volume per channel, not hardcoded constants. Sample sizes reflect real data
+- **AI channel synergies — data-driven scoring** — Synergy scores computed from actual channel activity: base score 40/60/75 based on whether zero/one/both channels are active, plus volume bonus (up to +20) from interactions and campaigns
+- **Enrichment enrichedCount** — Was hardcoded to `0`; now queries actual contacts with `enrichedAt IS NOT NULL` via the `contactStats.enriched` field added to the `getContactStats` DB query
+- **Contacts search 320px mobile** — `min-w-[200px]` on search input was forcing horizontal scroll on 320px phones; changed to `min-w-0 sm:min-w-[200px]` so it flows naturally on small screens
+
 ## [1.8.0] - 2026-04-13
 
 ### Fixed

@@ -103,6 +103,11 @@
 | G91 | Contact detail channel grid mobile | Done | 2 | Channel reach summary grid changed from 3-col to 2-col on mobile (<640px) for 320px viewport readability | Pass 33 |
 | G92 | Dead code cleanup — unused imports | Done | 3 | Removed unused DialogTrigger from BulkImport+Contacts, unused useEffect from Integrations; identified 3 orphaned components (ComponentShowcase, ManusDialog, Map — internal dev tools kept intentionally) | Pass 34 |
 | G93 | Documentation accuracy — tRPC count | Done | 2 | DOCUMENTATION.md tRPC procedure count corrected from 72 to 73 | Pass 34 |
+| G94 | AI segment engagement — data-driven | Done | 4 | Replaced Math.random() placeholder with real engagement score: weighted mix of email(25%), phone(15%), scored(25%), synced(20%), enriched(15%) coverage per segment | Pass 35 |
+| G95 | AI cross-channel patterns — data-driven scoring | Done | 4 | Patterns now compute confidence and conversion lift from real campaign + interaction data per channel; sampleSize from actual activity volume | Pass 35 |
+| G96 | AI channel synergies — data-driven scoring | Done | 4 | Synergy scores now computed from real channel activity: base 40/60/75 by active status + volume bonus up to +20 from interactions + campaigns | Pass 35 |
+| G97 | Enrichment enrichedCount — real data | Done | 3 | Was hardcoded to 0; now queries actual contacts with enrichedAt IS NOT NULL via contactStats.enriched | Pass 35 |
+| G98 | Contacts search mobile 320px fix | Done | 2 | min-w-[200px] → min-w-0 sm:min-w-[200px] prevents search input from forcing horizontal scroll on 320px phones | Pass 35 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -159,6 +164,11 @@
 - Integrations/Channels/BulkImport action buttons ≥44px touch targets
 - Contact detail channel reach grid: 2-col on mobile for 320px readability
 - No unused imports in page-level components (DialogTrigger, useEffect cleaned)
+- AI segment engagement scores computed from real data (no Math.random)
+- AI cross-channel patterns scored from actual campaign + interaction volume
+- AI channel synergies scored from real channel activity data
+- Enrichment enrichedCount queries real contacts.enrichedAt from database
+- Contacts search input responsive: min-w-0 on mobile, min-w-[200px] on sm+
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -205,4 +215,5 @@
 - Pass 31 · responsive layout + mobile UX · G85 done; SyncEngine filters full-width on mobile, queue items wrap badges, retry 44px + isPending · PENDING · 1 item completed · G26 deferred
 - Pass 32 · correctness + build health · G86-G89 done; npm install fixed, 17 TS errors eliminated (zero errors), orchestrator/AI engine data access corrected, template+sequence channels expanded to 13, vite.config async · efe340f · 4 items completed · none deferred
 - Pass 33 · mobile responsive + touch targets · G90-G91 done; 6 buttons fixed to ≥44px across 4 pages, contact detail grid 2-col on mobile · a612b1c · 2 items completed · none deferred
-- Pass 34 · dead code + test coverage + unused imports · G92-G93 done; removed 3 unused imports, identified 3 orphaned dev components, verified 142/203 tests pass (25 live-only failures expected), docs updated · PENDING · 2 items completed · none deferred
+- Pass 34 · dead code + test coverage + unused imports · G92-G93 done; removed 3 unused imports, identified 3 orphaned dev components, verified 142/203 tests pass (25 live-only failures expected), docs updated · f6842e7 · 2 items completed · none deferred
+- Pass 35 · data integrity + functional correctness · G94-G98 done; AI segment engagement data-driven (no Math.random), cross-channel patterns/synergies scored from real data, enrichment count from DB, contacts search 320px fix · PENDING · 5 items completed · none deferred

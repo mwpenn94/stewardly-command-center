@@ -7,7 +7,7 @@ import { Sparkles, Users, Zap, Target } from "lucide-react";
 export default function Enrichment() {
   const { data: stats } = trpc.contacts.stats.useQuery();
 
-  const enrichedCount = 0; // Would come from contacts with enrichedAt set
+  const enrichedCount = stats?.enriched || 0;
   const totalContacts = stats?.total || 0;
   const enrichmentRate = totalContacts > 0 ? Math.round((enrichedCount / totalContacts) * 100) : 0;
 
