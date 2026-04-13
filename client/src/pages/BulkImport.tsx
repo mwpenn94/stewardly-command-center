@@ -203,6 +203,55 @@ export default function BulkImport() {
         </div>
       </div>
 
+      {/* Quick Import — Pre-processed Data Sources */}
+      <Card className="bg-card border-border/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium flex items-center gap-2">
+            <Zap className="h-4 w-4 text-primary" />
+            Quick Import — Pre-Processed Data Sources
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-muted-foreground mb-3">
+            One-click import from pre-extracted and deduplicated data sources. These files are ready-to-sync with complete column mapping.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              {
+                label: "Google Drive — All Contacts with POC",
+                records: 2313,
+                description: "CPAs, Attorneys, Nonprofits, HR, Ag, Events — with point-of-contact data",
+                tags: "Strategic-Partner-COI, CPA-Tax, Estate-Attorney, Nonprofit, HR-Benefits, Agricultural",
+              },
+              {
+                label: "Google Drive — Syncable Only",
+                records: 2025,
+                description: "Contacts with email or phone — ready for platform sync",
+                tags: "Has email or phone, GHL-ready",
+              },
+              {
+                label: "Google Drive — Organizations",
+                records: 288,
+                description: "Organization/event records without individual contact info",
+                tags: "COI-Event, Organizations, No direct contact",
+              },
+            ].map((source) => (
+              <div key={source.label} className="p-3 rounded-lg border border-border/30 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-foreground">{source.label}</p>
+                  <Badge variant="outline" className="text-[10px]">{source.records.toLocaleString()} records</Badge>
+                </div>
+                <p className="text-[10px] text-muted-foreground">{source.description}</p>
+                <p className="text-[10px] text-muted-foreground/60">{source.tags}</p>
+                <Button variant="outline" size="sm" className="w-full h-7 text-[10px] gap-1" disabled>
+                  <ArrowUpCircle className="h-3 w-3" /> Import (CDN source configured)
+                </Button>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Live Sync Progress */}
       {syncProgress && syncProgress.status !== "idle" && (
         <Card className="bg-card border-border/50">

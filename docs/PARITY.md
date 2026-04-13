@@ -75,6 +75,8 @@
 | G63 | Channel Management page | Done | 4 | New /channels route with all 13 channels grouped by category (Messaging/Social/Voice/Physical/Inbound/Events), per-channel enable/disable, provider selection, daily limits, monthly budgets | Pass 21 |
 | G64 | Campaign Flow Builder | Done | 4 | Visual cross-channel flow builder in Campaign Studio: add steps from any of 13 channels, reorder, set delays, compose per-channel messages; launches as unified sequence | Pass 22 |
 | G65 | Platform data mirror UI | Done | 3 | Backups page shows platform data mirror status for GHL, SMS-iT, Dripify with auto-sync indicators and data continuity messaging | Pass 22 |
+| G66 | Quick Import from CDN data sources | Done | 3 | BulkImport page shows pre-processed Google Drive data sources (2,313 POC, 2,025 syncable, 288 orgs) with record counts and tags | Pass 23 |
+| G67 | Documentation alignment (omnichannel) | Done | 3 | DOCUMENTATION.md, ARCHITECTURE.md updated with 13 channels, 11 tables, 72 procedures, 16 pages | Pass 23 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -147,4 +149,5 @@
 - Pass 19 · omnichannel expansion + unified timeline · G52-G59 done; 13 channels in schema/campaigns/templates, contact_interactions table, channel_configs table, unified timeline in contact detail, omnichannel dashboard grid, analytics all-channel, 7 new tRPC procedures · 45716d9 · 8 items completed · G26 deferred
 - Pass 20 · cross-channel intelligence + AI patterns · G60-G61 done; 5 cross-channel patterns with conversion lifts, 6 channel synergies, AI recommendations for multi-channel expansion, visual sequence flows in AI Insights page · 3a89353 · 2 items completed · G26 deferred
 - Pass 21 · data pipeline + channel management · G62-G63 done; Drizzle migration 0002, Channel Management page with 13 channels grouped by category, provider selection, daily limits, monthly budgets · 9c052e9 · 2 items completed · G26 deferred
-- Pass 22 · campaign flow builder + data mirror · G64-G65 done; visual cross-channel flow builder with step reordering and per-channel messages, platform data mirror status in Backups page · PENDING · 2 items completed · G26 deferred
+- Pass 22 · campaign flow builder + data mirror · G64-G65 done; visual cross-channel flow builder with step reordering and per-channel messages, platform data mirror status in Backups page · 53bc996 · 2 items completed · G26 deferred
+- Pass 23 · data integration + documentation · G66-G67 done; quick import from CDN data sources, DOCUMENTATION.md and ARCHITECTURE.md aligned with omnichannel features · PENDING · 2 items completed · G26 deferred

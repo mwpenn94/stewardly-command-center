@@ -2,13 +2,14 @@
 
 ## Overview
 
-Stewardly Command Center is a full-stack marketing operations platform built with React 19 and Express, designed to unify contact management, multi-platform campaign orchestration, and data synchronization. The architecture prioritizes:
+Stewardly Command Center is a unified omnichannel marketing command center built with React 19 and Express, orchestrating campaigns, contacts, and data across 13 channels and 5+ platform providers. The architecture prioritizes:
 
 1. **End-to-end type safety** — tRPC from database to UI with zero serialization gaps
 2. **Mobile-first responsive design** — Every component works on 320px screens up to 4K
-3. **Multi-platform integration** — GoHighLevel, SMS-iT, Dripify/LinkedIn unified under one API
+3. **Omnichannel orchestration** — 13 channels (Email, SMS, LinkedIn, 4 Social, 2 Voice, Direct Mail, Webforms, Chat, Events) unified under one API
 4. **Modular service layer** — Each external platform gets its own service module
 5. **Real-time sync** — Hybrid polling + webhook + event-driven synchronization
+6. **AI-powered intelligence** — Cross-channel pattern analysis, lead scoring, predictive analytics
 
 ## System Layers
 
@@ -18,7 +19,7 @@ Stewardly Command Center is a full-stack marketing operations platform built wit
 │  └─ tRPC hooks (useQuery / useMutation)             │
 ├─────────────────────────────────────────────────────┤
 │  API Layer (tRPC Router — server/routers.ts)         │
-│  └─ 65 procedures (public + protected)              │
+│  └─ 72 procedures (public + protected)              │
 ├─────────────────────────────────────────────────────┤
 │  Service Layer (server/services/*.ts)                │
 │  └─ GHL, SMS-iT, Dripify, Orchestrator,            │
@@ -26,7 +27,7 @@ Stewardly Command Center is a full-stack marketing operations platform built wit
 │     Credentials, AIEngine                            │
 ├─────────────────────────────────────────────────────┤
 │  Data Layer (Drizzle ORM → MySQL/TiDB)              │
-│  └─ 9 tables, schema-driven migrations              │
+│  └─ 11 tables, schema-driven migrations (3 files)   │
 ├─────────────────────────────────────────────────────┤
 │  External APIs                                       │
 │  └─ GHL v2 API, SMS-iT API, Dripify/Firebase API   │
@@ -50,7 +51,8 @@ Wouter lightweight client-side routing with a single layout wrapping all pages. 
 | `/backups` | Backups | Data export and backup management |
 | `/activity` | ActivityFeed | System audit log with filtering |
 | `/settings` | Settings | Theme, notifications, timezone, integrations links |
-| `/ai-insights` | AIInsights | AI engine: health scores, recommendations, predictions, lead scoring |
+| `/ai-insights` | AIInsights | AI engine: health scores, recommendations, predictions, lead scoring, cross-channel patterns, channel synergies |
+| `/channels` | Channels | Channel management: 13 channels in 6 categories, provider selection, limits, budgets |
 | `/404` | NotFound | 404 page (also used as catch-all) |
 
 ## State Management

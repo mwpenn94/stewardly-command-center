@@ -27,7 +27,7 @@
 
 ## 1. Executive Summary
 
-The Stewardly Command Center is a full-stack marketing operations platform built to unify contact management, multi-platform campaign orchestration, and data synchronization across GoHighLevel (GHL), SMS-iT, and Dripify. The system serves as a centralized command hub for Stewardly's business operations, enabling bulk contact import, cross-platform sync, campaign management, and real-time analytics.
+The Stewardly Command Center is a unified omnichannel marketing command center that orchestrates campaigns, contacts, and data across 13 channels (Email, SMS, LinkedIn, Facebook, Instagram, Twitter/X, TikTok, Inbound/Outbound Calls, Direct Mail, Webforms, Chat/Webchat, Events/Webinars) and 5+ platform providers (GoHighLevel, SMS-iT, Dripify, Twilio, Lob, and more). The system serves as a centralized command hub for Stewardly's business operations, enabling bulk contact import, cross-platform sync, omnichannel campaign orchestration, AI-powered cross-channel intelligence, and real-time analytics.
 
 The platform was designed and built across multiple intensive sessions, progressing from initial scaffolding through database schema design, service layer implementation, multi-platform API integration, a comprehensive test suite (205 tests across 10 files), a data deduplication pipeline processing 668,883 source records into 561,806 unique contacts, and a standalone parallel sync engine that uploaded all 561,806 contacts to GHL at a peak speed of 1,812 records per minute using 80 parallel workers with curl-impersonate Cloudflare bypass. The sync completed on April 13, 2026 with a 99.22% success rate (0.78% error rate) and zero Cloudflare blocks or rate limits.
 
@@ -36,10 +36,11 @@ The platform was designed and built across multiple intensive sessions, progress
 | Metric | Value |
 |---|---|
 | Total Lines of Code (server + client) | ~20,000 |
-| Database Tables | 9 |
-| tRPC Procedures | 65 (59 core + 6 AI) |
+| Database Tables | 11 (9 original + contact_interactions + channel_configs) |
+| tRPC Procedures | 72 (59 core + 6 AI + 7 omnichannel) |
 | Backend Services | 9 modules |
-| Frontend Pages | 14 (13 routed + 1 internal showcase) |
+| Frontend Pages | 16 (15 routed + 1 internal showcase) |
+| Supported Channels | 13 (Email, SMS, LinkedIn, 4 Social, 2 Voice, Direct Mail, Webforms, Chat, Events) |
 | shadcn/ui Components | 53 |
 | Custom Components | 10 |
 | Test Files | 10 |
