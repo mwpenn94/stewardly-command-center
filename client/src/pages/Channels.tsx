@@ -178,7 +178,7 @@ export default function Channels() {
                   const isEnabled = cfg?.enabled || false;
                   const statusColor = cfg?.status === "active" ? "bg-emerald-400" : cfg?.status === "error" ? "bg-red-400" : "bg-muted-foreground/30";
                   return (
-                    <Card key={ch.key} className={`bg-card border-border/50 transition-all ${isEnabled ? "ring-1 ring-primary/20" : "opacity-75"}`}>
+                    <Card key={ch.key} className={`bg-card border-border/50 transition-all ${isEnabled ? "ring-1 ring-primary/20" : "opacity-75"}`} role="region" aria-label={`${ch.label} channel configuration`}>
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           <div className={`h-10 w-10 rounded-lg ${ch.bg} flex items-center justify-center shrink-0`}>
@@ -194,6 +194,7 @@ export default function Channels() {
                                 checked={isEnabled}
                                 onCheckedChange={(v) => handleToggle(ch, v)}
                                 className="shrink-0"
+                                aria-label={`${isEnabled ? "Disable" : "Enable"} ${ch.label} channel`}
                               />
                             </div>
                             <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{ch.description}</p>

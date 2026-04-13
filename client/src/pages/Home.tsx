@@ -128,7 +128,7 @@ export default function Home() {
       </div>
 
       {/* Omnichannel Overview */}
-      <Card className="bg-card border-border/50">
+      <Card className="bg-card border-border/50" role="region" aria-label="Omnichannel channel overview">
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-medium text-foreground flex items-center justify-between">
             <div className="flex items-center gap-2">

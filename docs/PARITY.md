@@ -77,6 +77,8 @@
 | G65 | Platform data mirror UI | Done | 3 | Backups page shows platform data mirror status for GHL, SMS-iT, Dripify with auto-sync indicators and data continuity messaging | Pass 22 |
 | G66 | Quick Import from CDN data sources | Done | 3 | BulkImport page shows pre-processed Google Drive data sources (2,313 POC, 2,025 syncable, 288 orgs) with record counts and tags | Pass 23 |
 | G67 | Documentation alignment (omnichannel) | Done | 3 | DOCUMENTATION.md, ARCHITECTURE.md updated with 13 channels, 11 tables, 72 procedures, 16 pages | Pass 23 |
+| G68 | Accessibility on new pages | Done | 3 | ARIA labels on Channels cards/switches, Flow Builder reorder/remove buttons, Dashboard omnichannel region; expanded keyboard nav (G+B/N/T) | Pass 24 |
+| G69 | Keyboard shortcuts expanded | Done | 3 | 5 new G+ shortcuts (Import, Enrichment, Backups, Channels, AI Insights) added to navMap and KeyboardShortcuts dialog | Pass 24 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -150,4 +152,5 @@
 - Pass 20 · cross-channel intelligence + AI patterns · G60-G61 done; 5 cross-channel patterns with conversion lifts, 6 channel synergies, AI recommendations for multi-channel expansion, visual sequence flows in AI Insights page · 3a89353 · 2 items completed · G26 deferred
 - Pass 21 · data pipeline + channel management · G62-G63 done; Drizzle migration 0002, Channel Management page with 13 channels grouped by category, provider selection, daily limits, monthly budgets · 9c052e9 · 2 items completed · G26 deferred
 - Pass 22 · campaign flow builder + data mirror · G64-G65 done; visual cross-channel flow builder with step reordering and per-channel messages, platform data mirror status in Backups page · 53bc996 · 2 items completed · G26 deferred
-- Pass 23 · data integration + documentation · G66-G67 done; quick import from CDN data sources, DOCUMENTATION.md and ARCHITECTURE.md aligned with omnichannel features · PENDING · 2 items completed · G26 deferred
+- Pass 23 · data integration + documentation · G66-G67 done; quick import from CDN data sources, DOCUMENTATION.md and ARCHITECTURE.md aligned with omnichannel features · 3d648cd · 2 items completed · G26 deferred
+- Pass 24 · accessibility + keyboard nav · G68-G69 done; ARIA labels on new pages, 5 new G+ shortcuts, expanded KeyboardShortcuts dialog · PENDING · 2 items completed · G26 deferred

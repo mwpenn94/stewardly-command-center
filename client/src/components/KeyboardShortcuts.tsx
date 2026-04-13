@@ -10,6 +10,11 @@ const shortcuts = [
   { keys: ["G", "M"], description: "Go to Campaigns" },
   { keys: ["G", "S"], description: "Go to Sync Engine" },
   { keys: ["G", "A"], description: "Go to Analytics" },
+  { keys: ["G", "I"], description: "Go to Bulk Import" },
+  { keys: ["G", "E"], description: "Go to Enrichment" },
+  { keys: ["G", "B"], description: "Go to Backups" },
+  { keys: ["G", "N"], description: "Go to Channels" },
+  { keys: ["G", "T"], description: "Go to AI Insights" },
 ];
 
 export default function KeyboardShortcuts() {

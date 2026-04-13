@@ -149,7 +149,7 @@ function DashboardLayoutContent({
   useEffect(() => {
     let gPressed = false;
     let gTimer: ReturnType<typeof setTimeout>;
-    const navMap: Record<string, string> = { h: "/", c: "/contacts", m: "/campaigns", s: "/sync", a: "/analytics", i: "/import", e: "/enrichment" };
+    const navMap: Record<string, string> = { h: "/", c: "/contacts", m: "/campaigns", s: "/sync", a: "/analytics", i: "/import", e: "/enrichment", b: "/backups", n: "/channels", t: "/ai-insights" };
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
       if (e.key === "g" && !e.metaKey && !e.ctrlKey) {

@@ -784,16 +784,16 @@ function CampaignFlowBuilder({
                       </div>
                       <div className="flex items-center gap-1">
                         {idx > 0 && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => moveStep(idx, -1)}>
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => moveStep(idx, -1)} aria-label="Move step up">
                             <ChevronLeft className="h-3 w-3" />
                           </Button>
                         )}
                         {idx < steps.length - 1 && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => moveStep(idx, 1)}>
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => moveStep(idx, 1)} aria-label="Move step down">
                             <ChevronRight className="h-3 w-3" />
                           </Button>
                         )}
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeStep(step.id)}>
+                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeStep(step.id)} aria-label={`Remove step ${idx + 1}`}>
                           <Trash2 className="h-3 w-3" />
                         </Button>
                       </div>
