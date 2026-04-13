@@ -2,6 +2,21 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
+## [0.4.0] - 2026-04-13
+
+### Added
+- Global search dropdown in header searching across properties, tenants, maintenance, contacts, and campaigns
+- Search results show entity type, title, subtitle with click-to-navigate
+- Toast notification system with success/error/info variants and auto-dismiss
+- All CRUD operations (create, update, delete) now show toast feedback
+- Dashboard metric cards are clickable — navigate to relevant pages
+- Dashboard activity feed items are clickable — navigate to entity pages
+- Dashboard property overview items are clickable — navigate to properties
+- MetricCard component now supports optional onClick with keyboard accessibility
+
+### Changed
+- Header search now shows live dropdown results with click-outside-to-close
+
 ## [0.3.0] - 2026-04-13
 
 ### Added

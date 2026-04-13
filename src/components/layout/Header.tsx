@@ -1,5 +1,7 @@
+import { useRef, useState, useEffect } from 'react';
 import { Menu, Search, Bell, Sun, Moon, Monitor } from 'lucide-react';
 import { useStore } from '../../store/useStore';
+import SearchResults from './SearchResults';
 
 const themeIcons = {
   light: Sun,
@@ -11,6 +13,8 @@ const themeOrder = ['light', 'dark', 'system'] as const;
 
 export default function Header() {
   const { toggleSidebar, searchQuery, setSearchQuery, activeNotifications, theme, setTheme } = useStore();
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const cycleTheme = () => {
     const idx = themeOrder.indexOf(theme);
@@ -18,6 +22,17 @@ export default function Header() {
   };
 
   const ThemeIcon = themeIcons[theme];
+
+  // Close search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 h-16 bg-surface border-b border-border flex items-center px-4 gap-3">
@@ -31,16 +46,20 @@ export default function Header() {
       </button>
 
       {/* Search */}
-      <div className="flex-1 max-w-md relative">
+      <div className="flex-1 max-w-md relative" ref={searchRef}>
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
         <input
           type="search"
           placeholder="Search properties, tenants, requests..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onFocus={() => setSearchFocused(true)}
           className="input pl-9 py-2 text-sm"
           aria-label="Global search"
+          role="combobox"
+          aria-expanded={searchFocused && searchQuery.length > 0}
         />
+        {searchFocused && searchQuery.trim() && <SearchResults />}
       </div>
 
       {/* Right side actions */}

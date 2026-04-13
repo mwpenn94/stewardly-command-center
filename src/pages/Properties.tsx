@@ -3,12 +3,14 @@ import { Building2, Plus, MapPin, Search, Pencil, Trash2 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import StatusBadge from '../components/ui/StatusBadge';
 import Modal from '../components/ui/Modal';
+import { useToast } from '../components/ui/Toast';
 import PropertyForm from '../components/properties/PropertyForm';
 import { useDataStore } from '../store/useDataStore';
 import type { Property } from '../types';
 
 export default function Properties() {
   const { properties, addProperty, updateProperty, deleteProperty } = useDataStore();
+  const { addToast } = useToast();
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
@@ -28,12 +30,14 @@ export default function Properties() {
   const handleCreate = (data: Omit<Property, 'id' | 'createdAt'>) => {
     addProperty(data);
     setFormOpen(false);
+    addToast('success', `Property "${data.name}" created`);
   };
 
   const handleUpdate = (data: Omit<Property, 'id' | 'createdAt'>) => {
     if (editing) {
       updateProperty(editing.id, data);
       setEditing(undefined);
+      addToast('success', `Property "${data.name}" updated`);
     }
   };
 
@@ -187,7 +191,7 @@ export default function Properties() {
               </button>
               <button
                 className="btn-secondary flex items-center gap-2 text-red-600 hover:bg-red-50"
-                onClick={() => { deleteProperty(detailProperty.id); setDetailProperty(undefined); }}
+                onClick={() => { deleteProperty(detailProperty.id); addToast('info', `Property "${detailProperty.name}" deleted`); setDetailProperty(undefined); }}
               >
                 <Trash2 className="w-4 h-4" /> Delete
               </button>

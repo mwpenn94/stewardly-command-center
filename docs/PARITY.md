@@ -33,6 +33,10 @@
 | G21 | 404 page & error boundary | Done | 4 | Error boundary wraps app, 404 catch-all route | Pass 3 |
 | G22 | Accessibility (skip-link, focus-visible, ARIA) | Done | 3 | Skip-to-content, focus-visible ring, ARIA labels, min touch targets | Pass 3 |
 | G23 | Mobile touch targets (44px min) | Done | 3 | Buttons/inputs have min-h-[44px] on mobile | Pass 3 |
+| G24 | Global search across entities | Done | 4 | Searches properties, tenants, maintenance, contacts, campaigns with dropdown results | Pass 4 |
+| G25 | Toast notification system | Done | 4 | Success/error/info toasts on all CRUD operations with auto-dismiss | Pass 4 |
+| G26 | Dashboard clickthrough navigation | Done | 4 | All metric cards + activity items + property list navigates to relevant pages | Pass 4 |
+| G27 | Cross-entity navigation | Open | 0 | Property detail -> tenant list, found by build | — |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -47,6 +51,9 @@
 - Skip-to-content link and focus-visible styling
 - 404 catch-all route and error boundary
 - 44px minimum touch targets on mobile
+- Global search with dropdown results across all entities
+- Toast notification system for CRUD feedback
+- Dashboard metric cards + activity items clickable for navigation
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -56,4 +63,5 @@
 <!-- Append one line per pass: Pass N · angle · queue · commit SHA · items completed · items deferred -->
 - Pass 1 · foundation & correctness · full scaffold (G1-G10 done) · e946974 · 10 features shipped · G11-G20 deferred
 - Pass 2 · CRUD forms & detail views · G13, G14 done + G2-G7 depth upgrade · 6fc6f0c · 8 items completed · G11,G12,G15-G20 deferred
-- Pass 3 · dark mode + accessibility + mobile · G16, G21-G23 done · PENDING · 4 items completed · G11,G12,G15,G17-G20 deferred
+- Pass 3 · dark mode + accessibility + mobile · G16, G21-G23 done · e7e2161 · 4 items completed · G11,G12,G15,G17-G20 deferred
+- Pass 4 · cross-app navigation + search + toasts · G24-G26 done · PENDING · 3 items completed · G11,G12,G15,G17-G20,G27 deferred

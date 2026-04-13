@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Search, Mail, Phone } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
+import { useToast } from '../components/ui/Toast';
 import StatusBadge from '../components/ui/StatusBadge';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
@@ -10,6 +11,7 @@ import type { Tenant } from '../types';
 
 export default function Tenants() {
   const { tenants, properties, addTenant, updateTenant } = useDataStore();
+  const { addToast } = useToast();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [formOpen, setFormOpen] = useState(false);
@@ -32,12 +34,14 @@ export default function Tenants() {
   const handleCreate = (data: Omit<Tenant, 'id'>) => {
     addTenant(data);
     setFormOpen(false);
+    addToast('success', `Tenant "${data.firstName} ${data.lastName}" added`);
   };
 
   const handleUpdate = (data: Omit<Tenant, 'id'>) => {
     if (editing) {
       updateTenant(editing.id, data);
       setEditing(undefined);
+      addToast('success', `Tenant "${data.firstName} ${data.lastName}" updated`);
     }
   };
 

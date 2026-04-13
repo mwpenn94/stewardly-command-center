@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Search, Mail, Phone, Tag } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
+import { useToast } from '../components/ui/Toast';
 import StatusBadge from '../components/ui/StatusBadge';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
@@ -10,6 +11,7 @@ import type { Contact } from '../types';
 
 export default function CRM() {
   const { contacts, addContact, updateContact } = useDataStore();
+  const { addToast } = useToast();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [formOpen, setFormOpen] = useState(false);
@@ -28,12 +30,14 @@ export default function CRM() {
   const handleCreate = (data: Omit<Contact, 'id' | 'createdAt'>) => {
     addContact(data);
     setFormOpen(false);
+    addToast('success', `Contact "${data.firstName} ${data.lastName}" added`);
   };
 
   const handleUpdate = (data: Omit<Contact, 'id' | 'createdAt'>) => {
     if (editing) {
       updateContact(editing.id, data);
       setEditing(undefined);
+      addToast('success', `Contact "${data.firstName} ${data.lastName}" updated`);
     }
   };
 

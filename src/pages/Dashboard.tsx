@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import {
   Building2,
   DoorOpen,
@@ -26,7 +27,16 @@ const activityIcons: Record<string, typeof CreditCard> = {
   campaign: BarChart3,
 };
 
+const activityRoutes: Record<string, string> = {
+  payment: '/tenants',
+  maintenance: '/maintenance',
+  lease: '/tenants',
+  contact: '/crm',
+  campaign: '/marketing',
+};
+
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { properties, tenants, maintenanceRequests } = useDataStore();
 
   const dashboardMetrics = {
@@ -63,6 +73,7 @@ export default function Dashboard() {
           change="+1 this month"
           changeType="positive"
           icon={<Building2 className="w-5 h-5" />}
+          onClick={() => navigate('/properties')}
         />
         <MetricCard
           title="Occupancy"
@@ -70,6 +81,7 @@ export default function Dashboard() {
           change="+2.1% vs last month"
           changeType="positive"
           icon={<DoorOpen className="w-5 h-5" />}
+          onClick={() => navigate('/properties')}
         />
         <MetricCard
           title="Monthly Revenue"
@@ -77,6 +89,7 @@ export default function Dashboard() {
           change="+$4,200 vs last month"
           changeType="positive"
           icon={<DollarSign className="w-5 h-5" />}
+          onClick={() => navigate('/properties')}
         />
         <MetricCard
           title="Open Requests"
@@ -84,6 +97,7 @@ export default function Dashboard() {
           change="2 urgent"
           changeType="negative"
           icon={<Wrench className="w-5 h-5" />}
+          onClick={() => navigate('/maintenance')}
         />
       </div>
 
@@ -93,6 +107,7 @@ export default function Dashboard() {
           title="Active Tenants"
           value={dashboardMetrics.activeTenants}
           icon={<Users className="w-5 h-5" />}
+          onClick={() => navigate('/tenants')}
         />
         <MetricCard
           title="Lease Expirations"
@@ -100,6 +115,7 @@ export default function Dashboard() {
           change="Next 90 days"
           changeType="neutral"
           icon={<Calendar className="w-5 h-5" />}
+          onClick={() => navigate('/tenants')}
         />
         <MetricCard
           title="Outstanding"
@@ -107,6 +123,7 @@ export default function Dashboard() {
           change="1 delinquent"
           changeType="negative"
           icon={<AlertCircle className="w-5 h-5" />}
+          onClick={() => navigate('/tenants')}
         />
         <MetricCard
           title="Total Units"
@@ -114,6 +131,7 @@ export default function Dashboard() {
           change={`${dashboardMetrics.occupancyRate}% occupied`}
           changeType="positive"
           icon={<TrendingUp className="w-5 h-5" />}
+          onClick={() => navigate('/properties')}
         />
       </div>
 
@@ -126,7 +144,11 @@ export default function Dashboard() {
             {recentActivities.map((activity) => {
               const Icon = activityIcons[activity.type] || ClipboardList;
               return (
-                <div key={activity.id} className="flex items-start gap-3 py-2 border-b border-border last:border-0">
+                <div
+                  key={activity.id}
+                  className="flex items-start gap-3 py-2 border-b border-border last:border-0 cursor-pointer hover:bg-surface-tertiary rounded-lg px-2 -mx-2 transition-colors"
+                  onClick={() => navigate(activityRoutes[activity.type] ?? '/')}
+                >
                   <div className="p-1.5 rounded-md bg-surface-tertiary flex-shrink-0">
                     <Icon className="w-4 h-4 text-text-secondary" />
                   </div>
@@ -148,7 +170,7 @@ export default function Dashboard() {
           <h2 className="text-base sm:text-lg font-semibold text-text-primary mb-4">Properties</h2>
           <div className="space-y-3">
             {properties.map((property) => (
-              <div key={property.id} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
+              <div key={property.id} className="flex items-center gap-3 py-2 border-b border-border last:border-0 cursor-pointer hover:bg-surface-tertiary rounded-lg px-2 -mx-2 transition-colors" onClick={() => navigate('/properties')}>
                 <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
                   <Building2 className="w-5 h-5 text-primary-600" />
                 </div>

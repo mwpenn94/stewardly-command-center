@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Search, AlertTriangle, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
+import { useToast } from '../components/ui/Toast';
 import StatusBadge from '../components/ui/StatusBadge';
 import Modal from '../components/ui/Modal';
 import MaintenanceForm from '../components/maintenance/MaintenanceForm';
@@ -23,6 +24,7 @@ const statusIcons: Record<string, typeof Clock> = {
 
 export default function Maintenance() {
   const { maintenanceRequests, properties, tenants, addMaintenanceRequest, updateMaintenanceRequest } = useDataStore();
+  const { addToast } = useToast();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
@@ -52,12 +54,14 @@ export default function Maintenance() {
   const handleCreate = (data: Omit<MaintenanceRequest, 'id' | 'createdAt' | 'updatedAt'>) => {
     addMaintenanceRequest(data);
     setFormOpen(false);
+    addToast('success', `Request "${data.title}" created`);
   };
 
   const handleUpdate = (data: Omit<MaintenanceRequest, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (editing) {
       updateMaintenanceRequest(editing.id, data);
       setEditing(undefined);
+      addToast('success', `Request "${data.title}" updated`);
     }
   };
 

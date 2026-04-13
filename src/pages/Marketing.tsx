@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Search, Mail, Share2, MessageSquare, Printer, Monitor, TrendingUp, DollarSign, Users, Target } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
+import { useToast } from '../components/ui/Toast';
 import StatusBadge from '../components/ui/StatusBadge';
 import MetricCard from '../components/ui/MetricCard';
 import Modal from '../components/ui/Modal';
@@ -18,6 +19,7 @@ const typeIcons: Record<string, typeof Mail> = {
 
 export default function Marketing() {
   const { campaigns, addCampaign, updateCampaign } = useDataStore();
+  const { addToast } = useToast();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
   const [formOpen, setFormOpen] = useState(false);
@@ -40,12 +42,14 @@ export default function Marketing() {
   const handleCreate = (data: Omit<Campaign, 'id' | 'createdAt'>) => {
     addCampaign(data);
     setFormOpen(false);
+    addToast('success', `Campaign "${data.name}" created`);
   };
 
   const handleUpdate = (data: Omit<Campaign, 'id' | 'createdAt'>) => {
     if (editing) {
       updateCampaign(editing.id, data);
       setEditing(undefined);
+      addToast('success', `Campaign "${data.name}" updated`);
     }
   };
 
