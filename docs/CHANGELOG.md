@@ -4,6 +4,13 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.1.0] - 2026-04-13
+
+### Added
+- **Dashboard omnichannel grid interactive** — Channel cards in the omnichannel overview grid are now clickable buttons that navigate to the Channel Management page; hover highlights with primary border color
+- **Activity Feed click-through** — Activity log entries are now clickable and navigate to the relevant source page (sync events→/sync, campaigns→/campaigns, imports→/import, etc.) with a subtle ExternalLink indicator on hover
+- **Global Search templates** — Search now finds templates in addition to contacts and campaigns. Contact results show tier badges (gold/silver/bronze), campaign results show status badges (draft/running/completed)
+
 ## [2.0.0] - 2026-04-13
 
 ### Added

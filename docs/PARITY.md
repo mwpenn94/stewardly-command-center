@@ -112,6 +112,9 @@
 | G100 | Add Interaction form in Contact detail | Done | 4 | "Log Interaction" button in timeline tab: channel selector (13 channels), direction, type (per-channel types), subject, body; creates via tRPC interactions.create | Pass 36 |
 | G101 | Contact timeline error handling | Done | 3 | Timeline uses QueryError component when interactions.list fails; previously showed eternal loading | Pass 36 |
 | G102 | Channel-specific campaign form fields | Done | 3 | Launch/template/sequence dialogs show contextual field labels: Subject for email, Caption for social, Call Script for calls, Mail Content for direct mail, Event Description for events | Pass 36 |
+| G103 | Dashboard omnichannel grid clickable | Done | 3 | Channel cards in omnichannel overview grid are now buttons that navigate to /channels; hover state highlights with primary border | Pass 37 |
+| G104 | Activity Feed entries clickable | Done | 3 | Activity log entries navigate to source page (sync→/sync, campaign→/campaigns, import→/import, etc.) on click; visual ExternalLink indicator on hover | Pass 37 |
+| G105 | Global Search expanded (templates + badges) | Done | 3 | Search now finds templates in addition to contacts + campaigns; contact results show tier badge, campaign results show status badge | Pass 37 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -177,6 +180,9 @@
 - Contact timeline Add Interaction form: log interactions from any of 13 channels
 - Contact timeline QueryError handling when interactions.list fails
 - Channel-specific form labels in launch/template/sequence dialogs
+- Dashboard omnichannel grid: channel cards clickable, navigate to /channels
+- Activity Feed entries: clickable with navigation to source page by type
+- Global Search: searches contacts + campaigns + templates with tier/status badges
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -225,4 +231,5 @@
 - Pass 33 · mobile responsive + touch targets · G90-G91 done; 6 buttons fixed to ≥44px across 4 pages, contact detail grid 2-col on mobile · a612b1c · 2 items completed · none deferred
 - Pass 34 · dead code + test coverage + unused imports · G92-G93 done; removed 3 unused imports, identified 3 orphaned dev components, verified 142/203 tests pass (25 live-only failures expected), docs updated · f6842e7 · 2 items completed · none deferred
 - Pass 35 · data integrity + functional correctness · G94-G98 done; AI segment engagement data-driven (no Math.random), cross-channel patterns/synergies scored from real data, enrichment count from DB, contacts search 320px fix · 697c5c4 · 5 items completed · none deferred
-- Pass 36 · campaign UX completeness + contact interaction UX · G99-G102 done; campaign detail view with metrics, add interaction form in contact timeline, timeline error handling, channel-specific form labels · PENDING · 4 items completed · none deferred
+- Pass 36 · campaign UX completeness + contact interaction UX · G99-G102 done; campaign detail view with metrics, add interaction form in contact timeline, timeline error handling, channel-specific form labels · 6469126 · 4 items completed · none deferred
+- Pass 37 · cross-entity navigation + omnichannel drilldown · G103-G105 done; omnichannel grid clickable, activity feed entries clickable, global search templates + badges · PENDING · 3 items completed · none deferred

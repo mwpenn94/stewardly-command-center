@@ -151,9 +151,10 @@ export default function Home() {
                 (c: any) => c.channel === key
               )?.count ?? 0;
               return (
-                <div
+                <button
                   key={key}
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border/30 hover:border-border/60 transition-colors ${
+                  onClick={() => setLocation("/channels")}
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border/30 hover:border-primary/30 hover:bg-muted/10 transition-colors cursor-pointer text-left ${
                     channelCount > 0 ? "bg-card" : "bg-muted/5 opacity-60"
                   }`}
                 >
@@ -162,7 +163,7 @@ export default function Home() {
                   </div>
                   <span className="text-[10px] text-muted-foreground text-center leading-tight">{ch.label}</span>
                   <span className="text-xs font-semibold text-foreground tabular-nums">{channelCount}</span>
-                </div>
+                </button>
               );
             })}
           </div>

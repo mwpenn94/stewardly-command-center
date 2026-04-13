@@ -1,8 +1,9 @@
 import { trpc } from "@/lib/trpc";
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
-import { Search, Users, X, Megaphone, RefreshCw, ArrowRight } from "lucide-react";
+import { Search, Users, X, Megaphone, RefreshCw, ArrowRight, FileText, Radio } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 
 export default function GlobalSearch({ compact = false }: { compact?: boolean }) {
   const [query, setQuery] = useState("");
@@ -21,12 +22,21 @@ export default function GlobalSearch({ compact = false }: { compact?: boolean })
     { enabled: query.length >= 2 }
   );
 
-  // Filter campaigns client-side
+  const { data: templateResults } = trpc.templates.list.useQuery(
+    undefined,
+    { enabled: query.length >= 2 }
+  );
+
+  // Filter campaigns and templates client-side
   const filteredCampaigns = (campaignResults || [])
     .filter((c: any) => c.name?.toLowerCase().includes(query.toLowerCase()))
     .slice(0, 3);
 
-  const hasResults = (contactResults?.contacts?.length || 0) > 0 || filteredCampaigns.length > 0;
+  const filteredTemplates = (templateResults || [])
+    .filter((t: any) => t.name?.toLowerCase().includes(query.toLowerCase()))
+    .slice(0, 3);
+
+  const hasResults = (contactResults?.contacts?.length || 0) > 0 || filteredCampaigns.length > 0 || filteredTemplates.length > 0;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -116,6 +126,9 @@ export default function GlobalSearch({ compact = false }: { compact?: boolean })
                           {c.email || ""} {c.phone ? `· ${c.phone}` : ""}
                         </p>
                       </div>
+                      {c.tier && c.tier !== "unscored" && (
+                        <Badge variant="outline" className="text-[9px] shrink-0 capitalize">{c.tier}</Badge>
+                      )}
                     </button>
                   ))}
                   {(contactResults.total || 0) > 5 && (
@@ -146,6 +159,29 @@ export default function GlobalSearch({ compact = false }: { compact?: boolean })
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-foreground truncate">{c.name}</p>
                         <p className="text-[10px] text-muted-foreground">{c.channel} · {c.status}</p>
+                      </div>
+                      <Badge variant="outline" className="text-[9px] shrink-0 capitalize">{c.status}</Badge>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Templates */}
+              {filteredTemplates.length > 0 && (
+                <div>
+                  <div className="px-3 py-1.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wider bg-muted/20">
+                    Templates
+                  </div>
+                  {filteredTemplates.map((t: any) => (
+                    <button
+                      key={t.id}
+                      className="flex items-center gap-3 w-full px-3 py-2 text-left hover:bg-accent/50 transition-colors min-h-[40px]"
+                      onClick={() => navigateTo("/campaigns")}
+                    >
+                      <FileText className="h-3.5 w-3.5 text-violet-400 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-foreground truncate">{t.name}</p>
+                        <p className="text-[10px] text-muted-foreground">{t.channel} · {t.body?.length || 0} chars</p>
                       </div>
                     </button>
                   ))}

@@ -4,8 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Activity, RefreshCw, Bell } from "lucide-react";
+import { Activity, RefreshCw, Bell, ExternalLink } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
+import { useLocation } from "wouter";
+
+const TYPE_ROUTES: Record<string, string> = {
+  sync: "/sync", import: "/import", campaign: "/campaigns",
+  webhook: "/sync", enrichment: "/enrichment", backup: "/backups", system: "/settings",
+};
 
 const SEVERITY_CONFIG: Record<string, { dot: string; text: string }> = {
   info: { dot: "bg-blue-400", text: "text-blue-400" },
@@ -19,6 +25,7 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export default function ActivityFeed() {
+  const [, setLocation] = useLocation();
   const [typeFilter, setTypeFilter] = useState("all");
   const [severityFilter, setSeverityFilter] = useState("all");
 
@@ -85,7 +92,11 @@ export default function ActivityFeed() {
               const meta = a.metadata as Record<string, unknown> | null;
               const platform = meta && typeof meta === "object" && typeof meta.platform === "string" ? meta.platform : null;
               return (
-                <div key={a.id} className="relative flex items-start gap-4 pl-10 py-2.5 hover:bg-muted/5 rounded-lg transition-colors group">
+                <button
+                  key={a.id}
+                  onClick={() => { const route = TYPE_ROUTES[a.type]; if (route) setLocation(route); }}
+                  className="relative flex items-start gap-4 pl-10 py-2.5 hover:bg-muted/10 rounded-lg transition-colors group w-full text-left cursor-pointer"
+                >
                   {/* Timeline dot */}
                   <div className={`absolute left-[11px] top-[18px] h-2 w-2 rounded-full ${sev.dot} ring-2 ring-background`} />
 
@@ -106,7 +117,8 @@ export default function ActivityFeed() {
                       )}
                     </div>
                   </div>
-                </div>
+                  <ExternalLink className="h-3.5 w-3.5 text-muted-foreground/30 group-hover:text-muted-foreground shrink-0 mt-1 transition-colors" />
+                </button>
               );
             })
           ) : (
