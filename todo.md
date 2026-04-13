@@ -242,3 +242,18 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 
 ## Test Fix: e2e.test.ts GHL Contact Sync
 - [x] Fix e2e.test.ts assertion — now that real GHL creds are in DB, ghlContactId is populated (not undefined)
+
+## Next Steps (Session 2)
+- [x] Resume standalone GHL parallel sync — launched and running
+- [ ] Keep standalone GHL parallel sync running to completion (986/561,806 so far, ~96 hrs remaining at 97.5/min)
+- [ ] Verify final sync completion metrics and integrity after sync finishes
+- [x] Set up Dripify token auto-refresh daemon (Firebase token refresh similar to GHL CDP auto-refresh)
+- [x] Wire dashboard "Connected Platforms" counter to real getPlatformHealth() check instead of showing 0
+
+## Data Pipeline: CSV Deduplication & Master File Build
+- [x] Collect all residential WB_ files into one residential dataset
+- [x] Collect all commercial WB_ files into one commercial dataset
+- [x] Merge segment-specific files (agricultural, CPA/tax, estate attorney, HR/benefits, insurance, nonprofit)
+- [x] Deduplicate across all files, merging data points from multiple segments into single records
+- [x] Produce clean master CSV in GHL-ready format for sync (561,806 unique records)
+- [x] Update standalone sync script to use new master CSV and resume from GHL's current 270K contacts

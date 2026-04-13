@@ -2,7 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Megaphone, RefreshCw, Plug, Activity, TrendingUp, ArrowUpRight } from "lucide-react";
+import { Users, Megaphone, RefreshCw, Plug, Activity, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 const severityColors: Record<string, string> = {
@@ -12,16 +12,29 @@ const severityColors: Record<string, string> = {
   error: "text-red-400",
 };
 
+const platformLabels: Record<string, string> = {
+  ghl: "GoHighLevel",
+  smsit: "SMS-iT",
+  dripify: "Dripify",
+  linkedin: "LinkedIn",
+};
+
 export default function Home() {
   const { user } = useAuth();
   const { data: stats, isLoading } = trpc.dashboard.stats.useQuery();
   const { data: contactStats } = trpc.dashboard.contactStats.useQuery();
+  const { data: platformHealth, isLoading: healthLoading } = trpc.orchestrator.platformHealth.useQuery(
+    undefined,
+    { refetchInterval: 5 * 60 * 1000 } // Refresh every 5 minutes
+  );
+
+  const connectedCount = platformHealth?.filter((p: any) => p.connected).length ?? stats?.integrations ?? 0;
 
   const statCards = [
     { label: "Total Contacts", value: stats?.contacts ?? 0, icon: Users, accent: "text-blue-400" },
     { label: "Active Campaigns", value: stats?.campaigns ?? 0, icon: Megaphone, accent: "text-emerald-400" },
     { label: "Sync Queue", value: stats?.syncPending ?? 0, icon: RefreshCw, accent: "text-amber-400" },
-    { label: "Connected Platforms", value: stats?.integrations ?? 0, icon: Plug, accent: "text-violet-400" },
+    { label: "Connected Platforms", value: connectedCount, icon: Plug, accent: "text-violet-400" },
   ];
 
   return (
@@ -118,6 +131,61 @@ export default function Home() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Platform Health */}
+      <Card className="bg-card border-border/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-medium text-foreground flex items-center gap-2">
+            <Plug className="h-4 w-4 text-muted-foreground" />
+            Platform Health
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {healthLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Checking platform connections...
+            </div>
+          ) : platformHealth?.length ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {platformHealth.map((p: any) => (
+                <div
+                  key={p.platform}
+                  className={`flex items-center gap-3 rounded-lg border p-3 ${
+                    p.connected
+                      ? "border-emerald-500/20 bg-emerald-500/5"
+                      : "border-red-500/20 bg-red-500/5"
+                  }`}
+                >
+                  {p.connected ? (
+                    <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+                  ) : (
+                    <XCircle className="h-5 w-5 text-red-400 shrink-0" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">
+                      {platformLabels[p.platform] || p.platform}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {p.details || (p.connected ? "Connected" : "Disconnected")}
+                    </p>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={`text-[10px] shrink-0 ${
+                      p.connected ? "text-emerald-400 border-emerald-500/30" : "text-red-400 border-red-500/30"
+                    }`}
+                  >
+                    {p.connected ? "Live" : "Down"}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No platforms configured. Go to Integrations to connect your platforms.</p>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
