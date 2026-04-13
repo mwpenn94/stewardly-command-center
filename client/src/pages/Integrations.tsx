@@ -356,7 +356,7 @@ export default function Integrations() {
                 ) : (
                   <AlertTriangle className="h-4 w-4 text-red-400" />
                 )}
-                <AlertDescription className={`text-xs ${testResult.success ? "text-emerald-300" : "text-red-300"}`}>
+                <AlertDescription className={`text-xs ${testResult.success ? "text-emerald-600 dark:text-emerald-300" : "text-red-600 dark:text-red-300"}`}>
                   {testResult.message}
                 </AlertDescription>
               </Alert>

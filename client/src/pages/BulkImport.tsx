@@ -375,7 +375,7 @@ export default function BulkImport() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="gap-1.5 text-xs text-red-400 hover:text-red-300"
+                  className="gap-1.5 text-xs text-red-600 dark:text-red-400 hover:text-red-500 dark:hover:text-red-300"
                   onClick={() => cancelSyncMut.mutate()}
                   disabled={cancelSyncMut.isPending}
                 >

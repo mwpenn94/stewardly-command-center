@@ -106,6 +106,8 @@
 | G94 | QueryError on SyncEngine, ActivityFeed, Channels, Integrations | Done | 4 | 4 more pages now show retry-able error state when queries fail; total 9 pages with QueryError coverage | Pass 35 |
 | G95 | BulkImport CSV preview mobile scroll hint | Done | 2 | Mobile-only hint text "Scroll horizontally to see more columns →" for CSV preview table | Pass 35 |
 | G96 | Contact interaction logging | Done | 4 | "Log Interaction" button on contact timeline tab; inline form with channel selector (13 channels), direction toggle, body text; auto-maps channel to interaction type; creates via tRPC interactions.create | Pass 36 |
+| G97 | Light mode contrast fixes | Done | 3 | Integrations test result text uses dark:text-*-300 / text-*-600 for light mode; BulkImport cancel button uses dark:text-red-400 / text-red-600 | Pass 37 |
+| G98 | ARIA labels on Log Interaction form | Done | 2 | role="form", aria-label on channel selector, direction selector, notes textarea | Pass 37 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -212,4 +214,5 @@
 - Pass 33 · mobile responsive + touch targets · G90-G91 done; 6 buttons fixed to ≥44px across 4 pages, contact detail grid 2-col on mobile · a612b1c · 2 items completed · none deferred
 - Pass 34 · dead code + test coverage + unused imports · G92-G93 done; removed 3 unused imports, identified 3 orphaned dev components, verified 142/203 tests pass (25 live-only failures expected), docs updated · f6842e7 · 2 items completed · none deferred
 - Pass 35 · input validation + error states · G94-G95 done; QueryError added to 4 more pages (9 total), BulkImport CSV preview mobile scroll hint · ce2805d · 2 items completed · none deferred
-- Pass 36 · contact interaction logging + unified timeline · G96 done; "Log Interaction" feature on contact detail timeline with 13-channel select, direction toggle, auto-typed mutations · PENDING · 1 item completed · none deferred
+- Pass 36 · contact interaction logging + unified timeline · G96 done; "Log Interaction" feature on contact detail timeline with 13-channel select, direction toggle, auto-typed mutations · fd2cfe9 · 1 item completed · none deferred
+- Pass 37 · light mode contrast + accessibility · G97-G98 done; light mode text contrast fixes on Integrations/BulkImport, ARIA labels on Log Interaction form · PENDING · 2 items completed · none deferred

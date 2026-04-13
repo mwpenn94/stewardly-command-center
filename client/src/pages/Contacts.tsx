@@ -628,10 +628,10 @@ function ContactTimeline({ contactId }: { contactId?: number }) {
         </Button>
       </div>
       {showLogForm && (
-        <div className="p-3 rounded-lg border border-border/50 bg-muted/5 space-y-2 mb-3">
+        <div className="p-3 rounded-lg border border-border/50 bg-muted/5 space-y-2 mb-3" role="form" aria-label="Log a new interaction">
           <div className="grid grid-cols-2 gap-2">
             <Select value={logForm.channel} onValueChange={(v) => setLogForm({ ...logForm, channel: v as typeof ALL_CHANNELS[number] })}>
-              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-8 text-xs" aria-label="Channel"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {ALL_CHANNELS.map((ch) => (
                   <SelectItem key={ch} value={ch}>{CHANNEL_CONFIG[ch]?.label || ch}</SelectItem>
@@ -639,14 +639,14 @@ function ContactTimeline({ contactId }: { contactId?: number }) {
               </SelectContent>
             </Select>
             <Select value={logForm.direction} onValueChange={(v) => setLogForm({ ...logForm, direction: v as "inbound" | "outbound" })}>
-              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-8 text-xs" aria-label="Direction"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="outbound">Outbound</SelectItem>
                 <SelectItem value="inbound">Inbound</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <Textarea rows={2} className="text-xs" value={logForm.body} onChange={(e) => setLogForm({ ...logForm, body: e.target.value })} placeholder="Brief note about this interaction..." />
+          <Textarea rows={2} className="text-xs" value={logForm.body} onChange={(e) => setLogForm({ ...logForm, body: e.target.value })} placeholder="Brief note about this interaction..." aria-label="Interaction notes" />
           <div className="flex gap-2 justify-end">
             <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowLogForm(false)}>Cancel</Button>
             <Button size="sm" className="h-7 text-xs" disabled={createInteraction.isPending || !logForm.body.trim()} onClick={() => {
