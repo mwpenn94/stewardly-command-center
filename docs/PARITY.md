@@ -120,6 +120,7 @@
 | G108 | TIMELINE_CHANNEL_ICONS typed | Done | 2 | Changed from Record<string, any> to Record<string, LucideIcon> in Contacts.tsx — removes another any type | Pass 39 |
 | G109 | Global search — page navigation | Done | 3 | ⌘K search now surfaces all 13 pages by label and keywords (e.g. type "ai" → AI Insights, type "sync" → Sync Engine); pages shown before contacts/campaigns; `any` types in search results replaced with explicit types | Pass 40 |
 | G110 | Analytics campaign performance chart | Done | 3 | Top 8 campaigns sorted by send volume with proportional bar chart, channel icon, status badge; campaign-level drill-down for analytics | Pass 40 |
+| G111 | Accessibility — ARIA on data visualizations | Done | 3 | role="meter" + aria-valuenow/min/max on Enrichment completeness bars and Analytics funnel steps; aria-hidden on decorative icons; role="status" + aria-label on campaign MetricCard; region label on campaign performance | Pass 41 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -188,6 +189,8 @@
 - TIMELINE_CHANNEL_ICONS typed as Record<string, LucideIcon> (no any)
 - Global search surfaces all 13 pages by label + keywords, plus contacts and campaigns
 - Analytics campaign performance: top campaigns sorted by send volume with proportional bars
+- ARIA role="meter" on data completeness bars and conversion funnel steps
+- ARIA role="status" on campaign detail MetricCard components
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -240,4 +243,5 @@
 - Pass 37 · functional gaps + documentation accuracy + campaign detail · G97-G101 done; campaign detail dialog with overview+timeline, campaigns.get+interactions.byCampaign tRPC, dead code removed, metrics type fixed, all docs updated with accurate counts · 79b846b · 5 items completed · none deferred
 - Pass 38 · campaign lifecycle + contact attribution + dashboard metrics · G102-G104 done; pause/resume/cancel in campaign detail, contact campaign attribution section, dashboard campaign lifecycle badges, contacts.campaigns tRPC, getCampaignsForContact DB · 46d24d9 · 3 items completed · none deferred
 - Pass 39 · mobile UX + data completeness + type safety · G105-G108 done; Enrichment page data completeness bars, dashboard badge 44px targets, contact campaign mobile fix, TIMELINE_CHANNEL_ICONS typed · 2d360b6 · 4 items completed · none deferred
-- Pass 40 · unified search + analytics drill-down · G109-G110 done; global search now surfaces all 13 pages by keywords, analytics campaign performance chart with top 8 campaigns; any types eliminated in GlobalSearch · PENDING · 2 items completed · none deferred
+- Pass 40 · unified search + analytics drill-down · G109-G110 done; global search now surfaces all 13 pages by keywords, analytics campaign performance chart with top 8 campaigns; any types eliminated in GlobalSearch · 19f5ba6 · 2 items completed · none deferred
+- Pass 41 · accessibility + ARIA on data visualizations · G111 done; role="meter" on Enrichment bars + Analytics funnel, aria-hidden on decorative icons, role="status" on MetricCards, region label on campaign performance · PENDING · 1 item completed · none deferred

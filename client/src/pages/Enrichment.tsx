@@ -92,15 +92,15 @@ export default function Enrichment() {
               const isGood = pct >= 70;
               const isOk = pct >= 40;
               return (
-                <div key={f.field} className="space-y-1.5">
+                <div key={f.field} className="space-y-1.5" role="meter" aria-label={`${f.field} completeness`} aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground flex items-center gap-1.5">
-                      {isGood ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> : isOk ? <AlertTriangle className="h-3.5 w-3.5 text-amber-400" /> : <AlertTriangle className="h-3.5 w-3.5 text-red-400" />}
+                      {isGood ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" aria-hidden="true" /> : isOk ? <AlertTriangle className="h-3.5 w-3.5 text-amber-400" aria-hidden="true" /> : <AlertTriangle className="h-3.5 w-3.5 text-red-400" aria-hidden="true" />}
                       {f.field}
                     </span>
                     <span className="text-foreground font-medium tabular-nums">{f.count.toLocaleString()} ({pct}%)</span>
                   </div>
-                  <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden" aria-hidden="true">
                     <div className={`h-full rounded-full transition-all ${isGood ? "bg-emerald-500" : isOk ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${pct}%` }} />
                   </div>
                 </div>

@@ -820,9 +820,9 @@ function CampaignDetailDialog({ campaignId, onClose }: { campaignId: number; onC
 
 function MetricCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: LucideIcon; color?: string }) {
   return (
-    <div className="p-3 rounded-lg bg-muted/20 border border-border/20">
+    <div className="p-3 rounded-lg bg-muted/20 border border-border/20" role="status" aria-label={`${label}: ${value.toLocaleString()}`}>
       <div className="flex items-center gap-2 mb-1">
-        <Icon className={`h-4 w-4 ${color || "text-muted-foreground"}`} />
+        <Icon className={`h-4 w-4 ${color || "text-muted-foreground"}`} aria-hidden="true" />
         <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</span>
       </div>
       <p className="text-lg font-semibold text-foreground">{value.toLocaleString()}</p>

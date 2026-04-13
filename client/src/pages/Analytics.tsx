@@ -258,9 +258,9 @@ export default function Analytics() {
               { label: "Clicked", value: agg.totalClicked, max: agg.totalSent, color: "bg-amber-500" },
               { label: "Conversions", value: agg.totalConversions, max: agg.totalSent, color: "bg-emerald-500" },
             ].map((step) => (
-              <div key={step.label} className="flex items-center gap-3">
+              <div key={step.label} className="flex items-center gap-3" role="meter" aria-label={`${step.label}: ${formatNum(step.value)}`} aria-valuenow={step.value} aria-valuemin={0} aria-valuemax={step.max}>
                 <p className="text-xs text-muted-foreground w-24 text-right">{step.label}</p>
-                <div className="flex-1 h-6 rounded-md bg-muted/20 overflow-hidden relative">
+                <div className="flex-1 h-6 rounded-md bg-muted/20 overflow-hidden relative" aria-hidden="true">
                   <div
                     className={`h-full ${step.color} rounded-md transition-all duration-500`}
                     style={{ width: `${step.max > 0 ? Math.max((step.value / step.max) * 100, 1) : 0}%` }}
@@ -293,7 +293,7 @@ export default function Analytics() {
 
       {/* Top Campaigns */}
       {campaigns && campaigns.length > 0 && (
-        <Card className="bg-card border-border/50">
+        <Card className="bg-card border-border/50" role="region" aria-label="Campaign performance ranking">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-medium text-foreground flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
