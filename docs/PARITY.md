@@ -110,6 +110,7 @@
 | G98 | ARIA labels on Log Interaction form | Done | 2 | role="form", aria-label on channel selector, direction selector, notes textarea | Pass 37 |
 | G99 | Campaign scheduling | Done | 4 | Launch dialog has "Send Now" / "Schedule" toggle; datetime-local picker for future scheduling; scheduled campaigns show date in list; "Reschedule" button on scheduled campaigns | Pass 38 |
 | G100 | Contact CSV export | Done | 3 | "Export" button on Contacts page header; exports current page contacts as CSV with headers (name, email, phone, company, segment, tier, city, state); client-side Blob download | Pass 39 |
+| G101 | Enrichment page dynamic data + tier distribution | Done | 3 | Enrichment count from byTier (non-unscored contacts); Tier Distribution card with progress bars; no more hardcoded enrichedCount=0 | Pass 41 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -223,4 +224,5 @@
 - Pass 37 · light mode contrast + accessibility · G97-G98 done; light mode text contrast fixes on Integrations/BulkImport, ARIA labels on Log Interaction form · f3c647f · 2 items completed · none deferred
 - Pass 38 · campaign scheduling + status UX · G99 done; Send Now/Schedule toggle, datetime-local picker, scheduled date in campaign list, Reschedule button · 0ee6101 · 1 item completed · none deferred
 - Pass 39 · data export + CRM enhancement · G100 done; Contact CSV export button with client-side download · 62f31a7 · 1 item completed · none deferred
-- Pass 40 · final documentation + merge · docs verified (73 procedures, 11 tables, 15 pages, 53 UI components, 9 services, 10 tests); merged to main · PENDING · merge completed · none deferred
+- Pass 40 · final documentation + merge · docs verified (73 procedures, 11 tables, 15 pages, 53 UI components, 9 services, 10 tests); merged to main · 81f6085 · merge completed · none deferred
+- Pass 41 · performance + enrichment enhancement · G101 done; Enrichment page: dynamic enrichment count from tier data, Tier Distribution card with progress bars · PENDING · 1 item completed · none deferred

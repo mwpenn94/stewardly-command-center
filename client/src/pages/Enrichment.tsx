@@ -3,11 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Users, Zap, Target } from "lucide-react";
+import { useMemo } from "react";
 
 export default function Enrichment() {
   const { data: stats } = trpc.contacts.stats.useQuery();
+  const { data: tierData } = trpc.contacts.stats.useQuery();
 
-  const enrichedCount = 0; // Would come from contacts with enrichedAt set
+  const enrichedCount = useMemo(() => {
+    // Contacts with a tier other than "unscored" are considered scored/enriched
+    if (!tierData?.byTier) return 0;
+    return tierData.byTier.filter((t: { tier: string | null }) => t.tier && t.tier !== "unscored").reduce((sum: number, t: { count: number }) => sum + t.count, 0);
+  }, [tierData]);
   const totalContacts = stats?.total || 0;
   const enrichmentRate = totalContacts > 0 ? Math.round((enrichedCount / totalContacts) * 100) : 0;
 
@@ -100,6 +106,38 @@ export default function Enrichment() {
               <Badge variant="outline" className="text-[10px] shrink-0">Ready</Badge>
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      {/* Tier Distribution */}
+      <Card className="bg-card border-border/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-medium text-foreground">Tier Distribution</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {[
+            { label: "Gold", key: "gold", color: "bg-amber-500" },
+            { label: "Silver", key: "silver", color: "bg-slate-400" },
+            { label: "Bronze", key: "bronze", color: "bg-orange-600" },
+            { label: "Unscored", key: "unscored", color: "bg-muted-foreground/30" },
+          ].map((tier) => {
+            const tierCount = tierData?.byTier?.find((t: { tier: string | null }) => t.tier === tier.key)?.count || 0;
+            const pct = totalContacts > 0 ? (tierCount / totalContacts) * 100 : 0;
+            return (
+              <div key={tier.key} className="space-y-1.5">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">{tier.label}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-foreground font-medium tabular-nums">{tierCount.toLocaleString()}</span>
+                    <span className="text-xs text-muted-foreground/60 w-10 text-right">{pct.toFixed(1)}%</span>
+                  </div>
+                </div>
+                <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
+                  <div className={`h-full ${tier.color} rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
 
