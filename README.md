@@ -117,7 +117,7 @@ A full-stack marketing operations platform that unifies contact management, mult
 | Routing | Wouter |
 | Styling | Tailwind CSS 4 + shadcn/ui (53 Radix components) |
 | Server State | TanStack React Query + tRPC 11 |
-| Backend | Express 4 + tRPC (65 procedures) |
+| Backend | Express 4 + tRPC (65 procedures: 59 core + 6 AI) |
 | Database | Drizzle ORM + MySQL (TiDB) — 9 tables |
 | Icons | Lucide React |
 | Animations | Framer Motion |
@@ -170,7 +170,7 @@ client/src/
     KeyboardShortcuts.tsx # Shortcut help dialog
     NotificationCenter.tsx # Bell icon + activity popover
     QueryError.tsx        # Reusable error state with retry
-  pages/                  # 13 pages (Home eager, rest lazy-loaded)
+  pages/                  # 14 page files (Home eager, 12 lazy-loaded, 1 internal showcase)
     Home.tsx              # Dashboard (255 lines)
     Contacts.tsx          # Contact CRUD (494 lines)
     BulkImport.tsx        # CSV import (558 lines)
@@ -182,7 +182,7 @@ client/src/
     Backups.tsx           # Export management (151 lines)
     ActivityFeed.tsx      # Audit log (123 lines)
     Settings.tsx          # Preferences (226 lines)
-    AIInsights.tsx        # AI continuous improvement engine dashboard
+    AIInsights.tsx        # AI continuous improvement engine (461 lines)
     NotFound.tsx          # 404 page (52 lines)
   contexts/
     ThemeContext.tsx       # Light/dark theme with localStorage
@@ -191,7 +191,7 @@ client/src/
 
 server/
   _core/                  # Express server + tRPC adapter
-  routers.ts              # 59 tRPC procedures (1,076 lines)
+  routers.ts              # 65 tRPC procedures (1,130 lines)
   db.ts                   # Database query helpers (373 lines)
   services/
     ghl.ts                # GoHighLevel API (600 lines)
@@ -202,6 +202,7 @@ server/
     syncWorker.ts         # Sync queue processing (465 lines)
     campaignEngine.ts     # Campaign lifecycle (266 lines)
     credentials.ts        # Credential normalization (124 lines)
+    aiEngine.ts           # AI/agentic engine: health, predictions, scoring (584 lines)
 
 drizzle/
   schema.ts               # 9 database tables (205 lines)

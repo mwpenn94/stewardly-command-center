@@ -35,11 +35,11 @@ The platform was designed and built across multiple intensive sessions, progress
 
 | Metric | Value |
 |---|---|
-| Total Lines of Code (server + client) | ~18,900 |
+| Total Lines of Code (server + client) | ~20,000 |
 | Database Tables | 9 |
-| tRPC Procedures | 59 |
-| Backend Services | 8 modules |
-| Frontend Pages | 13 |
+| tRPC Procedures | 65 (59 core + 6 AI) |
+| Backend Services | 9 modules |
+| Frontend Pages | 14 (13 routed + 1 internal showcase) |
 | shadcn/ui Components | 53 |
 | Custom Components | 10 |
 | Test Files | 10 |
@@ -62,7 +62,7 @@ The application follows a layered architecture with clear separation of concerns
 │  └─ tRPC hooks (useQuery / useMutation)             │
 ├─────────────────────────────────────────────────────┤
 │  API Layer (tRPC Router — server/routers.ts)         │
-│  └─ 59 procedures (public + protected)              │
+│  └─ 65 procedures (public + protected)              │
 ├─────────────────────────────────────────────────────┤
 │  Service Layer (server/services/*.ts)                │
 │  └─ GHL, SMS-iT, Dripify, Orchestrator,            │
@@ -133,7 +133,7 @@ Each contact carries a `tier` field (gold, silver, bronze, unscored) and an `ove
 
 ## 4. Backend Services Layer
 
-The backend is organized into 8 service modules under `server/services/`, each encapsulating a specific domain. All services are consumed by tRPC procedures in `server/routers.ts` and tested through both unit and live E2E tests.
+The backend is organized into 9 service modules under `server/services/`, each encapsulating a specific domain. All services are consumed by tRPC procedures in `server/routers.ts` and tested through both unit and live E2E tests.
 
 ### 4.1 GHL Service (`ghl.ts` — 600 lines)
 
@@ -190,6 +190,14 @@ The sync worker processes individual sync queue items, handling retries with exp
 
 Manages campaign lifecycle from creation through execution. Supports multi-channel campaigns (email, SMS, LinkedIn, multi-channel), audience filtering based on contact segments and tiers, template variable interpolation, and scheduled execution.
 
+### 4.9 AI Engine (`aiEngine.ts` — 584 lines)
+
+The AI/agentic continuous improvement engine provides three analytical layers: retrospective (historical trend analysis), real-time (live health scoring across 5 categories), and predictive (trend-based forecasting). Key capabilities include system health scoring (0–100 per category with weighted composite), prioritized recommendations with actionable CTAs, lead scoring based on data completeness and engagement metrics, segment analysis with tier distribution, and campaign performance analysis by channel.
+
+**Key functions**: `getInsights`, `getHealthScore`, `getRecommendations`, `getPredictions`, `calculateLeadScore`, `bulkScoreLeads`
+
+**Exposed via tRPC**: 6 procedures under the `ai` namespace: `ai.insights`, `ai.healthScore`, `ai.recommendations`, `ai.predictions`, `ai.leadScore`, `ai.bulkLeadScore`.
+
 ---
 
 ## 5. Frontend Application
@@ -211,6 +219,7 @@ The frontend is a single-page application built with React 19, using wouter for 
 | Backups | `/backups` | Contact/campaign export and backup management | 151 |
 | Activity Feed | `/activity` | Chronological audit log of all system events | 123 |
 | Settings | `/settings` | Theme toggle, notification preferences, timezone/date format | 226 |
+| AI Insights | `/ai-insights` | AI engine: health scores, recommendations, predictions, lead scoring | 461 |
 | Component Showcase | (internal) | Design system reference with all UI components | 1,437 |
 | Not Found | `/404` | 404 error page | 52 |
 
@@ -222,7 +231,7 @@ The dashboard displays four KPI cards at the top: Total Contacts, Active Campaig
 
 ### 5.3 Navigation Structure
 
-The sidebar navigation provides access to all 11 primary pages, organized by function:
+The sidebar navigation provides access to all 12 primary pages, organized by function:
 
 - **Overview** — Dashboard home
 - **Contacts** — Contact management
@@ -232,6 +241,7 @@ The sidebar navigation provides access to all 11 primary pages, organized by fun
 - **Integrations** — Platform connections
 - **Enrichment** — Data enhancement
 - **Analytics** — Performance metrics
+- **AI Insights** — AI engine: health scores, recommendations, predictions, lead scoring
 - **Backups** — Data export
 - **Activity** — Audit log
 - **Settings** — Theme, notifications, timezone preferences
@@ -404,7 +414,7 @@ A Python script that processes all source CSV files, deduplicates by email, merg
 
 ### 10.1 tRPC Over REST
 
-The decision to use tRPC instead of traditional REST endpoints was driven by the need for end-to-end type safety. With 59 procedures and complex data shapes (contacts with 20+ fields, campaigns with nested templates), tRPC eliminates an entire class of serialization bugs and provides autocomplete in the frontend.
+The decision to use tRPC instead of traditional REST endpoints was driven by the need for end-to-end type safety. With 65 procedures and complex data shapes (contacts with 20+ fields, campaigns with nested templates), tRPC eliminates an entire class of serialization bugs and provides autocomplete in the frontend.
 
 ### 10.2 JWT Extraction via CDP
 
@@ -471,7 +481,7 @@ Several UI pages contain structural placeholders for features that are not yet f
 
 | File | Lines | Purpose |
 |---|---|---|
-| `server/routers.ts` | 1,076 | All tRPC procedures (59 endpoints) |
+| `server/routers.ts` | 1,130 | All tRPC procedures (65 endpoints) |
 | `server/db.ts` | 373 | Database query helpers |
 | `server/services/ghl.ts` | 600 | GoHighLevel API integration |
 | `server/services/syncWorker.ts` | 465 | Sync queue processing engine |
@@ -481,6 +491,7 @@ Several UI pages contain structural placeholders for features that are not yet f
 | `server/services/dripify.ts` | 215 | Dripify/LinkedIn automation integration |
 | `server/services/smsit.ts` | 181 | SMS-iT API integration |
 | `server/services/credentials.ts` | 124 | Credential loading and normalization |
+| `server/services/aiEngine.ts` | 584 | AI/agentic engine: health scores, predictions, recommendations, lead scoring |
 | `drizzle/schema.ts` | 205 | Database schema (9 tables) |
 
 ### 12.2 Client Files
@@ -499,9 +510,10 @@ Several UI pages contain structural placeholders for features that are not yet f
 | `client/src/pages/Backups.tsx` | 151 | Export management |
 | `client/src/pages/Enrichment.tsx` | 132 | Data enrichment workflows |
 | `client/src/pages/ActivityFeed.tsx` | 123 | Audit log viewer |
+| `client/src/pages/AIInsights.tsx` | 461 | AI continuous improvement engine dashboard |
 | `client/src/pages/NotFound.tsx` | 52 | 404 error page |
-| `client/src/App.tsx` | 68 | Routing, lazy loading, layout |
-| `client/src/components/DashboardLayout.tsx` | 322 | Sidebar, header, mobile drawer |
+| `client/src/App.tsx` | 70 | Routing, lazy loading, layout |
+| `client/src/components/DashboardLayout.tsx` | 323 | Sidebar, header, mobile drawer |
 | `client/src/components/AIChatBox.tsx` | 335 | AI chat interface |
 | `client/src/components/GlobalSearch.tsx` | 160 | Cmd+K search overlay |
 | `client/src/components/Map.tsx` | 155 | Map component |

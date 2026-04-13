@@ -133,8 +133,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **Toast system** — Sonner notifications on all CRUD operations
 - **Skeleton loaders** — Loading states on tables, cards, lists
 - **Mobile responsive** — Sidebar overlay, collapsible desktop sidebar
-- **tRPC API** — 59 type-safe procedures for all backend operations
+- **tRPC API** — 65 type-safe procedures for all backend operations (59 core + 6 AI)
 - **Database** — 9 tables via Drizzle ORM with MySQL/TiDB
 - **Test suite** — 10 test files covering unit, integration, and live E2E
 - **Authentication** — Cookie-based auth with login redirect, role-based access
-- **Service layer** — 8 service modules: GHL, SMS-iT, Dripify, Orchestrator, SyncScheduler, SyncWorker, CampaignEngine, Credentials
+- **Service layer** — 9 service modules: GHL, SMS-iT, Dripify, Orchestrator, SyncScheduler, SyncWorker, CampaignEngine, Credentials, AIEngine

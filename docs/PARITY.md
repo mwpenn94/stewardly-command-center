@@ -28,7 +28,7 @@
 | G16 | Toast notification system | Done | 4 | Sonner toasts on all CRUD operations | legacy |
 | G17 | Skeleton loading states | Done | 3 | Skeleton loaders on tables, cards, lists | legacy |
 | G18 | Authentication flow | Done | 3 | Cookie-based auth, login redirect, role-based access | legacy |
-| G19 | tRPC API layer (59 procedures) | Done | 4 | Full type-safe API: contacts, campaigns, sync, integrations | legacy |
+| G19 | tRPC API layer (65 procedures) | Done | 5 | Full type-safe API: contacts, campaigns, sync, integrations, AI (59 core + 6 AI) | legacy + Pass 18 |
 | G20 | Database schema (9 tables + migrations) | Done | 4 | Drizzle ORM, MySQL/TiDB, migration-first workflow | legacy |
 | G21 | Multi-platform campaign orchestration | Done | 3 | Orchestrator: sequences, health checks, pause/resume/cancel | legacy |
 | G22 | Test suite (10 files, 3 tiers) | Done | 4 | Unit + integration + live E2E across 10 files | legacy |

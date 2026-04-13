@@ -18,12 +18,12 @@ Stewardly Command Center is a full-stack marketing operations platform built wit
 │  └─ tRPC hooks (useQuery / useMutation)             │
 ├─────────────────────────────────────────────────────┤
 │  API Layer (tRPC Router — server/routers.ts)         │
-│  └─ 59 procedures (public + protected)              │
+│  └─ 65 procedures (public + protected)              │
 ├─────────────────────────────────────────────────────┤
 │  Service Layer (server/services/*.ts)                │
 │  └─ GHL, SMS-iT, Dripify, Orchestrator,            │
 │     SyncScheduler, SyncWorker, CampaignEngine,      │
-│     Credentials                                      │
+│     Credentials, AIEngine                            │
 ├─────────────────────────────────────────────────────┤
 │  Data Layer (Drizzle ORM → MySQL/TiDB)              │
 │  └─ 9 tables, schema-driven migrations              │
@@ -103,7 +103,7 @@ Mobile-first breakpoints: `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1
 | `syncScheduler.ts` | 205 | Periodic cross-platform sync scheduling |
 | `smsit.ts` | 181 | SMS-iT: send, balance, contacts, templates |
 | `credentials.ts` | 124 | DB credential loading + format normalization |
-| `aiEngine.ts` | 350 | AI/agentic engine: health scores, predictions, recommendations, lead scoring |
+| `aiEngine.ts` | 584 | AI/agentic engine: health scores, predictions, recommendations, lead scoring |
 
 ## Custom Components
 
