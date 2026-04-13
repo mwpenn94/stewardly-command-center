@@ -2,24 +2,46 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
-## [0.14.0] - 2026-04-13
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [1.0.0] - 2026-04-13
 
 ### Added
-- **Keyboard shortcuts** — `?` opens help dialog showing all shortcuts; `G` + letter navigates (H=home, C=contacts, M=campaigns, S=sync, A=analytics); `⌘K` opens search; `Esc` closes dialogs
+- **Documentation overhaul** — All docs (README, DOCUMENTATION, ARCHITECTURE, CHANGELOG, PARITY) rewritten for accuracy
+- Vite config made portable — Manus-specific plugins now load conditionally, build works in any environment
+
+### Fixed
+- Build failure when `@builder.io/vite-plugin-jsx-loc` and `vite-plugin-manus-runtime` are not installed
+- Corrected all documentation: table count (8 → 9), procedure count (55+ → 59), line counts, page inventories
+- Removed inaccurate changelog entries from versions 0.1.0–0.7.1 that described a different project
+
+## [0.16.0] - 2026-04-13
+
+### Added
+- **Dialog UX** — All 4 campaign dialogs (Create, Launch, Sequence, Template) now have explicit Cancel buttons
+- **Type safety** — Eliminated all `any` types from page-level components; proper interfaces for Campaigns, Analytics, ActivityFeed, Backups, BulkImport, Enrichment
+- **Security** — BulkImport JWT token input uses `type=password` to prevent shoulder-surfing
+- **Coming-soon UX** — Enrichment "Enrich All" and Backup "Restore" buttons disabled with tooltip instead of misleading toast
+- **Backup status fix** — Status badges now use actual schema values (ready/expired) instead of wrong literals
+
+## [0.15.0] - 2026-04-13
+
+### Added
+- **Keyboard shortcuts** — `?` opens help dialog showing all shortcuts; `G` + letter navigates (H=home, C=contacts, M=campaigns, S=sync, A=analytics); `Cmd+K` opens search; `Esc` closes dialogs
 - **KeyboardShortcuts dialog** — Accessible reference panel for all keyboard shortcuts
 
 ### Changed
 - Campaign Studio tabs now full-width on mobile for easier touch targets
 - Sequence builder dialog has better mobile max-height handling
 
-## [0.13.0] - 2026-04-13
+## [0.14.0] - 2026-04-13
 
 ### Added
 - **Contact form validation** — Required field check (name or email), email format validation, phone format validation with inline error messages and red border highlights
 - **QueryError component** — Reusable error state with retry button for failed tRPC queries
 - Graceful degradation on dashboard platform health section when API is unavailable
 
-## [0.12.0] - 2026-04-13
+## [0.13.0] - 2026-04-13
 
 ### Added
 - **Notification center** — Bell icon in desktop header and mobile top bar; shows 10 most recent activities with severity icons (success/info/warning/error), click navigates to source page, auto-refreshes every 30 seconds, alert badge count for warnings/errors
@@ -29,7 +51,7 @@ All notable changes to the Stewardly Command Center project will be documented i
 - Contacts table reduced from 8 to 7 columns on desktop (removed Score column for cleaner layout)
 - Desktop header now shows search bar + notification bell
 
-## [0.11.0] - 2026-04-13
+## [0.12.0] - 2026-04-13
 
 ### Added
 - **Dashboard clickthrough navigation** — Activity feed items navigate to source pages (sync → /sync, campaign → /campaigns, etc.); "View all activity" link at bottom
@@ -39,166 +61,67 @@ All notable changes to the Stewardly Command Center project will be documented i
 - **Vendor chunk splitting** — Main bundle reduced from 527KB to 346KB (52% total reduction from 725KB original); React, Radix UI, and Query libraries split into cacheable vendor chunks
 - Dashboard stat cards now show hover scale animation on icons
 
-## [0.10.0] - 2026-04-13
+## [0.11.0] - 2026-04-13
 
 ### Added
 - **Contact detail modal** — Click contact name or eye icon to view full info: email/phone/address with clickable links, segment/tier/score classification, platform connection status (GHL, SMS-iT, LinkedIn), tags display, and edit shortcut
 - **Dashboard quick actions** — 4 action buttons: New Contact, New Campaign, Bulk Import, Force Sync; stat cards now clickable with keyboard support
 - **Accessibility** — Skip-to-content link (visible on Tab), global `:focus-visible` ring on all interactive elements, ARIA `role="button"` on stat cards
 
-## [0.9.0] - 2026-04-13
+## [0.10.0] - 2026-04-13
 
 ### Added
 - **Light mode theme** — Full OKLCH light color palette (warm white backgrounds, darker gold accent, proper contrast) with smooth dark/light switching
 - **Code splitting** — All routes lazy-loaded via `React.lazy()` + `Suspense`; main bundle reduced from 725KB to 527KB, pages load as 4-34KB separate chunks
-- **Global search** — `⌘K` / `Ctrl+K` shortcut opens search from anywhere; searches contacts and campaigns with dropdown results; available in both desktop header and mobile top bar
+- **Global search** — `Cmd+K` / `Ctrl+K` shortcut opens search from anywhere; searches contacts and campaigns with dropdown results; available in both desktop header and mobile top bar
 - Page loading spinner for lazy route transitions
 
 ### Changed
-- CSS restructured: `:root` now defines light theme, `.dark` class overrides with dark theme (was inverted)
+- CSS restructured: `:root` now defines light theme, `.dark` class overrides with dark theme
 - Card hover effects adapt to light/dark mode
 
-## [0.8.0] - 2026-04-13
+## [0.9.0] - 2026-04-13
 
 ### Added
 - **Settings page** — Theme toggle (dark/light), notification preferences, timezone/date format configuration, profile display, integration quick links
-- Dark/light theme switching now functional via ThemeProvider `switchable` flag
+- Dark/light theme switching via ThemeProvider
 
 ### Fixed
 - **Mobile responsiveness** across all pages:
-  - Campaign Studio: platform health grid stacks on mobile (was 3-col fixed)
+  - Campaign Studio: platform health grid stacks on mobile
   - Sync Engine: scheduler controls and platform grid stack on mobile
   - All page headers: title + action buttons stack vertically on mobile
   - 44px minimum touch targets on all mobile action buttons
   - Main content padding reduced from `p-6` to `p-4` on mobile
   - Filter rows wrap properly on small screens
-- Settings link in user dropdown now routes to `/settings` (was `/integrations`)
+- Settings link in user dropdown now routes to `/settings`
 
 ### Changed
-- **Complete documentation rewrite** — README.md, ARCHITECTURE.md, and PARITY.md now accurately describe the actual tRPC/shadcn/Drizzle full-stack application (were describing an outdated Zustand-based frontend)
-- Sidebar navigation now includes Settings page with Settings icon
-- PARITY.md feature matrix fully rewritten to track actual features (28 items vs old 35 that tracked non-existent features)
+- **Documentation rewrite** — README, ARCHITECTURE, and PARITY rewritten to describe the actual tRPC/shadcn/Drizzle stack (previously described an outdated Zustand-based frontend)
+- Sidebar navigation now includes Settings page
 
-## [0.7.1] - 2026-04-13
-
-### Changed
-- Removed unused Vite template assets (hero.png, react.svg, vite.svg, icons.svg)
-- Updated package.json with description and version 0.7.0
-- Comprehensive README rewrite documenting all features, project structure, tech stack
-- Architecture document refresh with complete component inventory and AI infrastructure docs
-
-## [0.7.0] - 2026-04-13
+## [0.8.0] - 2026-04-13
 
 ### Added
-- **Dashboard Charts** — Revenue by Property bar chart, Occupancy donut charts per property, 6-month revenue trend sparkline
-- **AI Insights Panel** — Data-driven recommendations based on live store data: overdue payments, urgent maintenance, low occupancy, new leads, lease expirations, rent optimization
-- **MiniChart Components** — Zero-dependency BarChart, DonutChart, Sparkline SVG components
-- **Skeleton Components** — MetricCardSkeleton, TableRowSkeleton, CardSkeleton for loading states
-
-### Changed
-- Dashboard significantly enhanced with charts row above activity feed
-- Dashboard G1 depth upgraded to 5/5
-
-## [0.6.0] - 2026-04-13
-
-### Added
-- CRM contact detail modal with email/phone links, company info, tags, notes
-- CRM activity timeline with email, note, meeting, and creation events
-- CRM Kanban board view with drag-and-drop between status columns (new/contacted/qualified/converted/lost)
-- Table/Kanban view toggle in CRM page
-- Pipeline create/edit form modal with source, destination, schedule, status configuration
-- Pipeline cards clickable to open edit form
-- Toast notifications on pipeline pause/resume/create/update
-
-### Changed
-- CRM page enhanced with dual view modes (table + kanban)
-- Pipelines page now supports full CRUD with modal forms
-
-## [0.5.0] - 2026-04-13
-
-### Added
-- **Marketing** page now has three tabs: Campaigns, Email Builder, Workflows
-- Email Template Builder with edit/preview toggle, subject/preheader/heading/body/CTA/footer fields
-- HTML preview rendering of email templates with Copy HTML action
-- Outreach Workflow Builder with drag-and-drop-style step management
-- Workflow step types: Send Email, Send SMS, Wait (delay days), Condition
-- Two pre-built workflow templates: New Lead Welcome Sequence, Lease Expiration Reminder
-- Create/edit/save workflows with trigger configuration
-- Property detail modal now shows related tenants and open maintenance requests
-- Workflow type definitions
-
-### Changed
-- Marketing page restructured with tab navigation
-- Property detail view enhanced with cross-entity data (tenants + maintenance)
-
-## [0.4.0] - 2026-04-13
-
-### Added
-- Global search dropdown in header searching across properties, tenants, maintenance, contacts, and campaigns
-- Search results show entity type, title, subtitle with click-to-navigate
-- Toast notification system with success/error/info variants and auto-dismiss
-- All CRUD operations (create, update, delete) now show toast feedback
-- Dashboard metric cards are clickable — navigate to relevant pages
-- Dashboard activity feed items are clickable — navigate to entity pages
-- Dashboard property overview items are clickable — navigate to properties
-- MetricCard component now supports optional onClick with keyboard accessibility
-
-### Changed
-- Header search now shows live dropdown results with click-outside-to-close
-
-## [0.3.0] - 2026-04-13
-
-### Added
-- Dark mode with light/dark/system toggle in header and Settings > Appearance
-- Theme preference persistence via localStorage
-- System preference detection with live switching via `prefers-color-scheme` media query
-- Skip-to-content accessibility link for keyboard navigation
-- Global `:focus-visible` ring styling for keyboard users
-- 44px minimum touch targets on all buttons and inputs for mobile
-- 404 Not Found page with navigation options
-- Error boundary wrapping entire app with recovery UI
-- Dark color scheme CSS variables for all theme tokens
-
-### Changed
-- Header actions now have proper 44px touch targets on mobile
-- Settings appearance section wired to actual theme toggle
-- Modal dialog uses explicit text color for dark mode compatibility
-
-## [0.2.0] - 2026-04-13
-
-### Added
-- Reusable Modal component using native `<dialog>` for accessibility
-- FormField component with input/select/textarea variants and error display
-- Zustand data store with full CRUD operations for all entities
-- **Property** create/edit form with address, type, units, occupancy, revenue fields
-- **Property** detail modal with stats, edit, and delete actions
-- **Tenant** create/edit form with lease dates, rent, property/unit selection
-- **Tenant** detail modal with lease period, balance, and contact info
-- **Maintenance** create/edit form with property/tenant selection, priority, category, assignment
-- **CRM Contact** create/edit form with tag management (add/remove), type, source, notes
-- **Marketing Campaign** create/edit form with channel selection, budget, audience, date range
-- **Data Pipeline** pause/resume toggle controls
-- Dashboard now computes metrics from live data store (reacts to CRUD changes)
-- All pages wired to centralized data store instead of direct mock imports
-
-## [0.1.0] - 2026-04-13
-
-### Added
-- Project scaffolding with React 19, TypeScript, Vite 8, Tailwind CSS 4
-- Responsive sidebar navigation with collapsible desktop mode and mobile hamburger overlay
-- Global search bar and notification indicator in header
-- **Dashboard** page with 8 metric cards, activity feed, and property overview
-- **Properties** page with card grid, type filtering, and search
-- **Tenants** page with data table, status filtering, and quick contact actions
-- **Maintenance** page with priority-colored request cards and status workflow
-- **CRM** page with pipeline summary, contact table, and tag management
-- **Marketing** page with campaign cards, budget progress bars, and performance metrics
-- **Data Pipelines** page with integration status, record counts, and action controls
-- **Settings** page with notification toggles, security, integrations, appearance, and general preferences
-- Zustand store for UI state management
-- React Query provider for future API integration
-- Custom Tailwind theme with design tokens (primary, accent, surface, text, border)
-- Reusable UI components: MetricCard, DataTable, StatusBadge, PageHeader
-- Full TypeScript type definitions for all entities
-- Mock data layer with realistic property management data
-- Project documentation: README, ARCHITECTURE, CHANGELOG, PARITY.md
+- **Foundation** — Full-stack application scaffolded with React 19, TypeScript, Vite, Tailwind CSS 4, Express, tRPC 11, Drizzle ORM
+- **Dashboard** — 4 KPI cards, segment breakdown, activity feed, platform health monitoring
+- **Contacts** — Full CRUD with search, filter, pagination, segment/tier assignment
+- **Bulk Import** — CSV upload with column mapping, progress tracking, checkpoint resume
+- **Campaign Studio** — Campaigns, sequences, and templates across Email/SMS/LinkedIn
+- **Sync Engine** — Hybrid sync scheduler, queue visualization, DLQ with retry
+- **Integrations** — GHL, SMS-iT, Dripify, LinkedIn credential management and connection testing
+- **Analytics** — Campaign metrics, funnel visualization, tier distribution
+- **Contact Enrichment** — PDL pipeline UI with scoring display
+- **Backups** — Create, download, restore with CSV/JSON formats
+- **Activity Feed** — Chronological audit log with type/severity filtering
+- **Error boundary** — App-level error catching with recovery UI
+- **404 page** — Catch-all route with navigation
+- **Dark theme** — OKLCH color space, Plus Jakarta Sans + Instrument Serif typography
+- **Toast system** — Sonner notifications on all CRUD operations
+- **Skeleton loaders** — Loading states on tables, cards, lists
+- **Mobile responsive** — Sidebar overlay, collapsible desktop sidebar
+- **tRPC API** — 59 type-safe procedures for all backend operations
+- **Database** — 9 tables via Drizzle ORM with MySQL/TiDB
+- **Test suite** — 10 test files covering unit, integration, and live E2E
+- **Authentication** — Cookie-based auth with login redirect, role-based access
+- **Service layer** — 8 service modules: GHL, SMS-iT, Dripify, Orchestrator, SyncScheduler, SyncWorker, CampaignEngine, Credentials

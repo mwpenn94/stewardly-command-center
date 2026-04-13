@@ -4,7 +4,7 @@
 **Domain**: stewardcc-a4cm9uy3.manus.space
 **Stack**: React 19 + Tailwind CSS 4 + Express 4 + tRPC 11 + Drizzle ORM + MySQL (TiDB)
 **Author**: Manus AI, in collaboration with Michael Penn
-**Last Updated**: April 13, 2026
+**Last Updated**: April 13, 2026 (revised for accuracy)
 
 ---
 
@@ -35,12 +35,13 @@ The platform was designed and built across multiple intensive sessions, progress
 
 | Metric | Value |
 |---|---|
-| Total Lines of Code (server + client) | ~8,160 |
-| Database Tables | 8 |
-| tRPC Procedures | 55+ |
+| Total Lines of Code (server + client) | ~18,900 |
+| Database Tables | 9 |
+| tRPC Procedures | 59 |
 | Backend Services | 8 modules |
-| Frontend Pages | 12 |
-| Test Cases | 205 (144 unit + 61 live E2E) |
+| Frontend Pages | 13 |
+| shadcn/ui Components | 53 |
+| Custom Components | 10 |
 | Test Files | 10 |
 | Dependencies | 67 production + 23 dev |
 | Contacts Deduplicated | 561,806 unique from 668,883 source rows |
@@ -61,7 +62,7 @@ The application follows a layered architecture with clear separation of concerns
 │  └─ tRPC hooks (useQuery / useMutation)             │
 ├─────────────────────────────────────────────────────┤
 │  API Layer (tRPC Router — server/routers.ts)         │
-│  └─ 55+ procedures (public + protected)             │
+│  └─ 59 procedures (public + protected)              │
 ├─────────────────────────────────────────────────────┤
 │  Service Layer (server/services/*.ts)                │
 │  └─ GHL, SMS-iT, Dripify, Orchestrator,            │
@@ -69,7 +70,7 @@ The application follows a layered architecture with clear separation of concerns
 │     Credentials                                      │
 ├─────────────────────────────────────────────────────┤
 │  Data Layer (Drizzle ORM → MySQL/TiDB)              │
-│  └─ 8 tables, 2 migrations, server/db.ts helpers    │
+│  └─ 9 tables, 2 migrations, server/db.ts helpers    │
 ├─────────────────────────────────────────────────────┤
 │  External APIs                                       │
 │  └─ GHL v2 API, SMS-iT API, Dripify/Firebase API   │
@@ -92,7 +93,7 @@ The UI uses an elegant dark theme with a deep navy background and warm gold acce
 
 ## 3. Database Schema Design
 
-The database consists of 8 tables managed through Drizzle ORM with MySQL (TiDB) as the backing store. Schema changes follow a migration-first workflow: edit `drizzle/schema.ts`, generate SQL with `pnpm drizzle-kit generate`, then apply via `webdev_execute_sql`.
+The database consists of 9 tables managed through Drizzle ORM with MySQL (TiDB) as the backing store. Schema changes follow a migration-first workflow: edit `drizzle/schema.ts`, generate SQL with `pnpm drizzle-kit generate`, then apply via `webdev_execute_sql`.
 
 ### Table Overview
 
@@ -199,16 +200,17 @@ The frontend is a single-page application built with React 19, using wouter for 
 
 | Page | Route | Purpose | Lines |
 |---|---|---|---|
-| Home | `/` | Dashboard overview with KPI cards, segment breakdown, platform health, recent activity | 193 |
-| Contacts | `/contacts` | Contact list with search, filter, pagination, and CRUD | 301 |
-| Bulk Import | `/import` | CSV upload, column mapping, import progress tracking | 553 |
-| Campaigns | `/campaigns` | Campaign creation, template management, execution monitoring | 486 |
+| Home | `/` | Dashboard overview with KPI cards, segment breakdown, platform health, recent activity, quick actions | 255 |
+| Contacts | `/contacts` | Contact list with search, filter, pagination, CRUD, detail modal, mobile cards | 494 |
+| Bulk Import | `/import` | CSV upload, column mapping, import progress tracking | 558 |
+| Campaigns | `/campaigns` | Campaign creation, template management, sequence builder, execution monitoring | 527 |
 | Sync Engine | `/sync` | Sync queue visualization, worker status, DLQ management | 236 |
 | Integrations | `/integrations` | Platform connection management, credential entry, health testing | 384 |
-| Enrichment | `/enrichment` | Contact data enrichment workflows | 138 |
-| Analytics | `/analytics` | Campaign performance metrics and funnel visualization | 293 |
+| Enrichment | `/enrichment` | Contact data enrichment workflows | 132 |
+| Analytics | `/analytics` | Campaign performance metrics and funnel visualization | 294 |
 | Backups | `/backups` | Contact/campaign export and backup management | 151 |
-| Activity Feed | `/activity` | Chronological audit log of all system events | 121 |
+| Activity Feed | `/activity` | Chronological audit log of all system events | 123 |
+| Settings | `/settings` | Theme toggle, notification preferences, timezone/date format | 226 |
 | Component Showcase | (internal) | Design system reference with all UI components | 1,437 |
 | Not Found | `/404` | 404 error page | 52 |
 
@@ -220,7 +222,7 @@ The dashboard displays four KPI cards at the top: Total Contacts, Active Campaig
 
 ### 5.3 Navigation Structure
 
-The sidebar navigation provides access to all 10 primary pages, organized by function:
+The sidebar navigation provides access to all 11 primary pages, organized by function:
 
 - **Overview** — Dashboard home
 - **Contacts** — Contact management
@@ -232,6 +234,7 @@ The sidebar navigation provides access to all 10 primary pages, organized by fun
 - **Analytics** — Performance metrics
 - **Backups** — Data export
 - **Activity** — Audit log
+- **Settings** — Theme, notifications, timezone preferences
 
 ---
 
@@ -320,22 +323,22 @@ As of the latest session, 270,219 contacts have been successfully synced to GHL 
 
 ## 8. Testing Strategy
 
-The test suite comprises 205 test cases across 10 files, organized into three tiers: unit tests, integration tests, and live end-to-end tests.
+The test suite spans 10 files organized into three tiers: unit tests, integration tests, and live end-to-end tests.
 
 ### 8.1 Test File Inventory
 
-| File | Tests | Type | Description |
-|---|---|---|---|
-| `auth.logout.test.ts` | 1 | Unit | Reference sample test for auth logout |
-| `credentials.test.ts` | 17 | Unit | Credential loading, format normalization, fallback handling |
-| `e2e.test.ts` | 33 | Integration | Full user journey: auth → contacts → campaigns → sync → integrations |
-| `features.test.ts` | 31 | Integration | Feature-level tests: CRUD, bulk import, campaign engine, enrichment |
-| `orchestrator.test.ts` | 26 | Unit | Orchestrator sequences, health checks, lifecycle management |
-| `services.test.ts` | 36 | Unit | Service-level tests: GHL, SMS-iT, Dripify, sync worker |
-| `live-e2e.test.ts` | 15 | Live E2E | Real API calls to GHL with live credentials |
-| `live-campaign.test.ts` | 16 | Live E2E | Campaign creation and execution with real platforms |
-| `live-smsit-dripify.test.ts` | 13 | Live E2E | Real API calls to SMS-iT and Dripify |
-| `live-orchestrator-sync.test.ts` | 17 | Live E2E | Real orchestrator sequences and sync scheduler operations |
+| File | Type | Description |
+|---|---|---|
+| `auth.logout.test.ts` | Unit | Reference sample test for auth logout |
+| `credentials.test.ts` | Unit | Credential loading, format normalization, fallback handling |
+| `e2e.test.ts` | Integration | Full user journey: auth → contacts → campaigns → sync → integrations |
+| `features.test.ts` | Integration | Feature-level tests: CRUD, bulk import, campaign engine, enrichment |
+| `orchestrator.test.ts` | Unit | Orchestrator sequences, health checks, lifecycle management |
+| `services.test.ts` | Unit | Service-level tests: GHL, SMS-iT, Dripify, sync worker |
+| `live-e2e.test.ts` | Live E2E | Real API calls to GHL with live credentials |
+| `live-campaign.test.ts` | Live E2E | Campaign creation and execution with real platforms |
+| `live-smsit-dripify.test.ts` | Live E2E | Real API calls to SMS-iT and Dripify |
+| `live-orchestrator-sync.test.ts` | Live E2E | Real orchestrator sequences and sync scheduler operations |
 
 ### 8.2 Test Isolation
 
@@ -401,7 +404,7 @@ A Python script that processes all source CSV files, deduplicates by email, merg
 
 ### 10.1 tRPC Over REST
 
-The decision to use tRPC instead of traditional REST endpoints was driven by the need for end-to-end type safety. With 55+ procedures and complex data shapes (contacts with 20+ fields, campaigns with nested templates), tRPC eliminates an entire class of serialization bugs and provides autocomplete in the frontend.
+The decision to use tRPC instead of traditional REST endpoints was driven by the need for end-to-end type safety. With 59 procedures and complex data shapes (contacts with 20+ fields, campaigns with nested templates), tRPC eliminates an entire class of serialization bugs and provides autocomplete in the frontend.
 
 ### 10.2 JWT Extraction via CDP
 
@@ -454,11 +457,11 @@ When resuming the sync after 270,219 contacts were already in GHL, the checkpoin
 
 ### 11.3 Placeholder UI Elements
 
-Several UI pages contain structural placeholders for features that are not yet fully implemented. Clicking these elements shows a "Feature coming soon" toast notification:
+Several UI pages contain structural placeholders for features that are not yet fully implemented. Coming-soon features use disabled buttons with tooltips instead of misleading interactions:
 
-- **Enrichment page**: Data enrichment workflow triggers
-- **Analytics page**: Some chart drill-down interactions
-- **Backups page**: Scheduled backup configuration
+- **Enrichment page**: "Enrich All" button disabled with tooltip (pending PDL integration)
+- **Backups page**: "Restore" button disabled with tooltip (restore workflow not yet implemented)
+- **Analytics page**: Some chart drill-down interactions are placeholder
 
 ---
 
@@ -468,7 +471,7 @@ Several UI pages contain structural placeholders for features that are not yet f
 
 | File | Lines | Purpose |
 |---|---|---|
-| `server/routers.ts` | 1,076 | All tRPC procedures (55+ endpoints) |
+| `server/routers.ts` | 1,076 | All tRPC procedures (59 endpoints) |
 | `server/db.ts` | 373 | Database query helpers |
 | `server/services/ghl.ts` | 600 | GoHighLevel API integration |
 | `server/services/syncWorker.ts` | 465 | Sync queue processing engine |
@@ -478,40 +481,51 @@ Several UI pages contain structural placeholders for features that are not yet f
 | `server/services/dripify.ts` | 215 | Dripify/LinkedIn automation integration |
 | `server/services/smsit.ts` | 181 | SMS-iT API integration |
 | `server/services/credentials.ts` | 124 | Credential loading and normalization |
-| `drizzle/schema.ts` | ~250 | Database schema (8 tables) |
+| `drizzle/schema.ts` | 205 | Database schema (9 tables) |
 
 ### 12.2 Client Files
 
 | File | Lines | Purpose |
 |---|---|---|
 | `client/src/pages/ComponentShowcase.tsx` | 1,437 | Design system reference |
-| `client/src/pages/BulkImport.tsx` | 553 | CSV import with column mapping |
-| `client/src/pages/Campaigns.tsx` | 486 | Campaign management UI |
+| `client/src/pages/BulkImport.tsx` | 558 | CSV import with column mapping |
+| `client/src/pages/Campaigns.tsx` | 527 | Campaign management UI |
+| `client/src/pages/Contacts.tsx` | 494 | Contact list, CRUD, detail modal, mobile cards |
 | `client/src/pages/Integrations.tsx` | 384 | Platform connection management |
-| `client/src/pages/Contacts.tsx` | 301 | Contact list and CRUD |
-| `client/src/pages/Analytics.tsx` | 293 | Performance metrics dashboard |
+| `client/src/pages/Analytics.tsx` | 294 | Performance metrics dashboard |
+| `client/src/pages/Home.tsx` | 255 | Dashboard overview with quick actions |
 | `client/src/pages/SyncEngine.tsx` | 236 | Sync queue visualization |
-| `client/src/pages/Home.tsx` | 193 | Dashboard overview |
+| `client/src/pages/Settings.tsx` | 226 | Theme, notifications, preferences |
 | `client/src/pages/Backups.tsx` | 151 | Export management |
-| `client/src/pages/Enrichment.tsx` | 138 | Data enrichment workflows |
-| `client/src/pages/ActivityFeed.tsx` | 121 | Audit log viewer |
-| `client/src/App.tsx` | ~50 | Routing and layout |
-| `client/src/index.css` | ~120 | Theme tokens and global styles |
+| `client/src/pages/Enrichment.tsx` | 132 | Data enrichment workflows |
+| `client/src/pages/ActivityFeed.tsx` | 123 | Audit log viewer |
+| `client/src/pages/NotFound.tsx` | 52 | 404 error page |
+| `client/src/App.tsx` | 68 | Routing, lazy loading, layout |
+| `client/src/components/DashboardLayout.tsx` | 322 | Sidebar, header, mobile drawer |
+| `client/src/components/AIChatBox.tsx` | 335 | AI chat interface |
+| `client/src/components/GlobalSearch.tsx` | 160 | Cmd+K search overlay |
+| `client/src/components/Map.tsx` | 155 | Map component |
+| `client/src/components/NotificationCenter.tsx` | 130 | Bell icon + activity popover |
+| `client/src/components/ManusDialog.tsx` | 89 | Dialog wrapper |
+| `client/src/components/KeyboardShortcuts.tsx` | 67 | Shortcut help dialog |
+| `client/src/components/ErrorBoundary.tsx` | 62 | App-level error catching |
+| `client/src/components/DashboardLayoutSkeleton.tsx` | 46 | Layout skeleton loader |
+| `client/src/components/QueryError.tsx` | 25 | Reusable error state with retry |
 
 ### 12.3 Test Files
 
-| File | Tests | Purpose |
+| File | Type | Purpose |
 |---|---|---|
-| `server/services.test.ts` | 36 | Service-level unit tests |
-| `server/e2e.test.ts` | 33 | Full user journey integration tests |
-| `server/features.test.ts` | 31 | Feature-level integration tests |
-| `server/orchestrator.test.ts` | 26 | Orchestrator unit tests |
-| `server/credentials.test.ts` | 17 | Credential normalization tests |
-| `server/live-orchestrator-sync.test.ts` | 17 | Live orchestrator + sync scheduler E2E |
-| `server/live-campaign.test.ts` | 16 | Live campaign execution E2E |
-| `server/live-e2e.test.ts` | 15 | Live GHL API E2E |
-| `server/live-smsit-dripify.test.ts` | 13 | Live SMS-iT + Dripify E2E |
-| `server/auth.logout.test.ts` | 1 | Auth logout reference test |
+| `server/services.test.ts` | Unit | Service-level unit tests |
+| `server/e2e.test.ts` | Integration | Full user journey integration tests |
+| `server/features.test.ts` | Integration | Feature-level integration tests |
+| `server/orchestrator.test.ts` | Unit | Orchestrator unit tests |
+| `server/credentials.test.ts` | Unit | Credential normalization tests |
+| `server/live-orchestrator-sync.test.ts` | Live E2E | Live orchestrator + sync scheduler E2E |
+| `server/live-campaign.test.ts` | Live E2E | Live campaign execution E2E |
+| `server/live-e2e.test.ts` | Live E2E | Live GHL API E2E |
+| `server/live-smsit-dripify.test.ts` | Live E2E | Live SMS-iT + Dripify E2E |
+| `server/auth.logout.test.ts` | Unit | Auth logout reference test |
 
 ### 12.4 Standalone Scripts
 

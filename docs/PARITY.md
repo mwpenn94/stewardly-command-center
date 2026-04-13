@@ -28,10 +28,10 @@
 | G16 | Toast notification system | Done | 4 | Sonner toasts on all CRUD operations | legacy |
 | G17 | Skeleton loading states | Done | 3 | Skeleton loaders on tables, cards, lists | legacy |
 | G18 | Authentication flow | Done | 3 | Cookie-based auth, login redirect, role-based access | legacy |
-| G19 | tRPC API layer (55+ procedures) | Done | 4 | Full type-safe API: contacts, campaigns, sync, integrations | legacy |
-| G20 | Database schema (8 tables + migrations) | Done | 4 | Drizzle ORM, MySQL/TiDB, migration-first workflow | legacy |
+| G19 | tRPC API layer (59 procedures) | Done | 4 | Full type-safe API: contacts, campaigns, sync, integrations | legacy |
+| G20 | Database schema (9 tables + migrations) | Done | 4 | Drizzle ORM, MySQL/TiDB, migration-first workflow | legacy |
 | G21 | Multi-platform campaign orchestration | Done | 3 | Orchestrator: sequences, health checks, pause/resume/cancel | legacy |
-| G22 | Test suite (205 tests) | Done | 4 | Unit + integration + live E2E across 10 files | legacy |
+| G22 | Test suite (10 files, 3 tiers) | Done | 4 | Unit + integration + live E2E across 10 files | legacy |
 | G23 | Notification center | Done | 3 | Bell icon in header with popover, shows recent activity with severity badges, auto-refresh 30s | Pass 13 |
 | G24 | AI/Agentic continuous improvement engine | Open | 0 | Future: LLM integration, predictive analytics, churn prediction | — |
 | G25 | Predictive analytics | Open | 0 | Future: ML-based forecasting, propensity modeling | — |
@@ -56,6 +56,8 @@
 | G44 | Coming-soon UX — disabled buttons | Done | 2 | Enrichment "Enrich All" and Backup "Restore" disabled with tooltip instead of misleading toast | Pass 16 |
 | G45 | Security — mask JWT input | Done | 2 | BulkImport token input uses type=password to prevent shoulder-surfing | Pass 16 |
 | G46 | Backup status alignment | Done | 2 | Status badges use actual schema values (ready/expired) instead of wrong literals (completed/failed) | Pass 16 |
+| G47 | Documentation accuracy overhaul | Done | 5 | All docs rewritten: README, DOCUMENTATION, ARCHITECTURE, CHANGELOG, PARITY — correct counts, line numbers, inventories | Pass 17 |
+| G48 | Portable build config | Done | 3 | Manus-specific Vite plugins load conditionally; build works in any environment | Pass 17 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -75,6 +77,8 @@
 - Skip-to-content link and global focus-visible ring
 - Zero `any` types in page-level components (tRPC inference + explicit interfaces)
 - All dialogs have explicit Cancel buttons for clear dismissal UX
+- Documentation accuracy: all counts, line numbers, and inventories verified against source
+- Portable build: Vite config works with or without Manus-specific plugins
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -104,3 +108,4 @@
 - Pass 14 · error handling + input validation + graceful degradation · G38,G39 done; form validation, QueryError component · 00b07a2 · 2 items completed · G24,G25,G26 deferred
 - Pass 15 · keyboard shortcuts + campaign mobile + dev ergonomics · G40,G41 done; ? help dialog, G+nav, campaign tabs responsive · 4a20e16 · 2 items completed · G24,G25,G26 deferred
 - Pass 16 · dialog UX + type safety + security · G42-G46 done; Cancel buttons, 0 TS errors in pages, masked JWT, disabled coming-soon, backup status fix · PENDING · 5 items completed · G24,G25,G26 deferred
+- Pass 17 · documentation accuracy + build fix · G47,G48 done; all 5 doc files rewritten with verified counts, CHANGELOG purged of property-mgmt entries, vite config portable · PENDING · 2 items completed · G24,G25,G26 deferred
