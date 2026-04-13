@@ -39,6 +39,9 @@
 | G27 | Light mode theme polish | Done | 4 | Full OKLCH light theme with warm gold accents, card hover adjustments | Pass 10 |
 | G28 | Code splitting / lazy loading | Done | 4 | Lazy routes: main 527KB, pages 4-34KB each, Suspense fallback | Pass 10 |
 | G29 | Global search (header + mobile) | Done | 3 | ⌘K search across contacts + campaigns, dropdown results, mobile compact | Pass 10 |
+| G30 | Contact detail modal | Done | 4 | Full info, platform connections (GHL/SMS/LI), classification, tags, edit shortcut | Pass 11 |
+| G31 | Dashboard quick actions + clickable stats | Done | 3 | 4 quick action buttons, stat cards navigate to relevant pages, keyboard accessible | Pass 11 |
+| G32 | Accessibility (skip-link, focus-visible, ARIA) | Done | 3 | Skip-to-content link, global focus-visible ring, ARIA roles on interactive cards | Pass 11 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -53,6 +56,9 @@
 - 44px minimum touch targets on mobile
 - Toast notification system for all operations
 - Settings page with theme toggle + notification preferences
+- Contact detail modal with platform connection status
+- Dashboard quick actions and clickable stat cards
+- Skip-to-content link and global focus-visible ring
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -75,4 +81,5 @@
 - Pass 7 · dashboard charts + AI insights · G33-G35 done, G1 depth 5, G17-G18 started · 2645449 · 4 items completed · G11,G12,G15 deferred
 - Pass 8 · cleanup + docs refresh + merge · dead code removed, README/ARCH updated, package.json v0.7.0 · PENDING · docs refreshed · G11,G12,G15 deferred
 - Pass 9 · doc correctness + mobile responsiveness + functional gaps · G11,G12,G15,G27 done; README/ARCH/PARITY rewritten; Settings page added; mobile fixes shipped · e59e2eb · 4 items completed · G23,G24,G25,G26,G28 deferred
-- Pass 10 · light mode + code splitting + global search · G27,G28,G29 done; light OKLCH theme, lazy routes, ⌘K search · PENDING · 3 items completed · G23,G24,G25,G26 deferred
+- Pass 10 · light mode + code splitting + global search · G27,G28,G29 done; light OKLCH theme, lazy routes, ⌘K search · a682b56 · 3 items completed · G23,G24,G25,G26 deferred
+- Pass 11 · contact detail + dashboard actions + accessibility · G30,G31,G32 done; detail modal, quick actions, skip-link, focus-visible · PENDING · 3 items completed · G23,G24,G25,G26 deferred

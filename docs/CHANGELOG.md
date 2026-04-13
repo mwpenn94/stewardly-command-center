@@ -2,6 +2,13 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
+## [0.10.0] - 2026-04-13
+
+### Added
+- **Contact detail modal** — Click contact name or eye icon to view full info: email/phone/address with clickable links, segment/tier/score classification, platform connection status (GHL, SMS-iT, LinkedIn), tags display, and edit shortcut
+- **Dashboard quick actions** — 4 action buttons: New Contact, New Campaign, Bulk Import, Force Sync; stat cards now clickable with keyboard support
+- **Accessibility** — Skip-to-content link (visible on Tab), global `:focus-visible` ring on all interactive elements, ARIA `role="button"` on stat cards
+
 ## [0.9.0] - 2026-04-13
 
 ### Added

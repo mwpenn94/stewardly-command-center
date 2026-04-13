@@ -168,6 +168,7 @@ function DashboardLayoutContent({
 
   return (
     <>
+      <a href="#main-content" className="skip-link">Skip to content</a>
       <div className="relative" ref={sidebarRef}>
         <Sidebar collapsible="icon" className="border-r-0" disableTransition={isResizing}>
           <SidebarHeader className="h-16 justify-center">
@@ -284,7 +285,7 @@ function DashboardLayoutContent({
             </div>
           </div>
         )}
-        <main className="flex-1 p-4 sm:p-6">{children}</main>
+        <main id="main-content" className="flex-1 p-4 sm:p-6" tabIndex={-1}>{children}</main>
       </SidebarInset>
     </>
   );

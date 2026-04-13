@@ -2,8 +2,9 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Megaphone, RefreshCw, Plug, Activity, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { Users, Megaphone, RefreshCw, Plug, Activity, CheckCircle2, XCircle, Loader2, Plus, Upload, Zap, ArrowRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { useLocation } from "wouter";
 
 const severityColors: Record<string, string> = {
   success: "text-emerald-400",
@@ -21,6 +22,7 @@ const platformLabels: Record<string, string> = {
 
 export default function Home() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
   const { data: stats, isLoading } = trpc.dashboard.stats.useQuery();
   const { data: contactStats } = trpc.dashboard.contactStats.useQuery();
   const { data: platformHealth, isLoading: healthLoading } = trpc.orchestrator.platformHealth.useQuery(
@@ -33,10 +35,10 @@ export default function Home() {
   const connectedCount = stats?.integrations ?? 0;
 
   const statCards = [
-    { label: "Total Contacts", value: stats?.contacts ?? 0, icon: Users, accent: "text-blue-400" },
-    { label: "Active Campaigns", value: stats?.campaigns ?? 0, icon: Megaphone, accent: "text-emerald-400" },
-    { label: "Sync Queue", value: stats?.syncPending ?? 0, icon: RefreshCw, accent: "text-amber-400" },
-    { label: "Connected Platforms", value: connectedCount, icon: Plug, accent: "text-violet-400" },
+    { label: "Total Contacts", value: stats?.contacts ?? 0, icon: Users, accent: "text-blue-400", path: "/contacts" },
+    { label: "Active Campaigns", value: stats?.campaigns ?? 0, icon: Megaphone, accent: "text-emerald-400", path: "/campaigns" },
+    { label: "Sync Queue", value: stats?.syncPending ?? 0, icon: RefreshCw, accent: "text-amber-400", path: "/sync" },
+    { label: "Connected Platforms", value: connectedCount, icon: Plug, accent: "text-violet-400", path: "/integrations" },
   ];
 
   return (
@@ -54,7 +56,14 @@ export default function Home() {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((s) => (
-          <Card key={s.label} className="card-hover bg-card border-border/50">
+          <Card
+            key={s.label}
+            className="card-hover bg-card border-border/50 cursor-pointer group"
+            onClick={() => setLocation(s.path)}
+            tabIndex={0}
+            role="button"
+            onKeyDown={(e) => e.key === "Enter" && setLocation(s.path)}
+          >
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
@@ -63,12 +72,31 @@ export default function Home() {
                     {isLoading ? "—" : s.value.toLocaleString()}
                   </p>
                 </div>
-                <div className={`h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center ${s.accent}`}>
+                <div className={`h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center ${s.accent} group-hover:scale-110 transition-transform`}>
                   <s.icon className="h-5 w-5" />
                 </div>
               </div>
             </CardContent>
           </Card>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: "New Contact", icon: Plus, color: "text-blue-400", bg: "bg-blue-500/10 hover:bg-blue-500/20", path: "/contacts" },
+          { label: "New Campaign", icon: Megaphone, color: "text-emerald-400", bg: "bg-emerald-500/10 hover:bg-emerald-500/20", path: "/campaigns" },
+          { label: "Bulk Import", icon: Upload, color: "text-amber-400", bg: "bg-amber-500/10 hover:bg-amber-500/20", path: "/import" },
+          { label: "Force Sync", icon: RefreshCw, color: "text-violet-400", bg: "bg-violet-500/10 hover:bg-violet-500/20", path: "/sync" },
+        ].map((action) => (
+          <button
+            key={action.label}
+            onClick={() => setLocation(action.path)}
+            className={`flex items-center gap-3 p-3 rounded-lg border border-border/30 ${action.bg} transition-colors min-h-[44px]`}
+          >
+            <action.icon className={`h-4 w-4 ${action.color} shrink-0`} />
+            <span className="text-sm font-medium text-foreground">{action.label}</span>
+          </button>
         ))}
       </div>
 

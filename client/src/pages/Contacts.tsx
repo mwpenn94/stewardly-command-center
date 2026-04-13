@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
-import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Tag, X, Users, RefreshCw, ExternalLink } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Tag, X, Users, RefreshCw, ExternalLink, Mail, Phone, Building2, MapPin, Eye } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
 const SEGMENTS = ["all", "residential", "commercial", "agricultural", "cpa_tax", "estate_attorney", "hr_benefits", "insurance", "nonprofit", "other"];
@@ -34,6 +34,7 @@ export default function Contacts() {
   const [editOpen, setEditOpen] = useState(false);
   const [editContact, setEditContact] = useState<any>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [detailContact, setDetailContact] = useState<any>(null);
   const limit = 25;
 
   const queryInput = useMemo(() => ({
@@ -143,10 +144,12 @@ export default function Contacts() {
                 data.contacts.map((c: any) => (
                   <tr key={c.id} className="border-b border-border/30 hover:bg-muted/10 transition-colors">
                     <td className="p-3">
-                      <div className="font-medium text-foreground">
-                        {[c.firstName, c.lastName].filter(Boolean).join(" ") || "—"}
-                      </div>
-                      {c.companyName && <div className="text-xs text-muted-foreground mt-0.5">{c.companyName}</div>}
+                      <button className="text-left group" onClick={() => setDetailContact(c)}>
+                        <div className="font-medium text-foreground group-hover:text-primary transition-colors">
+                          {[c.firstName, c.lastName].filter(Boolean).join(" ") || "—"}
+                        </div>
+                        {c.companyName && <div className="text-xs text-muted-foreground mt-0.5">{c.companyName}</div>}
+                      </button>
                     </td>
                     <td className="p-3 text-muted-foreground">{c.email || "—"}</td>
                     <td className="p-3 text-muted-foreground tabular-nums">{c.phone || "—"}</td>
@@ -166,10 +169,13 @@ export default function Contacts() {
                     </td>
                     <td className="p-3 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(c)}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setDetailContact(c)} title="View details">
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(c)} title="Edit">
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => { if (confirm("Delete this contact?")) deleteMut.mutate({ id: c.id }); }}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => { if (confirm("Delete this contact?")) deleteMut.mutate({ id: c.id }); }} title="Delete">
                           <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
@@ -293,6 +299,128 @@ export default function Contacts() {
             <Button onClick={handleSave} disabled={createMut.isPending || updateMut.isPending}>
               {createMut.isPending || updateMut.isPending ? "Saving..." : "Save"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Contact Detail Dialog */}
+      <Dialog open={!!detailContact} onOpenChange={(o) => { if (!o) setDetailContact(null); }}>
+        <DialogContent className="sm:max-w-lg bg-card max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium shrink-0">
+                {detailContact?.firstName?.charAt(0)?.toUpperCase() || detailContact?.email?.charAt(0)?.toUpperCase() || "?"}
+              </div>
+              <div>
+                <div>{[detailContact?.firstName, detailContact?.lastName].filter(Boolean).join(" ") || "Unknown"}</div>
+                {detailContact?.companyName && (
+                  <p className="text-xs text-muted-foreground font-normal mt-0.5">{detailContact.companyName}</p>
+                )}
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            {/* Contact Info */}
+            <div className="space-y-2">
+              {detailContact?.email && (
+                <div className="flex items-center gap-3 min-h-[36px]">
+                  <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <a href={`mailto:${detailContact.email}`} className="text-sm text-foreground hover:text-primary transition-colors truncate">
+                    {detailContact.email}
+                  </a>
+                </div>
+              )}
+              {detailContact?.phone && (
+                <div className="flex items-center gap-3 min-h-[36px]">
+                  <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <a href={`tel:${detailContact.phone}`} className="text-sm text-foreground hover:text-primary transition-colors">
+                    {detailContact.phone}
+                  </a>
+                </div>
+              )}
+              {(detailContact?.address || detailContact?.city) && (
+                <div className="flex items-center gap-3 min-h-[36px]">
+                  <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="text-sm text-foreground">
+                    {[detailContact.address, detailContact.city, detailContact.state, detailContact.postalCode].filter(Boolean).join(", ")}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Classification */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-lg bg-muted/10">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Segment</p>
+                <Badge variant="outline" className="text-xs capitalize">{SEGMENT_LABELS[detailContact?.segment] || detailContact?.segment || "—"}</Badge>
+              </div>
+              <div className="p-3 rounded-lg bg-muted/10">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Tier</p>
+                <Badge className={`text-xs capitalize ${TIER_COLORS[detailContact?.tier] || TIER_COLORS.unscored}`}>{detailContact?.tier || "unscored"}</Badge>
+              </div>
+              <div className="p-3 rounded-lg bg-muted/10">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Score</p>
+                <p className="text-sm font-medium text-foreground tabular-nums">{detailContact?.propensityScore || detailContact?.overallScore || "—"}</p>
+              </div>
+              <div className="p-3 rounded-lg bg-muted/10">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Sync Status</p>
+                <p className="text-sm font-medium text-foreground capitalize">{detailContact?.syncStatus || "unknown"}</p>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Platform Connections */}
+            <div>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Platform Connections</p>
+              <div className="space-y-2">
+                <div className={`flex items-center gap-3 p-2.5 rounded-lg border ${detailContact?.ghlContactId ? "border-blue-500/20 bg-blue-500/5" : "border-border/30 bg-muted/5"}`}>
+                  <div className={`h-2 w-2 rounded-full ${detailContact?.ghlContactId ? "bg-blue-400" : "bg-muted-foreground/30"}`} />
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-foreground">GoHighLevel</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{detailContact?.ghlContactId ? `ID: ${detailContact.ghlContactId}` : "Not synced"}</p>
+                  </div>
+                </div>
+                <div className={`flex items-center gap-3 p-2.5 rounded-lg border ${detailContact?.phone ? "border-emerald-500/20 bg-emerald-500/5" : "border-border/30 bg-muted/5"}`}>
+                  <div className={`h-2 w-2 rounded-full ${detailContact?.phone ? "bg-emerald-400" : "bg-muted-foreground/30"}`} />
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-foreground">SMS-iT</p>
+                    <p className="text-[10px] text-muted-foreground">{detailContact?.phone ? "Ready (has phone)" : "No phone number"}</p>
+                  </div>
+                </div>
+                <div className={`flex items-center gap-3 p-2.5 rounded-lg border ${detailContact?.linkedinUrl ? "border-sky-500/20 bg-sky-500/5" : "border-border/30 bg-muted/5"}`}>
+                  <div className={`h-2 w-2 rounded-full ${detailContact?.linkedinUrl ? "bg-sky-400" : "bg-muted-foreground/30"}`} />
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-foreground">LinkedIn / Dripify</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{detailContact?.linkedinUrl || detailContact?.dripifyProfileUrl || "Not connected"}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Tags */}
+            {detailContact?.tags && (
+              <>
+                <Separator />
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Tags</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(typeof detailContact.tags === "string" ? JSON.parse(detailContact.tags) : detailContact.tags).map((tag: string) => (
+                      <Badge key={tag} variant="outline" className="text-[10px]">{tag}</Badge>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setDetailContact(null); openEdit(detailContact); }} className="gap-1.5">
+              <Pencil className="h-3.5 w-3.5" /> Edit
+            </Button>
+            <Button variant="outline" onClick={() => setDetailContact(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
