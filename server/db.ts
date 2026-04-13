@@ -164,7 +164,27 @@ export async function upsertIntegration(data: InsertIntegration) {
   }
 }
 
-// ─── Bulk Imports ────────────────────────────────────────────────────────────
+export async function updateIntegrationStatus(
+  userId: number,
+  platform: string,
+  status: "connected" | "disconnected" | "error",
+  lastCheckedAt?: Date
+) {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await db.select().from(integrations).where(
+    and(eq(integrations.userId, userId), eq(integrations.platform, platform as any))
+  ).limit(1);
+  if (existing.length > 0) {
+    await db.update(integrations).set({
+      status,
+      lastCheckedAt: lastCheckedAt || new Date(),
+      updatedAt: new Date(),
+    }).where(eq(integrations.id, existing[0].id));
+  }
+}
+
+// ─── Bulk Imports ──────────────────────────────────────────────────────────────────────────────
 export async function getBulkImports(userId: number) {
   const db = await getDb();
   if (!db) return [];

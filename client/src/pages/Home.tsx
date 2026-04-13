@@ -28,7 +28,9 @@ export default function Home() {
     { refetchInterval: 5 * 60 * 1000 } // Refresh every 5 minutes
   );
 
-  const connectedCount = platformHealth?.filter((p: any) => p.connected).length ?? stats?.integrations ?? 0;
+  // Use DB-stored integration count (fast) for the stat card.
+  // The Platform Health section below shows live API test results.
+  const connectedCount = stats?.integrations ?? 0;
 
   const statCards = [
     { label: "Total Contacts", value: stats?.contacts ?? 0, icon: Users, accent: "text-blue-400" },

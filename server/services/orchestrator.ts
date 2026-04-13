@@ -13,6 +13,7 @@ import * as ghl from "./ghl";
 import * as smsit from "./smsit";
 import * as dripify from "./dripify";
 import { getGhlCredentials, getSmsitCredentials, getDripifyCredentials } from "./credentials";
+import * as db from "../db";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -128,6 +129,20 @@ export async function getPlatformHealth(userId: number): Promise<PlatformHealth[
     }
   } catch (e: any) {
     results.push({ platform: "dripify", connected: false, lastChecked: Date.now(), details: e.message });
+  }
+
+  // Update DB status based on live health check results
+  for (const r of results) {
+    try {
+      await db.updateIntegrationStatus(
+        userId,
+        r.platform as any,
+        r.connected ? "connected" : "error",
+        new Date(r.lastChecked)
+      );
+    } catch {
+      // Non-critical: don't fail health check if DB update fails
+    }
   }
 
   return results;
