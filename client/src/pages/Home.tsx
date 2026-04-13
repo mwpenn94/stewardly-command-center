@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Users, Megaphone, RefreshCw, Plug, Activity, CheckCircle2, XCircle, Loader2, Plus, Upload, Zap, ArrowRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useLocation } from "wouter";
+import QueryError from "@/components/QueryError";
 
 const severityColors: Record<string, string> = {
   success: "text-emerald-400",
@@ -23,9 +24,9 @@ const platformLabels: Record<string, string> = {
 export default function Home() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
-  const { data: stats, isLoading } = trpc.dashboard.stats.useQuery();
+  const { data: stats, isLoading, error: statsError, refetch: refetchStats } = trpc.dashboard.stats.useQuery();
   const { data: contactStats } = trpc.dashboard.contactStats.useQuery();
-  const { data: platformHealth, isLoading: healthLoading } = trpc.orchestrator.platformHealth.useQuery(
+  const { data: platformHealth, isLoading: healthLoading, error: healthError, refetch: refetchHealth } = trpc.orchestrator.platformHealth.useQuery(
     undefined,
     { refetchInterval: 5 * 60 * 1000 } // Refresh every 5 minutes
   );
@@ -196,7 +197,9 @@ export default function Home() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {healthLoading ? (
+          {healthError ? (
+            <QueryError message="Could not check platform health. Your connection may be offline." onRetry={() => refetchHealth()} />
+          ) : healthLoading ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
               Checking platform connections...

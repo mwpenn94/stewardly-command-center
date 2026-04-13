@@ -53,10 +53,27 @@ export default function Contacts() {
   const totalPages = Math.ceil((data?.total || 0) / limit);
 
   const [form, setForm] = useState<any>({});
-  const openCreate = () => { setForm({}); setCreateOpen(true); };
-  const openEdit = (c: any) => { setForm({ ...c, tags: c.tags ? (typeof c.tags === "string" ? JSON.parse(c.tags) : c.tags) : [] }); setEditContact(c); setEditOpen(true); };
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const openCreate = () => { setForm({}); setFormErrors({}); setCreateOpen(true); };
+  const openEdit = (c: any) => { setForm({ ...c, tags: c.tags ? (typeof c.tags === "string" ? JSON.parse(c.tags) : c.tags) : [] }); setFormErrors({}); setEditContact(c); setEditOpen(true); };
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+    if (!form.firstName?.trim() && !form.lastName?.trim() && !form.email?.trim()) {
+      errors.firstName = "Name or email is required";
+    }
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      errors.email = "Invalid email format";
+    }
+    if (form.phone && !/^[\d\s\-+().]{7,20}$/.test(form.phone)) {
+      errors.phone = "Invalid phone format";
+    }
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSave = () => {
+    if (!validateForm()) return;
     if (editContact) {
       updateMut.mutate({ id: editContact.id, ...form });
     } else {
@@ -265,8 +282,9 @@ export default function Contacts() {
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">First Name</Label>
-              <Input value={form.firstName || ""} onChange={(e) => setForm({ ...form, firstName: e.target.value })} className="bg-muted/30" />
+              <Label className="text-xs text-muted-foreground">First Name {!editContact && <span className="text-destructive">*</span>}</Label>
+              <Input value={form.firstName || ""} onChange={(e) => { setForm({ ...form, firstName: e.target.value }); setFormErrors({ ...formErrors, firstName: "" }); }} className={`bg-muted/30 ${formErrors.firstName ? "border-destructive" : ""}`} />
+              {formErrors.firstName && <p className="text-[10px] text-destructive">{formErrors.firstName}</p>}
             </div>
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Last Name</Label>
@@ -274,11 +292,13 @@ export default function Contacts() {
             </div>
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Email</Label>
-              <Input value={form.email || ""} onChange={(e) => setForm({ ...form, email: e.target.value })} className="bg-muted/30" />
+              <Input value={form.email || ""} onChange={(e) => { setForm({ ...form, email: e.target.value }); setFormErrors({ ...formErrors, email: "" }); }} className={`bg-muted/30 ${formErrors.email ? "border-destructive" : ""}`} type="email" />
+              {formErrors.email && <p className="text-[10px] text-destructive">{formErrors.email}</p>}
             </div>
             <div className="space-y-2">
               <Label className="text-xs text-muted-foreground">Phone</Label>
-              <Input value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="bg-muted/30" />
+              <Input value={form.phone || ""} onChange={(e) => { setForm({ ...form, phone: e.target.value }); setFormErrors({ ...formErrors, phone: "" }); }} className={`bg-muted/30 ${formErrors.phone ? "border-destructive" : ""}`} type="tel" />
+              {formErrors.phone && <p className="text-[10px] text-destructive">{formErrors.phone}</p>}
             </div>
             <div className="col-span-2 space-y-2">
               <Label className="text-xs text-muted-foreground">Company</Label>

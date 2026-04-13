@@ -2,6 +2,13 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
+## [0.13.0] - 2026-04-13
+
+### Added
+- **Contact form validation** — Required field check (name or email), email format validation, phone format validation with inline error messages and red border highlights
+- **QueryError component** — Reusable error state with retry button for failed tRPC queries
+- Graceful degradation on dashboard platform health section when API is unavailable
+
 ## [0.12.0] - 2026-04-13
 
 ### Added

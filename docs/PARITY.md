@@ -47,6 +47,8 @@
 | G35 | Vendor chunk splitting | Done | 5 | React, Radix, Query separated; main bundle 725KB → 346KB (52% reduction) | Pass 12 |
 | G36 | Mobile contact cards | Done | 4 | Card layout on mobile (<768px) with name, badges, platforms; table on desktop | Pass 13 |
 | G37 | Notification center (bell icon) | Done | 3 | Popover with 10 latest activities, severity icons, click-to-navigate, auto-refresh | Pass 13 |
+| G38 | Contact form validation | Done | 3 | Required fields, email format, phone format, inline error display | Pass 14 |
+| G39 | Graceful query error states | Done | 3 | QueryError component with retry button, used on dashboard health check | Pass 14 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -89,4 +91,5 @@
 - Pass 10 · light mode + code splitting + global search · G27,G28,G29 done; light OKLCH theme, lazy routes, ⌘K search · a682b56 · 3 items completed · G23,G24,G25,G26 deferred
 - Pass 11 · contact detail + dashboard actions + accessibility · G30,G31,G32 done; detail modal, quick actions, skip-link, focus-visible · 4ee0a18 · 3 items completed · G23,G24,G25,G26 deferred
 - Pass 12 · cross-nav + empty states + vendor chunks · G33,G34,G35 done; clickable activity, actionable CTAs, bundle 346KB · b62dfe0 · 3 items completed · G23,G24,G25,G26 deferred
-- Pass 13 · notifications + mobile contacts + campaign UX · G23,G36,G37 done; notification center, mobile cards, 30s auto-refresh · PENDING · 3 items completed · G24,G25,G26 deferred
+- Pass 13 · notifications + mobile contacts + campaign UX · G23,G36,G37 done; notification center, mobile cards, 30s auto-refresh · 45300c5 · 3 items completed · G24,G25,G26 deferred
+- Pass 14 · error handling + input validation + graceful degradation · G38,G39 done; form validation, QueryError component · PENDING · 2 items completed · G24,G25,G26 deferred
