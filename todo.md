@@ -285,4 +285,13 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] Deduplicate against existing master CSV (61 already in master)
 - [x] Launch Google Drive sync to GHL (sync_gdrive_contacts.py — 3 workers, 189/min, 0 errors)
 - [x] Google Drive sync COMPLETE: 948 new, 354 updated, 485 errors (no email/phone), 10.4 min
-- [ ] Complete main CSV sync to GHL (3,800/291K done at 200/min — ~24 hrs remaining)
+- [ ] Complete main CSV sync to GHL (v6: 11,200/286K done at 1,722/min — ~2.7 hrs remaining)
+
+## Org/Event POC Re-extraction & Sync Optimization
+- [x] Re-examine original workbooks for POC fields on org/event records (found POC Name, POC Email/Phone, POC Phone, POC Email in events; Owner/Principal in ag; Principal/Owner in agencies)
+- [x] Re-extract with POC data: 2,025 syncable (up from 1,061), 1,394 with POC names
+- [x] Rebuild Google Drive contacts CSV with POC info (gdrive_contacts_with_poc.csv — 2,313 records)
+- [x] Copy merged data to app codebase: shared/data-reference.ts + CDN URLs for 3 CSV files
+- [x] Optimize main sync to maximum safe throughput: v6 with 15 workers, channel headers, 0.02s delay → 1,722/min (13x faster than v5)
+- [x] Re-sync org/event records with POC data: 99 new, 1,887 updated, 39 errors, 288 skipped (no email/phone)
+- [ ] Monitor main sync to completion (v6: 11,200/286K at 1,722/min — ~2.7 hrs remaining)
