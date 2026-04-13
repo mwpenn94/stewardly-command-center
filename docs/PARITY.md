@@ -93,6 +93,7 @@
 | G81 | QueryError on critical pages | Done | 4 | Analytics, Campaigns, Contacts, AI Insights pages show retry-able error state when queries fail — previously showed eternal loading or empty state | Pass 28 |
 | G82 | Input validation hardening (z.any removal) | Done | 4 | audienceFilter→typed object, metadata→z.record, config→z.record, campaign body→z.string.min(1), dailyLimit→bounded int; 6 of 8 z.any() removed, only webhook payloads remain flexible | Pass 29 |
 | G83 | Activity logging for channel config changes | Done | 2 | Channel enable/disable/provider changes now logged to activity feed with channel name and status | Pass 29 |
+| G84 | Light mode theme fixes | Done | 4 | NotFound page fully themed (was hardcoded slate/white); silver tier text→muted-foreground (was invisible text-slate-300); Twitter/X color text-sky-300→text-sky-500 across 5 pages for light mode contrast | Pass 30 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -182,4 +183,5 @@
 - Pass 26 · error handling + input validation + race conditions + doc accuracy · G75-G78 done; onError on all mutations, double-click protection, safe JSON.parse, doc counts updated (73 procedures, 11 tables) · 7f3e009 · 4 items completed · G26 deferred
 - Pass 27 · dashboard intelligence + mobile polish · G79-G80 done; AI Quick Insights widget on dashboard (health score, top 3 recommendations), contact detail dialog mobile fix · a7d480c · 2 items completed · G26 deferred
 - Pass 28 · offline/slow network + graceful degradation · G81 done; QueryError states on Analytics, Campaigns, Contacts, AI Insights pages · ba85273 · 1 item completed · G26 deferred
-- Pass 29 · security + observability · G82-G83 done; z.any() replaced with typed schemas on 6 routes, campaign body min(1), dailyLimit bounded, channel config activity logging · PENDING · 2 items completed · G26 deferred
+- Pass 29 · security + observability · G82-G83 done; z.any() replaced with typed schemas on 6 routes, campaign body min(1), dailyLimit bounded, channel config activity logging · dcba2ef · 2 items completed · G26 deferred
+- Pass 30 · dark/light mode visual consistency · G84 done; NotFound page themed, silver tier contrast fixed, Twitter/X sky-300→sky-500 across 5 pages · PENDING · 1 item completed · G26 deferred

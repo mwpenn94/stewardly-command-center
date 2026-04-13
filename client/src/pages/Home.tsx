@@ -19,7 +19,7 @@ const CHANNEL_DISPLAY: Record<string, { icon: LucideIcon; label: string; color: 
   linkedin: { icon: Linkedin, label: "LinkedIn", color: "text-sky-400", bg: "bg-sky-500/10" },
   social_facebook: { icon: Facebook, label: "Facebook", color: "text-blue-500", bg: "bg-blue-500/10" },
   social_instagram: { icon: Instagram, label: "Instagram", color: "text-pink-400", bg: "bg-pink-500/10" },
-  social_twitter: { icon: Twitter, label: "Twitter/X", color: "text-sky-300", bg: "bg-sky-300/10" },
+  social_twitter: { icon: Twitter, label: "Twitter/X", color: "text-sky-500", bg: "bg-sky-500/10" },
   social_tiktok: { icon: Video, label: "TikTok", color: "text-fuchsia-400", bg: "bg-fuchsia-500/10" },
   call_inbound: { icon: PhoneIncoming, label: "Inbound Calls", color: "text-green-400", bg: "bg-green-500/10" },
   call_outbound: { icon: PhoneOutgoing, label: "Outbound Calls", color: "text-orange-400", bg: "bg-orange-500/10" },

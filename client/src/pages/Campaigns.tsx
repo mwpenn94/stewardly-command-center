@@ -33,7 +33,7 @@ const CHANNEL_CONFIG: Record<string, ChannelConfig> = {
   multi: { icon: Layers, label: "Multi-Channel", color: "text-violet-400", platform: "All", category: "orchestration" },
   social_facebook: { icon: Facebook, label: "Facebook", color: "text-blue-500", platform: "GHL Social", category: "social" },
   social_instagram: { icon: Instagram, label: "Instagram", color: "text-pink-400", platform: "GHL Social", category: "social" },
-  social_twitter: { icon: Twitter, label: "Twitter/X", color: "text-sky-300", platform: "GHL Social", category: "social" },
+  social_twitter: { icon: Twitter, label: "Twitter/X", color: "text-sky-500", platform: "GHL Social", category: "social" },
   social_tiktok: { icon: Video, label: "TikTok", color: "text-fuchsia-400", platform: "GHL Social", category: "social" },
   call_inbound: { icon: PhoneIncoming, label: "Inbound Call", color: "text-green-400", platform: "GHL Phone", category: "voice" },
   call_outbound: { icon: PhoneOutgoing, label: "Outbound Call", color: "text-orange-400", platform: "GHL Phone", category: "voice" },

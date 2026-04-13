@@ -33,7 +33,7 @@ const TIMELINE_CHANNEL_COLORS: Record<string, string> = {
   linkedin: "text-sky-400 bg-sky-500/10",
   social_facebook: "text-blue-500 bg-blue-500/10",
   social_instagram: "text-pink-400 bg-pink-500/10",
-  social_twitter: "text-sky-300 bg-sky-300/10",
+  social_twitter: "text-sky-500 bg-sky-500/10",
   social_tiktok: "text-fuchsia-400 bg-fuchsia-500/10",
   call_inbound: "text-green-400 bg-green-500/10",
   call_outbound: "text-orange-400 bg-orange-500/10",
@@ -60,7 +60,7 @@ const SEGMENT_LABELS: Record<string, string> = {
 };
 const TIER_COLORS: Record<string, string> = {
   gold: "bg-amber-500/15 text-amber-400 border-amber-500/20",
-  silver: "bg-slate-400/15 text-slate-300 border-slate-400/20",
+  silver: "bg-muted/50 text-muted-foreground border-border/50",
   bronze: "bg-orange-500/15 text-orange-400 border-orange-500/20",
   unscored: "bg-muted text-muted-foreground border-border",
 };

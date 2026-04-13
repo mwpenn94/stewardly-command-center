@@ -54,7 +54,7 @@ const CHANNELS: ChannelDef[] = [
     providers: [{ value: "ghl_social", label: "GHL Social" }, { value: "buffer", label: "Buffer" }],
   },
   {
-    key: "social_twitter", label: "Twitter/X", icon: Twitter, color: "text-sky-300", bg: "bg-sky-300/10",
+    key: "social_twitter", label: "Twitter/X", icon: Twitter, color: "text-sky-500", bg: "bg-sky-500/10",
     category: "Social", description: "Tweet scheduling, DM campaigns, engagement monitoring",
     providers: [{ value: "ghl_social", label: "GHL Social" }, { value: "buffer", label: "Buffer" }],
   },

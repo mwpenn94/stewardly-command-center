@@ -123,7 +123,7 @@ export default function Analytics() {
     { key: "linkedin", label: "LinkedIn (Dripify)", icon: Linkedin, color: "text-sky-400", bg: "bg-sky-500/15" },
     { key: "social_facebook", label: "Facebook", icon: Facebook, color: "text-blue-500", bg: "bg-blue-500/15" },
     { key: "social_instagram", label: "Instagram", icon: Instagram, color: "text-pink-400", bg: "bg-pink-500/15" },
-    { key: "social_twitter", label: "Twitter/X", icon: Twitter, color: "text-sky-300", bg: "bg-sky-300/15" },
+    { key: "social_twitter", label: "Twitter/X", icon: Twitter, color: "text-sky-500", bg: "bg-sky-500/15" },
     { key: "social_tiktok", label: "TikTok", icon: Video, color: "text-fuchsia-400", bg: "bg-fuchsia-500/15" },
     { key: "call_inbound", label: "Inbound Calls", icon: PhoneIncoming, color: "text-green-400", bg: "bg-green-500/15" },
     { key: "call_outbound", label: "Outbound Calls", icon: PhoneOutgoing, color: "text-orange-400", bg: "bg-orange-500/15" },
@@ -301,7 +301,7 @@ export default function Analytics() {
             {contactStats?.byTier?.length ? (
               contactStats.byTier.map((t) => {
                 const tierColors: Record<string, string> = {
-                  gold: "text-amber-400", silver: "text-slate-300", bronze: "text-orange-400", unscored: "text-muted-foreground",
+                  gold: "text-amber-400", silver: "text-muted-foreground", bronze: "text-orange-400", unscored: "text-muted-foreground/60",
                 };
                 const tier = t.tier || "unscored";
                 return (
