@@ -8,8 +8,26 @@ import {
   Brain, TrendingUp, TrendingDown, Minus, AlertTriangle,
   CheckCircle2, ArrowRight, Zap, Target, BarChart3,
   Users, RefreshCw, Sparkles, Activity, ShieldCheck,
-  Lightbulb, Clock, ChevronRight,
+  Lightbulb, Clock, ChevronRight, GitBranch, Link2,
+  Mail, MessageSquare, Linkedin, Phone, PhoneIncoming, PhoneOutgoing,
+  Globe, MessageCircle, Calendar, Facebook, Instagram, Twitter, Video, Send,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
+const CHANNEL_ICONS: Record<string, LucideIcon> = {
+  email: Mail, sms: MessageSquare, linkedin: Linkedin,
+  social_facebook: Facebook, social_instagram: Instagram,
+  social_twitter: Twitter, social_tiktok: Video,
+  call_inbound: PhoneIncoming, call_outbound: PhoneOutgoing,
+  direct_mail: Send, webform: Globe, chat: MessageCircle, event: Calendar,
+};
+const CHANNEL_LABELS: Record<string, string> = {
+  email: "Email", sms: "SMS", linkedin: "LinkedIn",
+  social_facebook: "Facebook", social_instagram: "Instagram",
+  social_twitter: "Twitter/X", social_tiktok: "TikTok",
+  call_inbound: "Inbound Call", call_outbound: "Outbound Call",
+  direct_mail: "Direct Mail", webform: "Webform", chat: "Chat", event: "Event",
+};
 import { useLocation } from "wouter";
 import { toast } from "sonner";
 
@@ -72,12 +90,34 @@ interface CampaignPerformance {
   trend: "improving" | "stable" | "declining";
 }
 
+interface CrossChannelPattern {
+  id: string;
+  name: string;
+  description: string;
+  channels: string[];
+  conversionLift: number;
+  confidence: number;
+  sampleSize: number;
+  suggestedSequence: string[];
+  insight: string;
+}
+
+interface ChannelSynergy {
+  channelA: string;
+  channelB: string;
+  synergyScore: number;
+  description: string;
+  recommendation: string;
+}
+
 interface InsightsReport {
   healthScore: HealthScore;
   recommendations: Recommendation[];
   predictions: Prediction[];
   segmentAnalysis: ContactSegmentAnalysis[];
   campaignPerformance: CampaignPerformance[];
+  crossChannelPatterns: CrossChannelPattern[];
+  channelSynergies: ChannelSynergy[];
   automationSummary: {
     totalActions: number;
     completedActions: number;
@@ -181,7 +221,7 @@ export default function AIInsights() {
     );
   }
 
-  const { healthScore, recommendations, predictions, segmentAnalysis, campaignPerformance, automationSummary } = report as InsightsReport;
+  const { healthScore, recommendations, predictions, segmentAnalysis, campaignPerformance, crossChannelPatterns, channelSynergies, automationSummary } = report as InsightsReport;
 
   return (
     <div className="space-y-4 sm:space-y-6 p-4 sm:p-6">
@@ -422,6 +462,97 @@ export default function AIInsights() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Cross-Channel Patterns */}
+      <Card className="bg-card border-border/50">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <GitBranch className="h-4 w-4 text-violet-400" /> Cross-Channel Patterns
+            <Badge variant="secondary" className="ml-auto text-xs">{crossChannelPatterns?.length || 0} patterns</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {(!crossChannelPatterns || crossChannelPatterns.length === 0) ? (
+            <div className="p-6 sm:p-12 text-center">
+              <GitBranch className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">Add interaction data across multiple channels to discover patterns.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {crossChannelPatterns.map((pattern) => (
+                <div key={pattern.id} className="p-3 rounded-lg bg-muted/20 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-medium text-foreground">{pattern.name}</p>
+                    <Badge variant="outline" className="text-[10px] shrink-0 text-emerald-400 border-emerald-500/30">
+                      {pattern.conversionLift}x lift
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{pattern.description}</p>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {pattern.suggestedSequence.map((ch, i) => {
+                      const Icon = CHANNEL_ICONS[ch] || Mail;
+                      return (
+                        <span key={i} className="flex items-center gap-1">
+                          {i > 0 && <ArrowRight className="h-3 w-3 text-muted-foreground/40" />}
+                          <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-muted/30 text-[10px]">
+                            <Icon className="h-3 w-3" />
+                            {CHANNEL_LABELS[ch] || ch}
+                          </span>
+                        </span>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                    <span>Confidence: {pattern.confidence}%</span>
+                    <span className="italic">{pattern.insight}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Channel Synergies */}
+      {channelSynergies && channelSynergies.length > 0 && (
+        <Card className="bg-card border-border/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium flex items-center gap-2">
+              <Link2 className="h-4 w-4 text-sky-400" /> Channel Synergies
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {channelSynergies.map((synergy, idx) => {
+                const IconA = CHANNEL_ICONS[synergy.channelA] || Mail;
+                const IconB = CHANNEL_ICONS[synergy.channelB] || Mail;
+                const scoreColor = synergy.synergyScore >= 80 ? "text-emerald-400"
+                  : synergy.synergyScore >= 60 ? "text-amber-400" : "text-orange-400";
+                return (
+                  <div key={idx} className="p-3 rounded-lg bg-muted/20 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          <IconA className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-xs">{CHANNEL_LABELS[synergy.channelA]}</span>
+                        </div>
+                        <Link2 className="h-3 w-3 text-muted-foreground/40" />
+                        <div className="flex items-center gap-1">
+                          <IconB className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-xs">{CHANNEL_LABELS[synergy.channelB]}</span>
+                        </div>
+                      </div>
+                      <span className={`text-sm font-bold tabular-nums ${scoreColor}`}>{synergy.synergyScore}</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">{synergy.description}</p>
+                    <p className="text-[10px] text-primary italic">{synergy.recommendation}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Automation Summary */}
       <Card className="bg-card border-border/50">

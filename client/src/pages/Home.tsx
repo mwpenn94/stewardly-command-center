@@ -2,10 +2,32 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Users, Megaphone, RefreshCw, Plug, Activity, CheckCircle2, XCircle, Loader2, Plus, Upload, Zap, ArrowRight } from "lucide-react";
+import {
+  Users, Megaphone, RefreshCw, Plug, Activity, CheckCircle2, XCircle, Loader2,
+  Plus, Upload, Zap, ArrowRight, Mail, MessageSquare, Linkedin, Phone,
+  PhoneIncoming, PhoneOutgoing, Globe, MessageCircle, Calendar, Facebook,
+  Instagram, Twitter, Video, Send, Brain, BarChart3
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useLocation } from "wouter";
 import QueryError from "@/components/QueryError";
+import type { LucideIcon } from "lucide-react";
+
+const CHANNEL_DISPLAY: Record<string, { icon: LucideIcon; label: string; color: string; bg: string }> = {
+  email: { icon: Mail, label: "Email", color: "text-blue-400", bg: "bg-blue-500/10" },
+  sms: { icon: MessageSquare, label: "SMS", color: "text-emerald-400", bg: "bg-emerald-500/10" },
+  linkedin: { icon: Linkedin, label: "LinkedIn", color: "text-sky-400", bg: "bg-sky-500/10" },
+  social_facebook: { icon: Facebook, label: "Facebook", color: "text-blue-500", bg: "bg-blue-500/10" },
+  social_instagram: { icon: Instagram, label: "Instagram", color: "text-pink-400", bg: "bg-pink-500/10" },
+  social_twitter: { icon: Twitter, label: "Twitter/X", color: "text-sky-300", bg: "bg-sky-300/10" },
+  social_tiktok: { icon: Video, label: "TikTok", color: "text-fuchsia-400", bg: "bg-fuchsia-500/10" },
+  call_inbound: { icon: PhoneIncoming, label: "Inbound Calls", color: "text-green-400", bg: "bg-green-500/10" },
+  call_outbound: { icon: PhoneOutgoing, label: "Outbound Calls", color: "text-orange-400", bg: "bg-orange-500/10" },
+  direct_mail: { icon: Send, label: "Direct Mail", color: "text-amber-400", bg: "bg-amber-500/10" },
+  webform: { icon: Globe, label: "Webforms", color: "text-indigo-400", bg: "bg-indigo-500/10" },
+  chat: { icon: MessageCircle, label: "Chat", color: "text-teal-400", bg: "bg-teal-500/10" },
+  event: { icon: Calendar, label: "Events", color: "text-rose-400", bg: "bg-rose-500/10" },
+};
 
 const severityColors: Record<string, string> = {
   success: "text-emerald-400",
@@ -29,6 +51,10 @@ export default function Home() {
   const { data: platformHealth, isLoading: healthLoading, error: healthError, refetch: refetchHealth } = trpc.orchestrator.platformHealth.useQuery(
     undefined,
     { refetchInterval: 5 * 60 * 1000 } // Refresh every 5 minutes
+  );
+  const { data: crossChannelMetrics } = trpc.interactions.crossChannelMetrics.useQuery(
+    undefined,
+    { refetchInterval: 2 * 60 * 1000 }
   );
 
   // Use DB-stored integration count (fast) for the stat card.
@@ -100,6 +126,49 @@ export default function Home() {
           </button>
         ))}
       </div>
+
+      {/* Omnichannel Overview */}
+      <Card className="bg-card border-border/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-medium text-foreground flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              Omnichannel Overview
+            </div>
+            <Badge variant="outline" className="text-[10px]">
+              {crossChannelMetrics?.totalInteractions ?? 0} total interactions
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-2">
+            {Object.entries(CHANNEL_DISPLAY).map(([key, ch]) => {
+              const channelCount = crossChannelMetrics?.byChannel?.find(
+                (c: any) => c.channel === key
+              )?.count ?? 0;
+              return (
+                <div
+                  key={key}
+                  className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border border-border/30 hover:border-border/60 transition-colors ${
+                    channelCount > 0 ? "bg-card" : "bg-muted/5 opacity-60"
+                  }`}
+                >
+                  <div className={`h-8 w-8 rounded-lg ${ch.bg} flex items-center justify-center`}>
+                    <ch.icon className={`h-4 w-4 ${ch.color}`} />
+                  </div>
+                  <span className="text-[10px] text-muted-foreground text-center leading-tight">{ch.label}</span>
+                  <span className="text-xs font-semibold text-foreground tabular-nums">{channelCount}</span>
+                </div>
+              );
+            })}
+          </div>
+          {(!crossChannelMetrics?.byChannel?.length) && (
+            <p className="text-xs text-muted-foreground text-center mt-3">
+              Interaction data will populate as campaigns are sent and responses tracked across all channels.
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Segment Breakdown */}
@@ -191,9 +260,14 @@ export default function Home() {
       {/* Platform Health */}
       <Card className="bg-card border-border/50">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-medium text-foreground flex items-center gap-2">
-            <Plug className="h-4 w-4 text-muted-foreground" />
-            Platform Health
+          <CardTitle className="text-base font-medium text-foreground flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Plug className="h-4 w-4 text-muted-foreground" />
+              Platform Health &amp; Channels
+            </div>
+            <button onClick={() => setLocation("/integrations")} className="text-xs text-primary hover:text-primary/80 transition-colors">
+              Manage
+            </button>
           </CardTitle>
         </CardHeader>
         <CardContent>

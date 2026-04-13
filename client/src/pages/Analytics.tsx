@@ -3,7 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { BarChart3, TrendingUp, Eye, MousePointer, DollarSign, Users, Mail, MessageSquare, Linkedin, Send, CheckCircle2, XCircle, ArrowUpRight, Reply } from "lucide-react";
+import {
+  BarChart3, TrendingUp, Eye, MousePointer, DollarSign, Users, Mail, MessageSquare,
+  Linkedin, Send, CheckCircle2, XCircle, ArrowUpRight, Reply,
+  Phone, PhoneIncoming, PhoneOutgoing, Globe, MessageCircle, Calendar,
+  Facebook, Instagram, Twitter, Video
+} from "lucide-react";
 import { useMemo } from "react";
 
 type CampaignMetrics = {
@@ -47,16 +52,18 @@ export default function Analytics() {
     let totalReplied = 0, totalBounced = 0, totalUnsub = 0, totalCost = 0, totalConversions = 0;
     let campaignsWithMetrics = 0;
 
-    const byChannel: Record<string, { sent: number; delivered: number; opened: number; clicked: number; replied: number; bounced: number; cost: number; conversions: number; count: number }> = {
-      email: { sent: 0, delivered: 0, opened: 0, clicked: 0, replied: 0, bounced: 0, cost: 0, conversions: 0, count: 0 },
-      sms: { sent: 0, delivered: 0, opened: 0, clicked: 0, replied: 0, bounced: 0, cost: 0, conversions: 0, count: 0 },
-      linkedin: { sent: 0, delivered: 0, opened: 0, clicked: 0, replied: 0, bounced: 0, cost: 0, conversions: 0, count: 0 },
-      multi: { sent: 0, delivered: 0, opened: 0, clicked: 0, replied: 0, bounced: 0, cost: 0, conversions: 0, count: 0 },
+    const emptyMetrics = () => ({ sent: 0, delivered: 0, opened: 0, clicked: 0, replied: 0, bounced: 0, cost: 0, conversions: 0, count: 0 });
+    const byChannel: Record<string, ReturnType<typeof emptyMetrics>> = {
+      email: emptyMetrics(), sms: emptyMetrics(), linkedin: emptyMetrics(), multi: emptyMetrics(),
+      social_facebook: emptyMetrics(), social_instagram: emptyMetrics(), social_twitter: emptyMetrics(), social_tiktok: emptyMetrics(),
+      call_inbound: emptyMetrics(), call_outbound: emptyMetrics(), direct_mail: emptyMetrics(),
+      webform: emptyMetrics(), chat: emptyMetrics(), event: emptyMetrics(),
     };
 
     for (const c of campaigns) {
       const ch = c.channel || "email";
-      if (byChannel[ch]) byChannel[ch].count++;
+      if (!byChannel[ch]) byChannel[ch] = emptyMetrics();
+      byChannel[ch].count++;
 
       const m = parseMetrics(c.metrics);
       if (m.sent || m.delivered || m.opened || m.clicked) {
@@ -113,7 +120,17 @@ export default function Analytics() {
     { key: "email", label: "Email (GHL)", icon: Mail, color: "text-blue-400", bg: "bg-blue-500/15" },
     { key: "sms", label: "SMS (SMS-iT)", icon: MessageSquare, color: "text-emerald-400", bg: "bg-emerald-500/15" },
     { key: "linkedin", label: "LinkedIn (Dripify)", icon: Linkedin, color: "text-sky-400", bg: "bg-sky-500/15" },
-  ];
+    { key: "social_facebook", label: "Facebook", icon: Facebook, color: "text-blue-500", bg: "bg-blue-500/15" },
+    { key: "social_instagram", label: "Instagram", icon: Instagram, color: "text-pink-400", bg: "bg-pink-500/15" },
+    { key: "social_twitter", label: "Twitter/X", icon: Twitter, color: "text-sky-300", bg: "bg-sky-300/15" },
+    { key: "social_tiktok", label: "TikTok", icon: Video, color: "text-fuchsia-400", bg: "bg-fuchsia-500/15" },
+    { key: "call_inbound", label: "Inbound Calls", icon: PhoneIncoming, color: "text-green-400", bg: "bg-green-500/15" },
+    { key: "call_outbound", label: "Outbound Calls", icon: PhoneOutgoing, color: "text-orange-400", bg: "bg-orange-500/15" },
+    { key: "direct_mail", label: "Direct Mail", icon: Send, color: "text-amber-400", bg: "bg-amber-500/15" },
+    { key: "webform", label: "Webforms", icon: Globe, color: "text-indigo-400", bg: "bg-indigo-500/15" },
+    { key: "chat", label: "Chat", icon: MessageCircle, color: "text-teal-400", bg: "bg-teal-500/15" },
+    { key: "event", label: "Events", icon: Calendar, color: "text-rose-400", bg: "bg-rose-500/15" },
+  ].filter(ch => agg?.byChannel[ch.key]?.count ?? 0 > 0 ? true : ["email", "sms", "linkedin"].includes(ch.key));
 
   return (
     <div className="space-y-6">

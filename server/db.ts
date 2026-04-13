@@ -9,6 +9,8 @@ import {
   syncQueue, InsertSyncQueueItem, SyncQueueItem,
   activityLog, InsertActivityLogEntry,
   backups, InsertBackup, Backup,
+  contactInteractions, InsertContactInteraction, ContactInteraction,
+  channelConfigs, InsertChannelConfig, ChannelConfig,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -370,4 +372,86 @@ export async function getContactsByIds(ids: number[]) {
   const db = await getDb();
   if (!db || ids.length === 0) return [];
   return db.select().from(contacts).where(inArray(contacts.id, ids));
+}
+
+// ─── Contact Interactions (Unified Timeline) ────────────────────────────────
+export async function getContactInteractions(userId: number, contactId: number, opts?: {
+  channel?: string; limit?: number; offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return { interactions: [], total: 0 };
+  const conditions = [eq(contactInteractions.userId, userId), eq(contactInteractions.contactId, contactId)];
+  if (opts?.channel && opts.channel !== "all") conditions.push(eq(contactInteractions.channel, opts.channel as any));
+  const where = and(...conditions);
+  const [rows, totalResult] = await Promise.all([
+    db.select().from(contactInteractions).where(where).orderBy(desc(contactInteractions.createdAt)).limit(opts?.limit || 50).offset(opts?.offset || 0),
+    db.select({ count: count() }).from(contactInteractions).where(where),
+  ]);
+  return { interactions: rows, total: totalResult[0]?.count || 0 };
+}
+
+export async function createInteraction(data: InsertContactInteraction) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(contactInteractions).values(data);
+  return result[0].insertId;
+}
+
+export async function getInteractionStats(userId: number, contactId?: number) {
+  const db = await getDb();
+  if (!db) return { total: 0, byChannel: [], byType: [], byDirection: [] };
+  const conditions = [eq(contactInteractions.userId, userId)];
+  if (contactId) conditions.push(eq(contactInteractions.contactId, contactId));
+  const where = and(...conditions);
+  const [total, byChannel, byDirection] = await Promise.all([
+    db.select({ count: count() }).from(contactInteractions).where(where),
+    db.select({ channel: contactInteractions.channel, count: count() }).from(contactInteractions).where(where).groupBy(contactInteractions.channel),
+    db.select({ direction: contactInteractions.direction, count: count() }).from(contactInteractions).where(where).groupBy(contactInteractions.direction),
+  ]);
+  return { total: total[0]?.count || 0, byChannel, byDirection };
+}
+
+export async function getCrossChannelMetrics(userId: number) {
+  const db = await getDb();
+  if (!db) return { totalInteractions: 0, byChannel: [], recentInteractions: [], campaignPerformance: [] };
+  const [totalInteractions, byChannel, recentInteractions] = await Promise.all([
+    db.select({ count: count() }).from(contactInteractions).where(eq(contactInteractions.userId, userId)),
+    db.select({ channel: contactInteractions.channel, count: count() }).from(contactInteractions).where(eq(contactInteractions.userId, userId)).groupBy(contactInteractions.channel),
+    db.select().from(contactInteractions).where(eq(contactInteractions.userId, userId)).orderBy(desc(contactInteractions.createdAt)).limit(20),
+  ]);
+  return {
+    totalInteractions: totalInteractions[0]?.count || 0,
+    byChannel,
+    recentInteractions,
+    campaignPerformance: [],
+  };
+}
+
+// ─── Channel Configs ────────────────────────────────────────────────────────
+export async function getChannelConfigs(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(channelConfigs).where(eq(channelConfigs.userId, userId)).orderBy(asc(channelConfigs.channel));
+}
+
+export async function upsertChannelConfig(data: InsertChannelConfig) {
+  const db = await getDb();
+  if (!db) return;
+  const existing = await db.select().from(channelConfigs)
+    .where(and(eq(channelConfigs.userId, data.userId), eq(channelConfigs.channel, data.channel)))
+    .limit(1);
+  if (existing.length > 0) {
+    await db.update(channelConfigs).set({ ...data, updatedAt: new Date() }).where(eq(channelConfigs.id, existing[0].id));
+  } else {
+    await db.insert(channelConfigs).values(data);
+  }
+}
+
+export async function getChannelConfig(userId: number, channel: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(channelConfigs)
+    .where(and(eq(channelConfigs.userId, userId), eq(channelConfigs.channel, channel as any)))
+    .limit(1);
+  return result[0] || null;
 }
