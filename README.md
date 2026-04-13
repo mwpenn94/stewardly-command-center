@@ -20,15 +20,19 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 - Full CRUD with segment and tier assignment
 - **Unified contact detail** — 3-tab dialog: Info (fields/classification/tags), Timeline (cross-channel interaction history), Channels (platform connections + channel reach summary)
 - Cross-channel interaction timeline with 25 interaction types, direction indicators, and sentiment analysis
-- **Log Interaction** — manually record interactions from any of 13 channels with direction toggle and notes
+- **Log Interaction** — record interactions from any of 13 channels with per-channel type selector (email→sent/opened/clicked, call→made/missed, LinkedIn→connection/profile view), direction, subject, and notes
 - Platform sync indicators (GHL, SMS-iT, LinkedIn) + 13-channel reach summary
 - **CSV Export** — download current contacts as CSV with name, email, phone, company, segment, tier, location
 - Form validation: required fields, email format, phone format
 
 ### Campaign Studio
 - **Campaigns tab** — Create, launch (now or scheduled), and track campaigns across all 13 channels: Email, SMS, LinkedIn, Facebook, Instagram, Twitter/X, TikTok, Inbound/Outbound Calls, Direct Mail, Webforms, Chat, Events
+- **Campaign detail view** — Click any campaign to see full metrics: sent, failed, opened, open/click/reply rates, delivery progress bar with success/failure breakdown
+- **Audience selector** — Launch dialog with All / By Segment (9 segments) / By Tier (Gold/Silver/Bronze/Unscored) targeting; live contact count preview
+- **Channel-specific forms** — Contextual field labels: Subject for email, Caption for social, Call Script for calls, Mail Content for direct mail, Event Description for events
 - **Sequences tab** — Multi-step, multi-channel outreach automation across any combination of channels with configurable delays
-- **Templates tab** — Reusable message templates for any channel
+- **Flow Builder tab** — Visual cross-channel flow builder with step reordering, per-channel message composition, delay configuration
+- **Templates tab** — Reusable message templates for any channel (subject/caption fields for email and social)
 - Platform health indicators showing 5 provider connection statuses (GHL, SMS-iT, Dripify, Direct Mail, Voice)
 - All dialogs have explicit Cancel buttons
 
@@ -55,10 +59,10 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 - Per-platform credential management with show/hide toggle
 
 ### Analytics
-- Unified campaign metrics: sent, open rate, click rate, conversions, cost per lead
-- Per-channel breakdown (Email, SMS, LinkedIn)
-- Conversion funnel visualization
-- Contact tier distribution
+- Unified campaign metrics: sent, open rate, click rate, conversions, cost per lead, bounce rate
+- Per-channel breakdown across all 13 channels — clickable rows navigate to Campaign Studio
+- Conversion funnel visualization (Sent → Delivered → Opened → Clicked → Conversions)
+- Contact tier distribution with clickable cards navigating to Contacts
 
 ### Contact Enrichment
 - People Data Labs waterfall pipeline (UI ready)
@@ -74,6 +78,7 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 
 ### Activity Feed
 - Chronological audit log of all system events
+- Clickable entries navigate to source page (sync→Sync Engine, campaign→Campaigns, etc.)
 - Type filtering: sync, import, campaign, webhook, enrichment, backup, system
 - Severity filtering: info, success, warning, error
 
@@ -97,8 +102,8 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 - Campaign performance analysis by channel (open rate, click rate, conversion)
 - Contact segment analysis with tier distribution
 - One-click bulk lead scoring: auto-assigns Gold/Silver/Bronze tiers based on data completeness and engagement
-- **Cross-channel pattern analysis** — 5 patterns with conversion lift metrics (2.5x-5x), suggested sequences, and confidence scores
-- **Channel synergy scoring** — 6 channel pairs with synergy scores (0-100) and recommendations
+- **Cross-channel pattern analysis** — 5 patterns with data-driven conversion lift metrics, confidence scores computed from actual campaign + interaction volume
+- **Channel synergy scoring** — 6 channel pairs with data-driven synergy scores (computed from real channel activity) and recommendations
 - Automation summary tracking completed/pending actions
 - Auto-refreshes every 2 minutes
 
@@ -115,7 +120,7 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 - Mobile-first responsive layout with sidebar overlay on mobile
 - 44px minimum touch targets on mobile
 - Keyboard shortcuts: `?` help dialog, `G`+letter navigation, `Cmd+K` search
-- Global search across contacts and campaigns
+- Global search across contacts, campaigns, and templates with tier/status badges
 - Code-split routes via React.lazy + Suspense
 - Skeleton loading states on tables, cards, lists
 - Toast notifications on all operations (Sonner)

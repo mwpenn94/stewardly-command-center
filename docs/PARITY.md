@@ -117,6 +117,7 @@
 | G105 | Global Search expanded (templates + badges) | Done | 3 | Search now finds templates in addition to contacts + campaigns; contact results show tier badge, campaign results show status badge | Pass 37 |
 | G106 | Campaign audience selector | Done | 4 | Launch dialog: choose All, By Segment (9 segments), or By Tier (gold/silver/bronze/unscored); live contact count updates based on selection; filtered IDs sent to launch API | Pass 38 |
 | G107 | Analytics interactive navigation | Done | 3 | Channel breakdown rows link to /campaigns, tier distribution cards link to /contacts; hover states added throughout Analytics page | Pass 38 |
+| G108 | Documentation accuracy — passes 35-38 | Done | 3 | README updated: campaign detail view, audience selector, channel-specific forms, flow builder, interaction logging, analytics nav, activity feed nav, global search templates | Pass 39 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -237,4 +238,5 @@
 - Pass 35 · data integrity + functional correctness · G94-G98 done; AI segment engagement data-driven (no Math.random), cross-channel patterns/synergies scored from real data, enrichment count from DB, contacts search 320px fix · 697c5c4 · 5 items completed · none deferred
 - Pass 36 · campaign UX completeness + contact interaction UX · G99-G102 done; campaign detail view with metrics, add interaction form in contact timeline, timeline error handling, channel-specific form labels · 6469126 · 4 items completed · none deferred
 - Pass 37 · cross-entity navigation + omnichannel drilldown · G103-G105 done; omnichannel grid clickable, activity feed entries clickable, global search templates + badges · ed53d35 · 3 items completed · none deferred
-- Pass 38 · campaign audience selection + analytics interactivity · G106-G107 done; audience selector (All/Segment/Tier) with live count, analytics channel/tier navigation · PENDING · 2 items completed · none deferred
+- Pass 38 · campaign audience selection + analytics interactivity · G106-G107 done; audience selector (All/Segment/Tier) with live count, analytics channel/tier navigation · 883d3ce · 2 items completed · none deferred
+- Pass 39 · documentation accuracy + README completeness · G108 done; README updated with all passes 35-38 features (campaign detail, audience selector, interaction logging, cross-entity nav, channel-specific forms, analytics interactivity) · PENDING · 1 item completed · none deferred
