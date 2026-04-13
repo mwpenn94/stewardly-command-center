@@ -76,7 +76,7 @@ export default function Backups() {
               const smsitHealth = platformHealth?.find((p: { platform: string }) => p.platform === "smsit");
               const dripifyHealth = platformHealth?.find((p: { platform: string }) => p.platform === "dripify");
               const totalContacts = contactStats?.total ?? 0;
-              const syncedContacts = contactStats?.synced ?? 0;
+              const syncedContacts = contactStats?.bySyncStatus?.find((s: { syncStatus: string | null }) => s.syncStatus === "synced")?.count ?? 0;
 
               const platforms = [
                 {

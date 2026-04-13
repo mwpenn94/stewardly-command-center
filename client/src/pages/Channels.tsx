@@ -16,8 +16,10 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
+type ChannelKey = "email" | "sms" | "linkedin" | "social_facebook" | "social_instagram" | "social_twitter" | "social_tiktok" | "call_inbound" | "call_outbound" | "direct_mail" | "webform" | "chat" | "event";
+
 interface ChannelDef {
-  key: string;
+  key: ChannelKey;
   label: string;
   icon: LucideIcon;
   color: string;
@@ -124,7 +126,7 @@ export default function Channels() {
   const handleSave = () => {
     if (!activeChannel) return;
     upsertChannel.mutate({
-      channel: activeChannel.key as any,
+      channel: activeChannel.key,
       enabled: true,
       provider: formProvider || undefined,
       dailyLimit: formLimit ? parseInt(formLimit) : undefined,
@@ -136,7 +138,7 @@ export default function Channels() {
   const handleToggle = (ch: ChannelDef, enabled: boolean) => {
     const existing = getConfig(ch.key);
     upsertChannel.mutate({
-      channel: ch.key as any,
+      channel: ch.key,
       enabled,
       provider: existing?.provider || ch.providers[0]?.value,
     });

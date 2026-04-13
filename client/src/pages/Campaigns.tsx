@@ -50,7 +50,8 @@ const ALL_CHANNELS = [
   "webform", "chat", "event"
 ] as const;
 
-type Channel = typeof ALL_CHANNELS[number] | "multi";
+type SingleChannel = typeof ALL_CHANNELS[number];
+type Channel = SingleChannel | "multi";
 
 interface CampaignForm {
   name?: string;
@@ -64,7 +65,7 @@ interface LaunchForm {
 }
 
 interface SeqStep {
-  channel: string;
+  channel: SingleChannel;
   body: string;
   subject: string;
   delayMs: number;
@@ -78,7 +79,7 @@ interface SeqForm {
 
 interface TemplateForm {
   name?: string;
-  channel: string;
+  channel: SingleChannel;
   subject?: string;
   body?: string;
 }
@@ -580,7 +581,7 @@ export default function Campaigns() {
           <div className="space-y-3">
             <div><Label>Name</Label><Input value={tplForm.name || ""} onChange={(e) => setTplForm({ ...tplForm, name: e.target.value })} /></div>
             <div><Label>Channel</Label>
-              <Select value={tplForm.channel} onValueChange={(v) => setTplForm({ ...tplForm, channel: v as any })}>
+              <Select value={tplForm.channel} onValueChange={(v) => setTplForm({ ...tplForm, channel: v as SingleChannel })}>
                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {ALL_CHANNELS.map((ch) => {

@@ -95,6 +95,10 @@
 | G83 | Activity logging for channel config changes | Done | 2 | Channel enable/disable/provider changes now logged to activity feed with channel name and status | Pass 29 |
 | G84 | Light mode theme fixes | Done | 4 | NotFound page fully themed (was hardcoded slate/white); silver tier text→muted-foreground (was invisible text-slate-300); Twitter/X color text-sky-300→text-sky-500 across 5 pages for light mode contrast | Pass 30 |
 | G85 | SyncEngine mobile polish | Done | 3 | Filters full-width on mobile, queue item badges wrap on small screens, retry button 44px touch target with isPending guard | Pass 31 |
+| G86 | Build infrastructure fix | Done | 5 | Missing npm packages restored, production build verified (client + server), dev server startup confirmed | Pass 32 |
+| G87 | TypeScript zero errors | Done | 5 | 17 TS errors fixed: HealthScore object→.overall, activity.entries extraction, syncStats.byStatus parsing, SequenceStep expanded to 13 channels, template z.enum expanded, vite.config async wrapper, target ES2022, Channels/Campaigns typed channels | Pass 32 |
+| G88 | Orchestrator omnichannel type alignment | Done | 4 | SequenceStep interface expanded from 3 channels (email/sms/linkedin) to all 13, matching tRPC router schema | Pass 32 |
+| G89 | AI engine data access fix | Done | 3 | aiEngine.ts activity log access fixed (was treating {entries,total} as array), syncStats extraction fixed (was treating {total,byStatus,byPlatform} as Record<string,number>) | Pass 32 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -143,6 +147,11 @@
 - QueryError component used on 5 pages: Dashboard, Analytics, Campaigns, Contacts, AIInsights
 - Typed input validation: audienceFilter, metadata, config use z.record/z.object instead of z.any()
 - Channel config changes logged to activity feed
+- Zero TypeScript errors across entire project (tsc --noEmit passes clean)
+- Vite async config: Manus plugins loaded via async defineConfig, no top-level await
+- Template creation supports all 13 channels (z.enum expanded)
+- SequenceStep type aligned: orchestrator + tRPC router both accept all 13 channels
+- AI engine correctly accesses activity.entries and syncStats.byStatus
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -187,3 +196,4 @@
 - Pass 29 · security + observability · G82-G83 done; z.any() replaced with typed schemas on 6 routes, campaign body min(1), dailyLimit bounded, channel config activity logging · dcba2ef · 2 items completed · G26 deferred
 - Pass 30 · dark/light mode visual consistency · G84 done; NotFound page themed, silver tier contrast fixed, Twitter/X sky-300→sky-500 across 5 pages · 830d22c · 1 item completed · G26 deferred
 - Pass 31 · responsive layout + mobile UX · G85 done; SyncEngine filters full-width on mobile, queue items wrap badges, retry 44px + isPending · PENDING · 1 item completed · G26 deferred
+- Pass 32 · correctness + build health · G86-G89 done; npm install fixed, 17 TS errors eliminated (zero errors), orchestrator/AI engine data access corrected, template+sequence channels expanded to 13, vite.config async · PENDING · 4 items completed · none deferred

@@ -18,7 +18,7 @@ import * as db from "../db";
 // ─── Types ───────────────────────────────────────────────────────────
 
 export interface SequenceStep {
-  channel: "email" | "sms" | "linkedin";
+  channel: "email" | "sms" | "linkedin" | "social_facebook" | "social_instagram" | "social_twitter" | "social_tiktok" | "call_inbound" | "call_outbound" | "direct_mail" | "webform" | "chat" | "event";
   subject?: string;
   body: string;
   delayMs: number;

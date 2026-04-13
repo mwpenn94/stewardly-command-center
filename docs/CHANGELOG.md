@@ -4,6 +4,21 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.8.0] - 2026-04-13
+
+### Fixed
+- **Build infrastructure** — Restored missing npm packages (`@tailwindcss/vite`, `tailwindcss`, etc.) that prevented production builds from completing. Both client (Vite) and server (esbuild) builds now pass
+- **TypeScript zero errors** — Fixed 17 TypeScript compilation errors across 6 files: `tsc --noEmit` now passes clean
+  - `Home.tsx`: `HealthScore` is an object, fixed comparison to use `.overall` property
+  - `aiEngine.ts`: Activity log returns `{entries, total}`, was being treated as array; syncStats returns `{total, byStatus, byPlatform}`, was being treated as `Record<string, number>`
+  - `Campaigns.tsx`: `SeqStep.channel` typed as proper `SingleChannel` union (was `string`); template form channel typed as `SingleChannel` (was `string`)
+  - `Channels.tsx`: Channel keys typed with proper `ChannelKey` union type, removing 2 `as any` casts
+  - `Backups.tsx`: Contact stats `synced` property extracted from `bySyncStatus` array (property didn't exist)
+  - `vite.config.ts`: Top-level `await` moved into async `defineConfig()` callback
+- **Orchestrator type alignment** — `SequenceStep.channel` expanded from 3 channels (`email | sms | linkedin`) to all 13, matching tRPC router schema and Campaign Studio UI
+- **Template creation schema** — `z.enum` for template channel expanded from 3 to 13 channels, matching Campaign Studio's all-channel template creation UI
+- **tsconfig target** — Added `target: "ES2022"` for proper modern JS feature support (top-level await, private fields)
+
 ## [1.7.0] - 2026-04-13
 
 ### Added

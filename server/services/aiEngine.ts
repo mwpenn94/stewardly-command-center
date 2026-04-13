@@ -141,7 +141,7 @@ export async function generateInsightsReport(userId: number): Promise<AIInsights
 
   const contacts = contactsList?.contacts || [];
   const campaigns_ = campaignsList || [];
-  const activity = recentActivity || [];
+  const activity = (recentActivity && 'entries' in recentActivity ? recentActivity.entries : recentActivity) || [];
   const integrations_ = integrationsList || [];
 
   // ─── Health Scores ─────────────────────────────────────────────────────
@@ -170,10 +170,12 @@ export async function generateInsightsReport(userId: number): Promise<AIInsights
   );
 
   // Sync health: based on error rate and DLQ items
-  const syncPending = (syncStats as any)?.pending || 0;
-  const syncFailed = (syncStats as any)?.failed || 0;
-  const syncDlq = (syncStats as any)?.dlq || 0;
-  const syncTotal = syncPending + syncFailed + syncDlq + ((syncStats as any)?.completed || 1);
+  const byStatus = syncStats?.byStatus || [];
+  const getStatusCount = (s: string) => byStatus.find((b: { status: string; count: number }) => b.status === s)?.count || 0;
+  const syncPending = getStatusCount("pending");
+  const syncFailed = getStatusCount("failed");
+  const syncDlq = getStatusCount("dlq");
+  const syncTotal = syncPending + syncFailed + syncDlq + (getStatusCount("completed") || 1);
   const syncHealth = ratioScore(syncFailed + syncDlq, syncTotal, true);
 
   // Integration health: connected vs disconnected

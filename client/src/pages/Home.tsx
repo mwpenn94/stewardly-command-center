@@ -187,10 +187,10 @@ export default function Home() {
                 {aiInsights.healthScore !== undefined && (
                   <div className="flex items-center gap-1.5">
                     <div className={`h-2.5 w-2.5 rounded-full ${
-                      aiInsights.healthScore >= 80 ? "bg-emerald-400" :
-                      aiInsights.healthScore >= 60 ? "bg-amber-400" : "bg-red-400"
+                      aiInsights.healthScore.overall >= 80 ? "bg-emerald-400" :
+                      aiInsights.healthScore.overall >= 60 ? "bg-amber-400" : "bg-red-400"
                     }`} />
-                    <span className="text-sm font-semibold tabular-nums">{aiInsights.healthScore}%</span>
+                    <span className="text-sm font-semibold tabular-nums">{aiInsights.healthScore.overall}%</span>
                     <span className="text-[10px] text-muted-foreground">health</span>
                   </div>
                 )}

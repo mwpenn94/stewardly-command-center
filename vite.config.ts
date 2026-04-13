@@ -149,20 +149,23 @@ function vitePluginManusDebugCollector(): Plugin {
 }
 
 // Manus-specific plugins are optional — only loaded when available
-const plugins: Plugin[] = [react(), tailwindcss(), vitePluginManusDebugCollector()];
+const plugins: (Plugin | Plugin[])[] = [react(), tailwindcss(), vitePluginManusDebugCollector()];
 
 // Conditionally add Manus plugins if available (dev environment on Manus platform)
-try {
-  const { jsxLocPlugin } = await import("@builder.io/vite-plugin-jsx-loc");
-  plugins.push(jsxLocPlugin());
-} catch { /* not available outside Manus */ }
+async function loadManusPlugins() {
+  try {
+    const { jsxLocPlugin } = await import("@builder.io/vite-plugin-jsx-loc");
+    plugins.push(jsxLocPlugin());
+  } catch { /* not available outside Manus */ }
+  try {
+    const { vitePluginManusRuntime } = await import("vite-plugin-manus-runtime");
+    plugins.push(vitePluginManusRuntime());
+  } catch { /* not available outside Manus */ }
+}
 
-try {
-  const { vitePluginManusRuntime } = await import("vite-plugin-manus-runtime");
-  plugins.push(vitePluginManusRuntime());
-} catch { /* not available outside Manus */ }
-
-export default defineConfig({
+export default defineConfig(async () => {
+  await loadManusPlugins();
+  return {
   plugins,
   resolve: {
     alias: {
@@ -210,4 +213,5 @@ export default defineConfig({
       deny: ["**/.*"],
     },
   },
+};
 });
