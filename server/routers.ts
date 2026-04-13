@@ -524,7 +524,11 @@ export const appRouter = router({
           "webform", "chat", "event",
         ]),
         templateId: z.number().optional(),
-        audienceFilter: z.any().optional(),
+        audienceFilter: z.object({
+          segment: z.string().optional(),
+          tier: z.string().optional(),
+          search: z.string().optional(),
+        }).optional(),
         scheduledAt: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -546,10 +550,14 @@ export const appRouter = router({
     launch: protectedProcedure
       .input(z.object({
         campaignId: z.number(),
-        body: z.string(),
+        body: z.string().min(1, "Message body is required"),
         subject: z.string().optional(),
         contactIds: z.array(z.number()).optional(),
-        audienceFilter: z.any().optional(),
+        audienceFilter: z.object({
+          segment: z.string().optional(),
+          tier: z.string().optional(),
+          search: z.string().optional(),
+        }).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Get campaign
@@ -641,7 +649,7 @@ export const appRouter = router({
         id: z.number(),
         name: z.string().optional(),
         status: z.string().optional(),
-        metrics: z.any().optional(),
+        metrics: z.record(z.string(), z.unknown()).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         const { id, ...data } = input;
@@ -749,7 +757,7 @@ export const appRouter = router({
         label: z.string().optional(),
         credentials: z.string().optional(),
         status: z.enum(["connected", "disconnected", "error"]).optional(),
-        metadata: z.any().optional(),
+        metadata: z.record(z.string(), z.unknown()).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         await db.upsertIntegration({ ...input, userId: ctx.user.id } as any);
@@ -1117,10 +1125,10 @@ export const appRouter = router({
         ]),
         subject: z.string().optional(),
         body: z.string().optional(),
-        metadata: z.any().optional(),
+        metadata: z.record(z.string(), z.unknown()).optional(),
         campaignId: z.number().optional(),
-        platform: z.string().optional(),
-        externalId: z.string().optional(),
+        platform: z.string().max(100).optional(),
+        externalId: z.string().max(500).optional(),
         sentiment: z.enum(["positive", "neutral", "negative"]).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
@@ -1155,12 +1163,19 @@ export const appRouter = router({
         ]),
         enabled: z.boolean(),
         provider: z.string().optional(),
-        config: z.any().optional(),
-        dailyLimit: z.number().optional(),
-        monthlyBudget: z.string().optional(),
+        config: z.record(z.string(), z.unknown()).optional(),
+        dailyLimit: z.number().int().min(0).max(1000000).optional(),
+        monthlyBudget: z.string().max(20).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         await db.upsertChannelConfig({ ...input, userId: ctx.user.id });
+        await db.logActivity({
+          userId: ctx.user.id,
+          type: "system",
+          action: "channel_config_updated",
+          description: `Updated ${input.channel} channel: ${input.enabled ? "enabled" : "disabled"}${input.provider ? ` via ${input.provider}` : ""}`,
+          severity: "info",
+        });
         return { success: true };
       }),
 
