@@ -2,6 +2,18 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
+## [0.7.0] - 2026-04-13
+
+### Added
+- **Dashboard Charts** — Revenue by Property bar chart, Occupancy donut charts per property, 6-month revenue trend sparkline
+- **AI Insights Panel** — Data-driven recommendations based on live store data: overdue payments, urgent maintenance, low occupancy, new leads, lease expirations, rent optimization
+- **MiniChart Components** — Zero-dependency BarChart, DonutChart, Sparkline SVG components
+- **Skeleton Components** — MetricCardSkeleton, TableRowSkeleton, CardSkeleton for loading states
+
+### Changed
+- Dashboard significantly enhanced with charts row above activity feed
+- Dashboard G1 depth upgraded to 5/5
+
 ## [0.6.0] - 2026-04-13
 
 ### Added

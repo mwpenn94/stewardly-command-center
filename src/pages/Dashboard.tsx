@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 import MetricCard from '../components/ui/MetricCard';
 import StatusBadge from '../components/ui/StatusBadge';
+import { BarChart, DonutChart, Sparkline } from '../components/ui/MiniChart';
+import AIInsights from '../components/dashboard/AIInsights';
 import { useDataStore } from '../store/useDataStore';
 import { recentActivities } from '../data/mock';
 
@@ -134,6 +136,44 @@ export default function Dashboard() {
           onClick={() => navigate('/properties')}
         />
       </div>
+
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Revenue by Property */}
+        <div className="card">
+          <h2 className="text-sm font-semibold text-text-primary mb-3">Revenue by Property</h2>
+          <BarChart
+            data={properties.map((p) => ({
+              label: p.name.split(' ')[0],
+              value: p.monthlyRevenue,
+              color: p.status === 'active' ? 'bg-primary-500' : 'bg-amber-400',
+            }))}
+          />
+        </div>
+
+        {/* Occupancy Overview */}
+        <div className="card">
+          <h2 className="text-sm font-semibold text-text-primary mb-3">Occupancy</h2>
+          <div className="flex justify-around items-center py-2">
+            {properties.slice(0, 4).map((p) => (
+              <DonutChart key={p.id} value={p.occupancyRate} max={100} label={p.name.split(' ')[0]} size={70} />
+            ))}
+          </div>
+        </div>
+
+        {/* Revenue Trend */}
+        <div className="card sm:col-span-2 lg:col-span-1">
+          <h2 className="text-sm font-semibold text-text-primary mb-1">Revenue Trend (6 mo)</h2>
+          <p className="text-xs text-text-muted mb-3">Monthly portfolio revenue</p>
+          <Sparkline data={[218000, 225000, 232000, 245000, 258000, dashboardMetrics.monthlyRevenue]} height={50} />
+          <div className="flex justify-between text-[10px] text-text-muted mt-1">
+            <span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Insights */}
+      <AIInsights />
 
       {/* Activity + Properties */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
