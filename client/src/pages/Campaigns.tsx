@@ -616,9 +616,18 @@ export default function Campaigns() {
 // ─── Campaign Detail Dialog ────────────────────────────────────────────────
 
 function CampaignDetailDialog({ campaignId, onClose }: { campaignId: number; onClose: () => void }) {
+  const utils = trpc.useUtils();
   const { data: campaign, isLoading, error } = trpc.campaigns.get.useQuery({ id: campaignId });
   const { data: interactionData } = trpc.interactions.byCampaign.useQuery({ campaignId, limit: 50 });
   const [detailTab, setDetailTab] = useState<"overview" | "timeline">("overview");
+  const updateStatus = trpc.campaigns.update.useMutation({
+    onSuccess: () => {
+      utils.campaigns.get.invalidate({ id: campaignId });
+      utils.campaigns.list.invalidate();
+      toast.success("Campaign status updated");
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   let metrics: Record<string, unknown> | null = null;
   try {
@@ -784,7 +793,24 @@ function CampaignDetailDialog({ campaignId, onClose }: { campaignId: number; onC
           </Tabs>
         ) : null}
 
-        <DialogFooter>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <div className="flex gap-2 flex-1">
+            {campaign?.status === "running" && (
+              <Button variant="outline" size="sm" className="gap-1 min-h-[44px] sm:min-h-0" disabled={updateStatus.isPending} onClick={() => updateStatus.mutate({ id: campaignId, status: "paused" })}>
+                {updateStatus.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Pause className="h-3.5 w-3.5" />} Pause
+              </Button>
+            )}
+            {campaign?.status === "paused" && (
+              <Button variant="outline" size="sm" className="gap-1 min-h-[44px] sm:min-h-0" disabled={updateStatus.isPending} onClick={() => updateStatus.mutate({ id: campaignId, status: "running" })}>
+                {updateStatus.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />} Resume
+              </Button>
+            )}
+            {(campaign?.status === "running" || campaign?.status === "paused" || campaign?.status === "scheduled") && (
+              <Button variant="destructive" size="sm" className="gap-1 min-h-[44px] sm:min-h-0" disabled={updateStatus.isPending} onClick={() => { if (confirm("Cancel this campaign?")) updateStatus.mutate({ id: campaignId, status: "failed" }); }}>
+                <XCircle className="h-3.5 w-3.5" /> Cancel
+              </Button>
+            )}
+          </div>
           <Button variant="outline" onClick={onClose}>Close</Button>
         </DialogFooter>
       </DialogContent>

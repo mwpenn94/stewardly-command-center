@@ -130,7 +130,7 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 | Routing | Wouter |
 | Styling | Tailwind CSS 4 + shadcn/ui (53 Radix components) |
 | Server State | TanStack React Query + tRPC 11 |
-| Backend | Express 4 + tRPC (74 procedures: 60 core + 6 AI + 8 omnichannel) |
+| Backend | Express 4 + tRPC (75 procedures: 61 core + 6 AI + 8 omnichannel) |
 | Database | Drizzle ORM + MySQL (TiDB) — 11 tables |
 | Icons | Lucide React |
 | Animations | Framer Motion |
@@ -184,10 +184,10 @@ client/src/
     NotificationCenter.tsx # Bell icon + activity popover
     QueryError.tsx        # Reusable error state with retry
   pages/                  # 15 page files (Home eager, 13 lazy-loaded, 1 internal showcase)
-    Home.tsx              # Dashboard (391 lines)
-    Contacts.tsx          # Contact CRUD (723 lines)
+    Home.tsx              # Dashboard (413 lines)
+    Contacts.tsx          # Contact CRUD + campaign attribution (759 lines)
     BulkImport.tsx        # CSV import (609 lines)
-    Campaigns.tsx         # Campaign Studio + Flow Builder + Detail (1,080 lines)
+    Campaigns.tsx         # Campaign Studio + Flow Builder + Detail (1,106 lines)
     SyncEngine.tsx        # Sync queue (240 lines)
     Integrations.tsx      # Platform connections (389 lines)
     Enrichment.tsx        # Data enrichment (132 lines)
@@ -205,8 +205,8 @@ client/src/
 
 server/
   _core/                  # Express server + tRPC adapter
-  routers.ts              # 74 tRPC procedures (1,263 lines)
-  db.ts                   # Database query helpers (485 lines)
+  routers.ts              # 75 tRPC procedures (1,268 lines)
+  db.ts                   # Database query helpers (504 lines)
   services/
     ghl.ts                # GoHighLevel API (600 lines)
     smsit.ts              # SMS-iT API (181 lines)

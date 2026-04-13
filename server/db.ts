@@ -267,6 +267,23 @@ export async function getCampaignInteractionStats(userId: number, campaignId: nu
   return { total: total[0]?.count || 0, byChannel, byType, byDirection };
 }
 
+export async function getCampaignsForContact(userId: number, contactId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  // Get distinct campaign IDs from contact interactions, then fetch those campaigns
+  const interactionCampaigns = await db
+    .selectDistinct({ campaignId: contactInteractions.campaignId })
+    .from(contactInteractions)
+    .where(and(
+      eq(contactInteractions.userId, userId),
+      eq(contactInteractions.contactId, contactId),
+      sql`${contactInteractions.campaignId} IS NOT NULL`
+    ));
+  const campaignIds = interactionCampaigns.map(r => r.campaignId).filter((id): id is number => id != null);
+  if (campaignIds.length === 0) return [];
+  return db.select().from(campaigns).where(and(eq(campaigns.userId, userId), inArray(campaigns.id, campaignIds))).orderBy(desc(campaigns.createdAt));
+}
+
 // ─── Campaign Templates ─────────────────────────────────────────────────────
 export async function getTemplates(userId: number, channel?: string) {
   const db = await getDb();
@@ -371,8 +388,8 @@ export async function updateBackup(id: number, data: Partial<InsertBackup>) {
 // ─── Dashboard Stats ─────────────────────────────────────────────────────────
 export async function getDashboardStats(userId: number) {
   const db = await getDb();
-  if (!db) return { contacts: 0, campaigns: 0, syncPending: 0, integrations: 0, recentActivity: [] };
-  const [contactCount, campaignCount, syncPending, integrationCount, recentActivity] = await Promise.all([
+  if (!db) return { contacts: 0, campaigns: 0, syncPending: 0, integrations: 0, recentActivity: [], campaignsByStatus: [] };
+  const [contactCount, campaignCount, syncPending, integrationCount, recentActivity, campaignsByStatus] = await Promise.all([
     db.select({ count: count() }).from(contacts).where(eq(contacts.userId, userId)),
     db.select({ count: count() }).from(campaigns).where(eq(campaigns.userId, userId)),
     db.select({ count: count() }).from(syncQueue).where(and(eq(syncQueue.userId, userId), inArray(syncQueue.status, ["pending", "processing"]))),
@@ -384,6 +401,7 @@ export async function getDashboardStats(userId: number) {
       )
     ),
     db.select().from(activityLog).where(eq(activityLog.userId, userId)).orderBy(desc(activityLog.createdAt)).limit(10),
+    db.select({ status: campaigns.status, count: count() }).from(campaigns).where(eq(campaigns.userId, userId)).groupBy(campaigns.status),
   ]);
   return {
     contacts: contactCount[0]?.count || 0,
@@ -391,6 +409,7 @@ export async function getDashboardStats(userId: number) {
     syncPending: syncPending[0]?.count || 0,
     integrations: integrationCount[0]?.count || 0,
     recentActivity,
+    campaignsByStatus,
   };
 }
 

@@ -4,6 +4,13 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.1.0] - 2026-04-13
+
+### Added
+- **Campaign lifecycle management** — Pause, resume, and cancel buttons in campaign detail dialog; running campaigns can be paused, paused campaigns can be resumed, active campaigns can be cancelled; status updates via tRPC with toast feedback and query invalidation
+- **Contact campaign attribution** — Contact detail Info tab now shows a "Campaigns" section listing all campaigns the contact has interacted with, showing campaign name, status badge, and channel; new `contacts.campaigns` tRPC procedure and `getCampaignsForContact` DB function
+- **Dashboard campaign lifecycle metrics** — Campaign status breakdown badges (draft/scheduled/running/paused/completed/failed) displayed below stat cards; each badge shows count and clicks through to /campaigns
+
 ## [2.0.0] - 2026-04-13
 
 ### Added
@@ -14,7 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed
 - **Campaign metrics type** — Changed from `any` to `Record<string, unknown>` in Campaigns.tsx, eliminating the last page-level `any` type
 - **Dead code** — Removed unused `addToSyncQueue` function from db.ts (was defined but never called)
-- **Documentation accuracy** — All docs updated with verified counts: 74 tRPC procedures (was 73), corrected line counts across README (pages, services), ARCHITECTURE (custom components, services), DOCUMENTATION (procedures)
+- **Documentation accuracy** — All docs updated with verified counts: 75 tRPC procedures, corrected line counts across README (pages, services), ARCHITECTURE (custom components, services), DOCUMENTATION (procedures)
 
 ## [1.9.0] - 2026-04-13
 

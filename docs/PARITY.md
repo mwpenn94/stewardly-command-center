@@ -28,7 +28,7 @@
 | G16 | Toast notification system | Done | 4 | Sonner toasts on all CRUD operations | legacy |
 | G17 | Skeleton loading states | Done | 3 | Skeleton loaders on tables, cards, lists | legacy |
 | G18 | Authentication flow | Done | 3 | Cookie-based auth, login redirect, role-based access | legacy |
-| G19 | tRPC API layer (74 procedures) | Done | 5 | Full type-safe API: contacts, campaigns, sync, integrations, channels, interactions, AI (60 core + 6 AI + 8 omnichannel) | legacy + Pass 18 + 25 + 37 |
+| G19 | tRPC API layer (75 procedures) | Done | 5 | Full type-safe API: contacts, campaigns, sync, integrations, channels, interactions, AI (61 core + 6 AI + 8 omnichannel) | legacy + Pass 18 + 25 + 37 + 38 |
 | G20 | Database schema (9 tables + migrations) | Done | 4 | Drizzle ORM, MySQL/TiDB, migration-first workflow | legacy |
 | G21 | Multi-platform campaign orchestration | Done | 3 | Orchestrator: sequences, health checks, pause/resume/cancel | legacy |
 | G22 | Test suite (10 files, 3 tiers) | Done | 4 | Unit + integration + live E2E across 10 files | legacy |
@@ -109,8 +109,11 @@
 | G97 | Campaign Detail view | Done | 4 | Click campaign name → detail dialog with Overview tab (audience/sent/failed/interactions metrics, channel breakdown, type breakdown, direction stats, timestamps) and Timeline tab (campaign interaction history with channel icons, sentiment, direction badges) | Pass 37 |
 | G98 | Campaign interaction tracking backend | Done | 4 | New tRPC procedures: campaigns.get (single campaign + interaction stats), interactions.byCampaign (filtered by campaignId); new DB functions: getCampaignById, getInteractionsByCampaign, getCampaignInteractionStats | Pass 37 |
 | G99 | Dead code removal — addToSyncQueue | Done | 2 | Removed unused addToSyncQueue function from db.ts (was never called from any router or service) | Pass 37 |
-| G100 | Documentation accuracy — procedure count + line counts | Done | 3 | All docs updated: 74 procedures (was 73), corrected line counts across README, ARCHITECTURE, DOCUMENTATION for all pages + services | Pass 37 |
+| G100 | Documentation accuracy — procedure count + line counts | Done | 3 | All docs updated: 75 procedures, corrected line counts across README, ARCHITECTURE, DOCUMENTATION for all pages + services | Pass 37 + 38 |
 | G101 | Campaign metrics typed | Done | 2 | Campaign metrics changed from `any` to `Record<string, unknown>` in Campaigns.tsx — eliminates last page-level `any` type | Pass 37 |
+| G102 | Campaign lifecycle management | Done | 3 | Pause/resume/cancel buttons in campaign detail dialog; status updates via campaigns.update mutation with toast feedback and query invalidation | Pass 38 |
+| G103 | Contact campaign attribution | Done | 3 | Contact detail Info tab shows "Campaigns" section with all campaigns the contact has interacted with; new contacts.campaigns tRPC procedure + getCampaignsForContact DB function | Pass 38 |
+| G104 | Dashboard campaign lifecycle metrics | Done | 3 | Campaign status breakdown badges (draft/scheduled/running/paused/completed/failed) displayed below stat cards; click navigates to /campaigns | Pass 38 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -171,7 +174,10 @@
 - Contact timeline "Log Interaction" with channel selection, direction, and body
 - Campaign Detail dialog: overview metrics + interaction timeline, accessible via campaign name click
 - Campaign-level interaction tracking: campaigns.get returns interaction stats, interactions.byCampaign returns filtered timeline
-- Documentation accuracy: 74 procedures, verified line counts for all source files
+- Documentation accuracy: 75 procedures, verified line counts for all source files
+- Campaign detail: pause/resume/cancel status management from detail dialog
+- Contact campaign attribution: Info tab shows campaigns the contact has interacted with
+- Dashboard campaign lifecycle: status breakdown badges with click-to-navigate
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -221,4 +227,5 @@
 - Pass 34 · dead code + test coverage + unused imports · G92-G93 done; removed 3 unused imports, identified 3 orphaned dev components, verified 142/203 tests pass (25 live-only failures expected), docs updated · f6842e7 · 2 items completed · none deferred
 - Pass 35 · input validation + error states · G94-G95 done; QueryError added to 4 more pages (9 total), BulkImport CSV preview mobile scroll hint · ce2805d · 2 items completed · none deferred
 - Pass 36 · contact interaction logging + unified timeline · G96 done; "Log Interaction" feature on contact detail timeline with 13-channel select, direction toggle, auto-typed mutations · PENDING · 1 item completed · none deferred
-- Pass 37 · functional gaps + documentation accuracy + campaign detail · G97-G101 done; campaign detail dialog with overview+timeline, campaigns.get+interactions.byCampaign tRPC, dead code removed, metrics type fixed, all docs updated with accurate counts (74 procedures) · PENDING · 5 items completed · none deferred
+- Pass 37 · functional gaps + documentation accuracy + campaign detail · G97-G101 done; campaign detail dialog with overview+timeline, campaigns.get+interactions.byCampaign tRPC, dead code removed, metrics type fixed, all docs updated with accurate counts · 79b846b · 5 items completed · none deferred
+- Pass 38 · campaign lifecycle + contact attribution + dashboard metrics · G102-G104 done; pause/resume/cancel in campaign detail, contact campaign attribution section, dashboard campaign lifecycle badges, contacts.campaigns tRPC, getCampaignsForContact DB · PENDING · 3 items completed · none deferred

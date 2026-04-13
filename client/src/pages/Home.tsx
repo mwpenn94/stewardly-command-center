@@ -112,6 +112,28 @@ export default function Home() {
         ))}
       </div>
 
+      {/* Campaign Lifecycle */}
+      {stats?.campaignsByStatus && stats.campaignsByStatus.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {[
+            { status: "draft", label: "Draft", color: "bg-muted text-muted-foreground" },
+            { status: "scheduled", label: "Scheduled", color: "bg-blue-500/15 text-blue-400" },
+            { status: "running", label: "Running", color: "bg-emerald-500/15 text-emerald-400" },
+            { status: "paused", label: "Paused", color: "bg-amber-500/15 text-amber-400" },
+            { status: "completed", label: "Completed", color: "bg-primary/15 text-primary" },
+            { status: "failed", label: "Failed", color: "bg-red-500/15 text-red-400" },
+          ].map((s) => {
+            const found = stats.campaignsByStatus.find((c: { status: string; count: number }) => c.status === s.status);
+            if (!found) return null;
+            return (
+              <Badge key={s.status} className={`text-xs px-3 py-1 ${s.color} cursor-pointer`} onClick={() => setLocation("/campaigns")}>
+                {s.label}: {found.count}
+              </Badge>
+            );
+          })}
+        </div>
+      )}
+
       {/* Quick Actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[

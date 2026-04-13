@@ -47,7 +47,7 @@ import {
   Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Tag, X, Users, RefreshCw,
   ExternalLink, Mail, Phone, Building2, MapPin, Eye, MessageSquare, Linkedin, Clock,
   PhoneIncoming, PhoneOutgoing, Globe, MessageCircle, Calendar, Facebook, Instagram,
-  Twitter, Video, Send, ArrowDownLeft, ArrowUpRight, Loader2
+  Twitter, Video, Send, ArrowDownLeft, ArrowUpRight, Loader2, Megaphone
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import QueryError from "@/components/QueryError";
@@ -517,6 +517,8 @@ export default function Contacts() {
                   </div>
                 </>
               )}
+              {/* Campaign Attribution */}
+              {detailContact?.id && <ContactCampaigns contactId={detailContact.id} />}
             </TabsContent>
 
             <TabsContent value="timeline" className="py-2">
@@ -719,5 +721,39 @@ function ContactTimeline({ contactId }: { contactId?: number }) {
         );
       })}
     </div>
+  );
+}
+
+function ContactCampaigns({ contactId }: { contactId: number }) {
+  const { data: campaigns } = trpc.contacts.campaigns.useQuery({ contactId });
+
+  if (!campaigns || campaigns.length === 0) return null;
+
+  const STATUS_COLORS: Record<string, string> = {
+    draft: "bg-muted text-muted-foreground",
+    scheduled: "bg-blue-500/15 text-blue-400",
+    running: "bg-emerald-500/15 text-emerald-400",
+    paused: "bg-amber-500/15 text-amber-400",
+    completed: "bg-primary/15 text-primary",
+    failed: "bg-red-500/15 text-red-400",
+  };
+
+  return (
+    <>
+      <Separator />
+      <div>
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Campaigns</p>
+        <div className="space-y-1.5">
+          {campaigns.map((c) => (
+            <div key={c.id} className="flex items-center gap-2 p-2 rounded bg-muted/10 border border-border/20">
+              <Megaphone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <span className="text-xs text-foreground truncate flex-1">{c.name}</span>
+              <Badge className={`text-[9px] ${STATUS_COLORS[c.status] || STATUS_COLORS.draft}`}>{c.status}</Badge>
+              <span className="text-[10px] text-muted-foreground capitalize">{c.channel}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
   );
 }
