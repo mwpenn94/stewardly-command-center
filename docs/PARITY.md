@@ -29,7 +29,7 @@
 | G17 | AI/Agentic continuous improvement | Open | 0 | Architecture planned, not started | — |
 | G18 | Predictive analytics | Open | 0 | Requires AI engine + data pipeline | — |
 | G19 | Automated outreach workflows | Done | 4 | Workflow builder with email/sms/wait/condition steps, trigger config | Pass 5 |
-| G20 | Multi-platform CRM sync | Open | 0 | Pipeline UI exists, sync logic needed | — |
+| G20 | Multi-platform CRM sync | In Progress | 2 | Pipeline CRUD + CRM kanban done, actual API sync pending | Pass 6 |
 | G21 | 404 page & error boundary | Done | 4 | Error boundary wraps app, 404 catch-all route | Pass 3 |
 | G22 | Accessibility (skip-link, focus-visible, ARIA) | Done | 3 | Skip-to-content, focus-visible ring, ARIA labels, min touch targets | Pass 3 |
 | G23 | Mobile touch targets (44px min) | Done | 3 | Buttons/inputs have min-h-[44px] on mobile | Pass 3 |
@@ -39,6 +39,9 @@
 | G27 | Cross-entity navigation | Done | 3 | Property detail shows related tenants + open maintenance | Pass 5 |
 | G28 | Email template builder | Done | 4 | WYSIWYG builder with edit/preview, subject, body, CTA, footer | Pass 5 |
 | G29 | Marketing tabs (Campaigns/Email/Workflows) | Done | 4 | Tabbed interface in Marketing page | Pass 5 |
+| G30 | CRM contact detail + activity timeline | Done | 4 | Detail modal with contact info, tags, notes, timeline | Pass 6 |
+| G31 | CRM kanban board view | Done | 4 | Drag-and-drop kanban with status columns, table/kanban toggle | Pass 6 |
+| G32 | Pipeline create/edit form | Done | 4 | Full CRUD with source/dest/schedule/status config + toast feedback | Pass 6 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -67,4 +70,5 @@
 - Pass 2 · CRUD forms & detail views · G13, G14 done + G2-G7 depth upgrade · 6fc6f0c · 8 items completed · G11,G12,G15-G20 deferred
 - Pass 3 · dark mode + accessibility + mobile · G16, G21-G23 done · e7e2161 · 4 items completed · G11,G12,G15,G17-G20 deferred
 - Pass 4 · cross-app navigation + search + toasts · G24-G26 done · f827126 · 3 items completed · G11,G12,G15,G17-G20,G27 deferred
-- Pass 5 · marketing outreach + cross-entity nav · G19,G27-G29 done · PENDING · 4 items completed · G11,G12,G15,G17,G18,G20 deferred
+- Pass 5 · marketing outreach + cross-entity nav · G19,G27-G29 done · 813b86c · 4 items completed · G11,G12,G15,G17,G18,G20 deferred
+- Pass 6 · CRM enhancement + pipeline CRUD · G30-G32 done, G20 in progress · PENDING · 3 items completed · G11,G12,G15,G17,G18 deferred

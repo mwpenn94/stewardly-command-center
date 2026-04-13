@@ -2,6 +2,21 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
+## [0.6.0] - 2026-04-13
+
+### Added
+- CRM contact detail modal with email/phone links, company info, tags, notes
+- CRM activity timeline with email, note, meeting, and creation events
+- CRM Kanban board view with drag-and-drop between status columns (new/contacted/qualified/converted/lost)
+- Table/Kanban view toggle in CRM page
+- Pipeline create/edit form modal with source, destination, schedule, status configuration
+- Pipeline cards clickable to open edit form
+- Toast notifications on pipeline pause/resume/create/update
+
+### Changed
+- CRM page enhanced with dual view modes (table + kanban)
+- Pipelines page now supports full CRUD with modal forms
+
 ## [0.5.0] - 2026-04-13
 
 ### Added

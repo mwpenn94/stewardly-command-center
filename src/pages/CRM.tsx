@@ -1,13 +1,17 @@
 import { useState } from 'react';
-import { Plus, Search, Mail, Phone, Tag } from 'lucide-react';
+import { Plus, Search, Mail, Phone, Tag, LayoutGrid, Table2 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import { useToast } from '../components/ui/Toast';
 import StatusBadge from '../components/ui/StatusBadge';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
 import ContactForm from '../components/crm/ContactForm';
+import ContactDetail from '../components/crm/ContactDetail';
+import KanbanBoard from '../components/crm/KanbanBoard';
 import { useDataStore } from '../store/useDataStore';
 import type { Contact } from '../types';
+
+type ViewMode = 'table' | 'kanban';
 
 export default function CRM() {
   const { contacts, addContact, updateContact } = useDataStore();
@@ -16,6 +20,8 @@ export default function CRM() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Contact | undefined>();
+  const [detailContact, setDetailContact] = useState<Contact | undefined>();
+  const [viewMode, setViewMode] = useState<ViewMode>('table');
 
   const filtered = contacts.filter((c) => {
     const matchesSearch =
@@ -41,6 +47,12 @@ export default function CRM() {
     }
   };
 
+  const handleStatusChange = (contactId: string, newStatus: Contact['status']) => {
+    updateContact(contactId, { status: newStatus });
+    const c = contacts.find((c) => c.id === contactId);
+    if (c) addToast('info', `${c.firstName} ${c.lastName} moved to ${newStatus}`);
+  };
+
   const columns = [
     {
       key: 'name',
@@ -58,25 +70,13 @@ export default function CRM() {
       hideOnMobile: true,
       render: (c: Contact) => (
         <div className="space-y-1">
-          <span className="flex items-center gap-1 text-xs text-text-muted">
-            <Mail className="w-3 h-3" /> {c.email}
-          </span>
-          <span className="flex items-center gap-1 text-xs text-text-muted">
-            <Phone className="w-3 h-3" /> {c.phone}
-          </span>
+          <span className="flex items-center gap-1 text-xs text-text-muted"><Mail className="w-3 h-3" /> {c.email}</span>
+          <span className="flex items-center gap-1 text-xs text-text-muted"><Phone className="w-3 h-3" /> {c.phone}</span>
         </div>
       ),
     },
-    {
-      key: 'type',
-      header: 'Type',
-      render: (c: Contact) => <StatusBadge status={c.type} />,
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      render: (c: Contact) => <StatusBadge status={c.status} />,
-    },
+    { key: 'type', header: 'Type', render: (c: Contact) => <StatusBadge status={c.type} /> },
+    { key: 'status', header: 'Status', render: (c: Contact) => <StatusBadge status={c.status} /> },
     {
       key: 'source',
       header: 'Source',
@@ -91,13 +91,10 @@ export default function CRM() {
         <div className="flex flex-wrap gap-1">
           {c.tags.slice(0, 2).map((tag) => (
             <span key={tag} className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] bg-surface-tertiary text-text-muted">
-              <Tag className="w-2.5 h-2.5" />
-              {tag}
+              <Tag className="w-2.5 h-2.5" />{tag}
             </span>
           ))}
-          {c.tags.length > 2 && (
-            <span className="text-[10px] text-text-muted">+{c.tags.length - 2}</span>
-          )}
+          {c.tags.length > 2 && <span className="text-[10px] text-text-muted">+{c.tags.length - 2}</span>}
         </div>
       ),
     },
@@ -119,7 +116,7 @@ export default function CRM() {
 
       {/* Pipeline summary */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        {['new', 'contacted', 'qualified', 'converted', 'lost'].map((status) => {
+        {(['new', 'contacted', 'qualified', 'converted', 'lost'] as const).map((status) => {
           const count = contacts.filter((c) => c.status === status).length;
           return (
             <div key={status} className="card text-center py-3 px-2">
@@ -130,43 +127,58 @@ export default function CRM() {
         })}
       </div>
 
-      {/* Filters */}
+      {/* Filters + View Toggle */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-          <input
-            type="search"
-            placeholder="Search contacts..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input pl-9"
-            aria-label="Search contacts"
-          />
+          <input type="search" placeholder="Search contacts..." value={search} onChange={(e) => setSearch(e.target.value)} className="input pl-9" aria-label="Search contacts" />
         </div>
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-2 overflow-x-auto pb-1 flex-1">
           {['all', 'lead', 'prospect', 'tenant', 'vendor', 'partner'].map((type) => (
             <button
               key={type}
               onClick={() => setTypeFilter(type)}
               className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
-                typeFilter === type
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-surface border border-border text-text-secondary hover:bg-surface-tertiary'
+                typeFilter === type ? 'bg-primary-600 text-white' : 'bg-surface border border-border text-text-secondary hover:bg-surface-tertiary'
               }`}
             >
               {type === 'all' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1)}
             </button>
           ))}
         </div>
+        <div className="flex gap-1">
+          <button
+            onClick={() => setViewMode('table')}
+            className={`p-2 rounded-lg ${viewMode === 'table' ? 'bg-primary-100 text-primary-600' : 'text-text-muted hover:bg-surface-tertiary'}`}
+            aria-label="Table view"
+          >
+            <Table2 className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setViewMode('kanban')}
+            className={`p-2 rounded-lg ${viewMode === 'kanban' ? 'bg-primary-100 text-primary-600' : 'text-text-muted hover:bg-surface-tertiary'}`}
+            aria-label="Kanban view"
+          >
+            <LayoutGrid className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={filtered}
-        keyExtractor={(c) => c.id}
-        emptyMessage="No contacts match your search"
-        onRowClick={(c) => setEditing(c)}
-      />
+      {viewMode === 'table' ? (
+        <DataTable
+          columns={columns}
+          data={filtered}
+          keyExtractor={(c) => c.id}
+          emptyMessage="No contacts match your search"
+          onRowClick={(c) => setDetailContact(c)}
+        />
+      ) : (
+        <KanbanBoard
+          contacts={filtered}
+          onContactClick={(c) => setDetailContact(c)}
+          onStatusChange={handleStatusChange}
+        />
+      )}
 
       {/* Create/Edit Modal */}
       <Modal
@@ -180,6 +192,21 @@ export default function CRM() {
           onSubmit={editing ? handleUpdate : handleCreate}
           onCancel={() => { setFormOpen(false); setEditing(undefined); }}
         />
+      </Modal>
+
+      {/* Detail Modal */}
+      <Modal
+        open={!!detailContact && !editing}
+        onClose={() => setDetailContact(undefined)}
+        title={detailContact ? `${detailContact.firstName} ${detailContact.lastName}` : ''}
+        size="lg"
+      >
+        {detailContact && (
+          <ContactDetail
+            contact={detailContact}
+            onEdit={() => { setEditing(detailContact); setDetailContact(undefined); }}
+          />
+        )}
       </Modal>
     </div>
   );

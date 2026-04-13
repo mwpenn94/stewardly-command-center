@@ -1,6 +1,10 @@
+import { useState } from 'react';
 import { Plus, RefreshCw, Database, ArrowRight, Play, Pause, Settings } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import StatusBadge from '../components/ui/StatusBadge';
+import Modal from '../components/ui/Modal';
+import PipelineForm from '../components/pipelines/PipelineForm';
+import { useToast } from '../components/ui/Toast';
 import { useDataStore } from '../store/useDataStore';
 import type { DataPipeline } from '../types';
 
@@ -12,11 +16,29 @@ const statusActions: Record<string, { icon: typeof Play; label: string }> = {
 };
 
 export default function Pipelines() {
-  const { pipelines: dataPipelines, updatePipeline } = useDataStore();
+  const { pipelines: dataPipelines, addPipeline, updatePipeline } = useDataStore();
+  const { addToast } = useToast();
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<DataPipeline | undefined>();
 
   const togglePipeline = (id: string, currentStatus: string) => {
     const newStatus = currentStatus === 'active' ? 'paused' : 'active';
     updatePipeline(id, { status: newStatus as DataPipeline['status'] });
+    addToast('info', `Pipeline ${newStatus === 'active' ? 'resumed' : 'paused'}`);
+  };
+
+  const handleCreate = (data: Omit<DataPipeline, 'id'>) => {
+    addPipeline(data);
+    setFormOpen(false);
+    addToast('success', `Pipeline "${data.name}" created`);
+  };
+
+  const handleUpdate = (data: Omit<DataPipeline, 'id'>) => {
+    if (editing) {
+      updatePipeline(editing.id, data);
+      setEditing(undefined);
+      addToast('success', `Pipeline "${data.name}" updated`);
+    }
   };
 
   return (
@@ -25,7 +47,7 @@ export default function Pipelines() {
         title="Data Pipelines"
         subtitle="Integrations, ingestion, and sync status"
         action={
-          <button className="btn-primary flex items-center gap-2">
+          <button className="btn-primary flex items-center gap-2" onClick={() => { setEditing(undefined); setFormOpen(true); }}>
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">New Pipeline</span>
             <span className="sm:hidden">New</span>
@@ -66,7 +88,11 @@ export default function Pipelines() {
           const ActionIcon = action?.icon ?? Settings;
 
           return (
-            <div key={pipeline.id} className="card hover:shadow-md transition-shadow">
+            <div
+              key={pipeline.id}
+              className="card hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => setEditing(pipeline)}
+            >
               <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="p-2 rounded-lg bg-primary-50 flex-shrink-0">
@@ -97,7 +123,7 @@ export default function Pipelines() {
                   <button
                     className="btn-secondary flex items-center gap-1.5 py-1.5 px-3 text-xs"
                     aria-label={`${action?.label} ${pipeline.name}`}
-                    onClick={() => togglePipeline(pipeline.id, pipeline.status)}
+                    onClick={(e) => { e.stopPropagation(); togglePipeline(pipeline.id, pipeline.status); }}
                   >
                     <ActionIcon className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">{action?.label}</span>
@@ -113,9 +139,22 @@ export default function Pipelines() {
         <div className="card text-center py-12">
           <Database className="w-12 h-12 text-text-muted mx-auto mb-3" />
           <p className="text-text-muted">No pipelines configured yet</p>
-          <button className="btn-primary mt-4">Create Your First Pipeline</button>
+          <button className="btn-primary mt-4" onClick={() => setFormOpen(true)}>Create Your First Pipeline</button>
         </div>
       )}
+
+      {/* Create/Edit Modal */}
+      <Modal
+        open={formOpen || !!editing}
+        onClose={() => { setFormOpen(false); setEditing(undefined); }}
+        title={editing ? 'Edit Pipeline' : 'New Pipeline'}
+      >
+        <PipelineForm
+          initial={editing}
+          onSubmit={editing ? handleUpdate : handleCreate}
+          onCancel={() => { setFormOpen(false); setEditing(undefined); }}
+        />
+      </Modal>
     </div>
   );
 }
