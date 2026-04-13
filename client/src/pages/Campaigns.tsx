@@ -62,6 +62,7 @@ interface LaunchForm {
   body: string;
   subject: string;
   contactIds?: number[];
+  scheduledAt?: string;
 }
 
 interface SeqStep {
@@ -292,6 +293,7 @@ export default function Campaigns() {
                         {ch.label} via {ch.platform} &middot; {c.audienceCount || 0} recipients
                         {metrics?.sent ? ` · ${metrics.sent} sent` : ""}
                         {metrics?.failed ? ` · ${metrics.failed} failed` : ""}
+                        {c.status === "scheduled" && c.scheduledAt ? ` · Scheduled: ${new Date(c.scheduledAt).toLocaleString()}` : ""}
                         {" · "}
                         {c.createdAt ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true }) : "—"}
                       </p>
@@ -300,6 +302,11 @@ export default function Campaigns() {
                       {c.status === "draft" && (
                         <Button variant="outline" size="sm" className="h-9 min-h-[44px] text-xs gap-1" onClick={() => openLaunch(c)}>
                           <Send className="h-3.5 w-3.5" /> Launch
+                        </Button>
+                      )}
+                      {c.status === "scheduled" && (
+                        <Button variant="outline" size="sm" className="h-9 min-h-[44px] text-xs gap-1" onClick={() => openLaunch(c)}>
+                          <Clock className="h-3.5 w-3.5" /> Reschedule
                         </Button>
                       )}
                       <Button variant="ghost" size="icon" className="h-9 w-9 min-h-[44px] min-w-[44px] text-destructive hover:text-destructive" disabled={deleteCampaign.isPending} onClick={() => { if (confirm("Delete campaign?")) deleteCampaign.mutate({ id: c.id }); }}>
@@ -485,12 +492,28 @@ export default function Campaigns() {
               <div><Label>Subject</Label><Input value={launchForm.subject} onChange={(e) => setLaunchForm({ ...launchForm, subject: e.target.value })} placeholder="Subject line" /></div>
             )}
             <div><Label>Message Body</Label><Textarea rows={5} value={launchForm.body} onChange={(e) => setLaunchForm({ ...launchForm, body: e.target.value })} placeholder="Your message..." /></div>
-            <Alert><AlertDescription className="text-xs">Sending to {launchForm.contactIds?.length || contactData?.total || 0} contacts via {(launchCampaignData?.channel && CHANNEL_CONFIG[launchCampaignData.channel]?.platform) || "platform"}.</AlertDescription></Alert>
+            <div>
+              <Label>Send Timing</Label>
+              <div className="flex gap-2 mt-1">
+                <Button type="button" variant={!launchForm.scheduledAt ? "default" : "outline"} size="sm" className="text-xs flex-1" onClick={() => setLaunchForm({ ...launchForm, scheduledAt: undefined })}>
+                  Send Now
+                </Button>
+                <Button type="button" variant={launchForm.scheduledAt ? "default" : "outline"} size="sm" className="text-xs flex-1" onClick={() => setLaunchForm({ ...launchForm, scheduledAt: new Date(Date.now() + 3600000).toISOString().slice(0, 16) })}>
+                  <Clock className="h-3 w-3 mr-1" /> Schedule
+                </Button>
+              </div>
+              {launchForm.scheduledAt && (
+                <Input type="datetime-local" className="mt-2 text-sm" value={launchForm.scheduledAt} onChange={(e) => setLaunchForm({ ...launchForm, scheduledAt: e.target.value })} min={new Date().toISOString().slice(0, 16)} aria-label="Scheduled send date and time" />
+              )}
+            </div>
+            <Alert><AlertDescription className="text-xs">
+              {launchForm.scheduledAt ? `Scheduled for ${new Date(launchForm.scheduledAt).toLocaleString()} · ` : ""}Sending to {launchForm.contactIds?.length || contactData?.total || 0} contacts via {(launchCampaignData?.channel && CHANNEL_CONFIG[launchCampaignData.channel]?.platform) || "platform"}.
+            </AlertDescription></Alert>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setLaunchOpen(false)}>Cancel</Button>
             <Button onClick={handleLaunch} disabled={launchCampaign.isPending}>
-              {launchCampaign.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4 mr-1" /> Send Now</>}
+              {launchCampaign.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : launchForm.scheduledAt ? <><Clock className="h-4 w-4 mr-1" /> Schedule</> : <><Send className="h-4 w-4 mr-1" /> Send Now</>}
             </Button>
           </DialogFooter>
         </DialogContent>

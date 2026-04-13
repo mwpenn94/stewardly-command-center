@@ -25,7 +25,7 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 - Form validation: required fields, email format, phone format
 
 ### Campaign Studio
-- **Campaigns tab** — Create, launch, and track campaigns across all 13 channels: Email, SMS, LinkedIn, Facebook, Instagram, Twitter/X, TikTok, Inbound/Outbound Calls, Direct Mail, Webforms, Chat, Events
+- **Campaigns tab** — Create, launch (now or scheduled), and track campaigns across all 13 channels: Email, SMS, LinkedIn, Facebook, Instagram, Twitter/X, TikTok, Inbound/Outbound Calls, Direct Mail, Webforms, Chat, Events
 - **Sequences tab** — Multi-step, multi-channel outreach automation across any combination of channels with configurable delays
 - **Templates tab** — Reusable message templates for any channel
 - Platform health indicators showing 5 provider connection statuses (GHL, SMS-iT, Dripify, Direct Mail, Voice)

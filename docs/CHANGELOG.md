@@ -4,6 +4,14 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.0] - 2026-04-13
+
+### Added
+- **Campaign scheduling** — Launch dialog now has "Send Now" / "Schedule" toggle with datetime-local picker for future scheduling; scheduled campaigns show scheduled date in the campaign list and have a "Reschedule" button
+- **Contact interaction logging** — "Log Interaction" button on contact timeline tab with inline form: 13-channel selector, inbound/outbound direction, body text; auto-maps channel to interaction type
+- **Light mode contrast fixes** — Integrations test result and BulkImport cancel button use proper dual-theme colors
+- **ARIA labels** — Log Interaction form has role="form", aria-label on channel/direction/notes inputs; schedule picker has aria-label
+
 ## [1.9.0] - 2026-04-13
 
 ### Added

@@ -108,6 +108,7 @@
 | G96 | Contact interaction logging | Done | 4 | "Log Interaction" button on contact timeline tab; inline form with channel selector (13 channels), direction toggle, body text; auto-maps channel to interaction type; creates via tRPC interactions.create | Pass 36 |
 | G97 | Light mode contrast fixes | Done | 3 | Integrations test result text uses dark:text-*-300 / text-*-600 for light mode; BulkImport cancel button uses dark:text-red-400 / text-red-600 | Pass 37 |
 | G98 | ARIA labels on Log Interaction form | Done | 2 | role="form", aria-label on channel selector, direction selector, notes textarea | Pass 37 |
+| G99 | Campaign scheduling | Done | 4 | Launch dialog has "Send Now" / "Schedule" toggle; datetime-local picker for future scheduling; scheduled campaigns show date in list; "Reschedule" button on scheduled campaigns | Pass 38 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -166,6 +167,8 @@
 - No unused imports in page-level components (DialogTrigger, useEffect cleaned)
 - QueryError on 9 pages: Home, Analytics, Campaigns, Contacts, AIInsights, SyncEngine, ActivityFeed, Channels, Integrations
 - Contact timeline "Log Interaction" with channel selection, direction, and body
+- Campaign scheduling: Send Now / Schedule toggle with datetime picker
+- Scheduled campaigns show date in list with Reschedule button
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -215,4 +218,5 @@
 - Pass 34 · dead code + test coverage + unused imports · G92-G93 done; removed 3 unused imports, identified 3 orphaned dev components, verified 142/203 tests pass (25 live-only failures expected), docs updated · f6842e7 · 2 items completed · none deferred
 - Pass 35 · input validation + error states · G94-G95 done; QueryError added to 4 more pages (9 total), BulkImport CSV preview mobile scroll hint · ce2805d · 2 items completed · none deferred
 - Pass 36 · contact interaction logging + unified timeline · G96 done; "Log Interaction" feature on contact detail timeline with 13-channel select, direction toggle, auto-typed mutations · fd2cfe9 · 1 item completed · none deferred
-- Pass 37 · light mode contrast + accessibility · G97-G98 done; light mode text contrast fixes on Integrations/BulkImport, ARIA labels on Log Interaction form · PENDING · 2 items completed · none deferred
+- Pass 37 · light mode contrast + accessibility · G97-G98 done; light mode text contrast fixes on Integrations/BulkImport, ARIA labels on Log Interaction form · f3c647f · 2 items completed · none deferred
+- Pass 38 · campaign scheduling + status UX · G99 done; Send Now/Schedule toggle, datetime-local picker, scheduled date in campaign list, Reschedule button · PENDING · 1 item completed · none deferred
