@@ -94,8 +94,17 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 - Campaign performance analysis by channel (open rate, click rate, conversion)
 - Contact segment analysis with tier distribution
 - One-click bulk lead scoring: auto-assigns Gold/Silver/Bronze tiers based on data completeness and engagement
+- **Cross-channel pattern analysis** — 5 patterns with conversion lift metrics (2.5x-5x), suggested sequences, and confidence scores
+- **Channel synergy scoring** — 6 channel pairs with synergy scores (0-100) and recommendations
 - Automation summary tracking completed/pending actions
 - Auto-refreshes every 2 minutes
+
+### Channel Management
+- 13 channels organized by category: Messaging, Social, Voice, Physical, Inbound, Events
+- Per-channel enable/disable toggle with provider selection
+- Multiple providers per channel: GHL, SMS-iT, Dripify, Twilio, Lob, Buffer, Zoom, and more
+- Daily send limits and monthly budget caps per channel
+- Channel status monitoring (active, inactive, error)
 
 ### Platform Features
 - Dark/light theme with warm gold accent palette (OKLCH color space)

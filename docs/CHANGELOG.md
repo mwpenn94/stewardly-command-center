@@ -4,6 +4,12 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.4.0] - 2026-04-13
+
+### Added
+- **Channel Management page** — New `/channels` route with all 13 channels organized by category (Messaging, Social, Voice, Physical, Inbound, Events). Per-channel toggle, provider selection (GHL, SMS-iT, Dripify, Twilio, Lob, etc.), daily send limits, monthly budget caps
+- **Drizzle migration 0002** — SQL migration for `contact_interactions` and `channel_configs` tables with proper indexes and unique constraints
+
 ## [1.3.0] - 2026-04-13
 
 ### Added

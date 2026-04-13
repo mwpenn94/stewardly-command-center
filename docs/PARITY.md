@@ -71,6 +71,8 @@
 | G59 | tRPC interaction + channel routers | Done | 4 | 7 new procedures: interactions.list, interactions.create, interactions.stats, interactions.crossChannelMetrics, channels.list, channels.upsert, channels.get | Pass 19 |
 | G60 | Cross-channel pattern analysis (AI) | Done | 4 | 5 cross-channel patterns with conversion lift metrics, confidence scores, suggested sequences; 6 channel synergy pairs with synergy scores | Pass 20 |
 | G61 | AI Insights cross-channel UI | Done | 4 | New sections: Cross-Channel Patterns with visual flow sequences, Channel Synergies grid with pair scores; recommendation engine suggests multi-channel expansion | Pass 20 |
+| G62 | Drizzle migration for omnichannel tables | Done | 3 | SQL migration 0002 for contact_interactions + channel_configs tables with indexes; journal updated | Pass 21 |
+| G63 | Channel Management page | Done | 4 | New /channels route with all 13 channels grouped by category (Messaging/Social/Voice/Physical/Inbound/Events), per-channel enable/disable, provider selection, daily limits, monthly budgets | Pass 21 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -105,6 +107,8 @@
 - Cross-channel pattern analysis: 5 patterns with conversion lifts, suggested sequences
 - Channel synergy scoring: pair-based synergy analysis for all active channels
 - AI engine recommends multi-channel expansion based on current usage
+- Channel Management page: /channels with full 13-channel config UI
+- Drizzle migration 0002 for contact_interactions + channel_configs tables
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -137,4 +141,5 @@
 - Pass 17 · documentation accuracy + build fix · G47,G48 done; all 5 doc files rewritten with verified counts, CHANGELOG purged of property-mgmt entries, vite config portable · PENDING · 2 items completed · G24,G25,G26 deferred
 - Pass 18 · AI engine + mobile deep fix + build health · G24,G25,G49-G51 done; AI insights page, lead scoring engine, 15+ mobile fixes, build verified · PENDING · 5 items completed · G26 deferred
 - Pass 19 · omnichannel expansion + unified timeline · G52-G59 done; 13 channels in schema/campaigns/templates, contact_interactions table, channel_configs table, unified timeline in contact detail, omnichannel dashboard grid, analytics all-channel, 7 new tRPC procedures · 45716d9 · 8 items completed · G26 deferred
-- Pass 20 · cross-channel intelligence + AI patterns · G60-G61 done; 5 cross-channel patterns with conversion lifts, 6 channel synergies, AI recommendations for multi-channel expansion, visual sequence flows in AI Insights page · PENDING · 2 items completed · G26 deferred
+- Pass 20 · cross-channel intelligence + AI patterns · G60-G61 done; 5 cross-channel patterns with conversion lifts, 6 channel synergies, AI recommendations for multi-channel expansion, visual sequence flows in AI Insights page · 3a89353 · 2 items completed · G26 deferred
+- Pass 21 · data pipeline + channel management · G62-G63 done; Drizzle migration 0002, Channel Management page with 13 channels grouped by category, provider selection, daily limits, monthly budgets · PENDING · 2 items completed · G26 deferred

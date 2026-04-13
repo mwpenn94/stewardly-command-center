@@ -15,6 +15,13 @@
       "when": 1776014984257,
       "tag": "0001_chubby_blue_shield",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1776200000000,
+      "tag": "0002_omnichannel_expansion",
+      "breakpoints": true
     }
   ]
 }
