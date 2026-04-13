@@ -4,6 +4,18 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.7.0] - 2026-04-13
+
+### Added
+- **Dashboard AI Quick Insights** — Health score indicator with color-coded status, top 3 prioritized recommendations with priority badges and actionable navigation links, auto-refreshes every 5 minutes. Surfaces the most important AI intelligence directly on the command center home page
+
+### Fixed
+- **Contact detail dialog mobile** — Explicit responsive max-width with `calc(100%-2rem)` base and 90vh max-height for better mobile viewing
+- **Mutation error handling** — All 8 mutations that were missing `onError` handlers now show toast errors (Contacts CRUD, Campaign delete/template/cancel, SyncEngine retry/stop, BulkImport create)
+- **Double-click protection** — Delete contact, delete campaign, and retry DLQ buttons now disabled during pending state with loading spinners
+- **Safe JSON.parse** — Contacts tags and Campaign metrics parsing wrapped in try/catch to prevent component crashes on malformed data
+- **Documentation accuracy** — All doc files updated with correct counts: 73 tRPC procedures, 11 database tables, accurate line counts
+
 ## [1.6.0] - 2026-04-13
 
 ### Fixed

@@ -7,6 +7,7 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 ### Dashboard
 - 4 KPI cards: Total Contacts, Active Campaigns, Sync Queue, Connected Platforms
 - **Omnichannel Overview** — 13-channel grid showing per-channel interaction counts with live data
+- **AI Quick Insights** — System health score, top 3 prioritized recommendations with actionable links, auto-refreshes every 5 minutes
 - Contact segment breakdown with distribution percentages
 - Recent activity feed with severity indicators and click-to-navigate
 - Live platform health monitoring (GHL, SMS-iT, Dripify)

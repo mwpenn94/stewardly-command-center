@@ -56,6 +56,10 @@ export default function Home() {
     undefined,
     { refetchInterval: 2 * 60 * 1000 }
   );
+  const { data: aiInsights } = trpc.ai.insights.useQuery(
+    undefined,
+    { refetchInterval: 5 * 60 * 1000 }
+  );
 
   // Use DB-stored integration count (fast) for the stat card.
   // The Platform Health section below shows live API test results.
@@ -169,6 +173,64 @@ export default function Home() {
           )}
         </CardContent>
       </Card>
+
+      {/* AI Quick Insights */}
+      {aiInsights && (
+        <Card className="bg-card border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium text-foreground flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Brain className="h-4 w-4 text-primary" />
+                AI Insights
+              </div>
+              <div className="flex items-center gap-3">
+                {aiInsights.healthScore !== undefined && (
+                  <div className="flex items-center gap-1.5">
+                    <div className={`h-2.5 w-2.5 rounded-full ${
+                      aiInsights.healthScore >= 80 ? "bg-emerald-400" :
+                      aiInsights.healthScore >= 60 ? "bg-amber-400" : "bg-red-400"
+                    }`} />
+                    <span className="text-sm font-semibold tabular-nums">{aiInsights.healthScore}%</span>
+                    <span className="text-[10px] text-muted-foreground">health</span>
+                  </div>
+                )}
+                <button onClick={() => setLocation("/ai-insights")} className="text-xs text-primary hover:text-primary/80 transition-colors">
+                  View all
+                </button>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {(aiInsights.recommendations || []).slice(0, 3).map((rec: any, i: number) => (
+                <button
+                  key={i}
+                  onClick={() => rec.actionUrl ? setLocation(rec.actionUrl) : setLocation("/ai-insights")}
+                  className="flex items-start gap-3 p-3 rounded-lg border border-border/30 hover:border-border/60 hover:bg-muted/10 transition-all text-left"
+                >
+                  <div className={`h-6 w-6 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${
+                    rec.priority === "high" ? "bg-red-500/15 text-red-400" :
+                    rec.priority === "medium" ? "bg-amber-500/15 text-amber-400" :
+                    "bg-blue-500/15 text-blue-400"
+                  }`}>
+                    {i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-foreground line-clamp-2">{rec.title}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{rec.description}</p>
+                    {rec.impact && (
+                      <Badge variant="outline" className="text-[9px] mt-1.5">{rec.impact}</Badge>
+                    )}
+                  </div>
+                </button>
+              ))}
+              {(!aiInsights.recommendations || aiInsights.recommendations.length === 0) && (
+                <p className="text-sm text-muted-foreground col-span-full text-center py-2">No recommendations — system is healthy!</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Segment Breakdown */}

@@ -411,7 +411,7 @@ export default function Contacts() {
       </Dialog>
       {/* Contact Detail Dialog */}
       <Dialog open={!!detailContact} onOpenChange={(o) => { if (!o) setDetailContact(null); }}>
-        <DialogContent className="sm:max-w-2xl bg-card max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-2xl bg-card max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-foreground flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium shrink-0">
