@@ -36,8 +36,9 @@
 | G24 | AI/Agentic continuous improvement engine | Open | 0 | Future: LLM integration, predictive analytics, churn prediction | — |
 | G25 | Predictive analytics | Open | 0 | Future: ML-based forecasting, propensity modeling | — |
 | G26 | OAuth2 standard auth flows | Open | 0 | Currently JWT/cookie extraction; needs standard OAuth2 | — |
-| G27 | Light mode theme polish | In Progress | 1 | Toggle exists; light theme CSS variables need definition | Pass 9 |
-| G28 | Code splitting / lazy loading | Open | 0 | Single bundle 725KB; needs dynamic imports for routes | — |
+| G27 | Light mode theme polish | Done | 4 | Full OKLCH light theme with warm gold accents, card hover adjustments | Pass 10 |
+| G28 | Code splitting / lazy loading | Done | 4 | Lazy routes: main 527KB, pages 4-34KB each, Suspense fallback | Pass 10 |
+| G29 | Global search (header + mobile) | Done | 3 | ⌘K search across contacts + campaigns, dropdown results, mobile compact | Pass 10 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -73,4 +74,5 @@
 - Pass 6 · CRM enhancement + pipeline CRUD · G30-G32 done, G20 in progress · 43d13fc · 3 items completed · G11,G12,G15,G17,G18 deferred
 - Pass 7 · dashboard charts + AI insights · G33-G35 done, G1 depth 5, G17-G18 started · 2645449 · 4 items completed · G11,G12,G15 deferred
 - Pass 8 · cleanup + docs refresh + merge · dead code removed, README/ARCH updated, package.json v0.7.0 · PENDING · docs refreshed · G11,G12,G15 deferred
-- Pass 9 · doc correctness + mobile responsiveness + functional gaps · G11,G12,G15,G27 done; README/ARCH/PARITY rewritten; Settings page added; mobile fixes shipped · PENDING · 4 items completed · G23,G24,G25,G26,G28 deferred
+- Pass 9 · doc correctness + mobile responsiveness + functional gaps · G11,G12,G15,G27 done; README/ARCH/PARITY rewritten; Settings page added; mobile fixes shipped · e59e2eb · 4 items completed · G23,G24,G25,G26,G28 deferred
+- Pass 10 · light mode + code splitting + global search · G27,G28,G29 done; light OKLCH theme, lazy routes, ⌘K search · PENDING · 3 items completed · G23,G24,G25,G26 deferred

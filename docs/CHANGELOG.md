@@ -2,6 +2,18 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
+## [0.9.0] - 2026-04-13
+
+### Added
+- **Light mode theme** — Full OKLCH light color palette (warm white backgrounds, darker gold accent, proper contrast) with smooth dark/light switching
+- **Code splitting** — All routes lazy-loaded via `React.lazy()` + `Suspense`; main bundle reduced from 725KB to 527KB, pages load as 4-34KB separate chunks
+- **Global search** — `⌘K` / `Ctrl+K` shortcut opens search from anywhere; searches contacts and campaigns with dropdown results; available in both desktop header and mobile top bar
+- Page loading spinner for lazy route transitions
+
+### Changed
+- CSS restructured: `:root` now defines light theme, `.dark` class overrides with dark theme (was inverted)
+- Card hover effects adapt to light/dark mode
+
 ## [0.8.0] - 2026-04-13
 
 ### Added

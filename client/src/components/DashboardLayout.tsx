@@ -31,6 +31,7 @@ import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 import { Button } from "./ui/button";
+import GlobalSearch from "./GlobalSearch";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/" },
@@ -264,12 +265,22 @@ function DashboardLayoutContent({
 
       <SidebarInset>
         {isMobile && (
-          <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
-            <div className="flex items-center gap-2">
+          <div className="flex border-b h-14 items-center justify-between gap-2 bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
+            <div className="flex items-center gap-2 shrink-0">
               <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
-              <span className="tracking-tight text-foreground font-medium">
+              <span className="tracking-tight text-foreground font-medium text-sm">
                 {activeMenuItem?.label ?? "Menu"}
               </span>
+            </div>
+            <div className="flex-1 max-w-[200px]">
+              <GlobalSearch compact />
+            </div>
+          </div>
+        )}
+        {!isMobile && (
+          <div className="flex border-b h-12 items-center px-6 bg-background/80 backdrop-blur sticky top-0 z-40">
+            <div className="w-full max-w-md">
+              <GlobalSearch />
             </div>
           </div>
         )}
