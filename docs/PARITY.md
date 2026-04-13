@@ -90,6 +90,7 @@
 | G78 | Documentation accuracy (counts) | Done | 4 | README, ARCHITECTURE, DOCUMENTATION.md updated: 73 procedures, 11 tables, accurate line counts for all files | Pass 26 |
 | G79 | Dashboard AI Quick Insights widget | Done | 4 | Health score indicator, top 3 prioritized recommendations with priority badges and actionable links, "View all" to /ai-insights; auto-refreshes every 5 minutes | Pass 27 |
 | G80 | Contact detail dialog mobile fix | Done | 2 | Explicit responsive max-width + increased max-height to 90vh for better mobile viewing | Pass 27 |
+| G81 | QueryError on critical pages | Done | 4 | Analytics, Campaigns, Contacts, AI Insights pages show retry-able error state when queries fail — previously showed eternal loading or empty state | Pass 28 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -135,6 +136,7 @@
 - Destructive action buttons disabled during pending mutation (double-click safe)
 - JSON.parse wrapped in try/catch for user-stored data (tags, metrics)
 - Dashboard AI Quick Insights: health score, top 3 recommendations, actionable links
+- QueryError component used on 5 pages: Dashboard, Analytics, Campaigns, Contacts, AIInsights
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -174,4 +176,5 @@
 - Pass 24 · accessibility + keyboard nav · G68-G69 done; ARIA labels on new pages, 5 new G+ shortcuts, expanded KeyboardShortcuts dialog · 30ed0b8 · 2 items completed · G26 deferred
 - Pass 25 · mobile responsiveness + backend channel gap · G70-G74 done; 44px touch targets across 4 pages, responsive dialogs, xs grid breakpoint, campaign engine expanded to 13 channels, backups mirror wired to real data · 84501a4 · 5 items completed · G26 deferred
 - Pass 26 · error handling + input validation + race conditions + doc accuracy · G75-G78 done; onError on all mutations, double-click protection, safe JSON.parse, doc counts updated (73 procedures, 11 tables) · 7f3e009 · 4 items completed · G26 deferred
-- Pass 27 · dashboard intelligence + mobile polish · G79-G80 done; AI Quick Insights widget on dashboard (health score, top 3 recommendations), contact detail dialog mobile fix · PENDING · 2 items completed · G26 deferred
+- Pass 27 · dashboard intelligence + mobile polish · G79-G80 done; AI Quick Insights widget on dashboard (health score, top 3 recommendations), contact detail dialog mobile fix · a7d480c · 2 items completed · G26 deferred
+- Pass 28 · offline/slow network + graceful degradation · G81 done; QueryError states on Analytics, Campaigns, Contacts, AI Insights pages · PENDING · 1 item completed · G26 deferred

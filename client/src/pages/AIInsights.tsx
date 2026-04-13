@@ -29,6 +29,7 @@ const CHANNEL_LABELS: Record<string, string> = {
   direct_mail: "Direct Mail", webform: "Webform", chat: "Chat", event: "Event",
 };
 import { useLocation } from "wouter";
+import QueryError from "@/components/QueryError";
 import { toast } from "sonner";
 
 // ─── Types mirrored from server ─────────────────────────────────────────────
@@ -186,7 +187,7 @@ const SEGMENT_LABELS: Record<string, string> = {
 
 export default function AIInsights() {
   const [, navigate] = useLocation();
-  const { data: report, isLoading, refetch } = trpc.ai.insights.useQuery(undefined, {
+  const { data: report, isLoading, error: insightsError, refetch } = trpc.ai.insights.useQuery(undefined, {
     staleTime: 60_000,
     refetchInterval: 120_000,
   });
@@ -198,6 +199,20 @@ export default function AIInsights() {
     },
     onError: () => toast.error("Lead scoring failed"),
   });
+
+  if (insightsError) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl tracking-tight text-foreground flex items-center gap-2">
+            <Brain className="h-6 w-6 sm:h-7 sm:w-7 text-primary" /> AI Insights
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">Continuous improvement engine</p>
+        </div>
+        <QueryError message="Failed to load AI insights. Check your connection." onRetry={() => refetch()} />
+      </div>
+    );
+  }
 
   if (isLoading || !report) {
     return (

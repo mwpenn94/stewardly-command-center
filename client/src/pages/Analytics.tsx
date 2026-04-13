@@ -10,6 +10,7 @@ import {
   Facebook, Instagram, Twitter, Video
 } from "lucide-react";
 import { useMemo } from "react";
+import QueryError from "@/components/QueryError";
 
 type CampaignMetrics = {
   sent?: number;
@@ -41,7 +42,7 @@ function formatNum(n: number): string {
 }
 
 export default function Analytics() {
-  const { data: campaigns } = trpc.campaigns.list.useQuery();
+  const { data: campaigns, error: campaignsError, refetch: refetchCampaigns } = trpc.campaigns.list.useQuery();
   const { data: contactStats } = trpc.contacts.stats.useQuery();
 
   // Aggregate all campaign metrics
@@ -131,6 +132,18 @@ export default function Analytics() {
     { key: "chat", label: "Chat", icon: MessageCircle, color: "text-teal-400", bg: "bg-teal-500/15" },
     { key: "event", label: "Events", icon: Calendar, color: "text-rose-400", bg: "bg-rose-500/15" },
   ].filter(ch => agg?.byChannel[ch.key]?.count ?? 0 > 0 ? true : ["email", "sms", "linkedin"].includes(ch.key));
+
+  if (campaignsError) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl tracking-tight text-foreground">Analytics</h1>
+          <p className="text-sm text-muted-foreground mt-1">Unified campaign metrics across all channels.</p>
+        </div>
+        <QueryError message="Failed to load campaign data. Check your connection and try again." onRetry={() => refetchCampaigns()} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -49,6 +49,7 @@ import {
   Twitter, Video, Send, ArrowDownLeft, ArrowUpRight, Loader2
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import QueryError from "@/components/QueryError";
 
 const SEGMENTS = ["all", "residential", "commercial", "agricultural", "cpa_tax", "estate_attorney", "hr_benefits", "insurance", "nonprofit", "other"];
 const TIERS = ["all", "gold", "silver", "bronze", "unscored"];
@@ -83,7 +84,7 @@ export default function Contacts() {
     offset: page * limit,
   }), [search, segment, tier, page]);
 
-  const { data, isLoading, refetch } = trpc.contacts.list.useQuery(queryInput);
+  const { data, isLoading, error: contactsError, refetch } = trpc.contacts.list.useQuery(queryInput);
   const createMut = trpc.contacts.create.useMutation({ onSuccess: () => { refetch(); setCreateOpen(false); toast.success("Contact created"); }, onError: (err) => toast.error(err.message) });
   const updateMut = trpc.contacts.update.useMutation({ onSuccess: () => { refetch(); setEditOpen(false); toast.success("Contact updated"); }, onError: (err) => toast.error(err.message) });
   const deleteMut = trpc.contacts.delete.useMutation({ onSuccess: () => { refetch(); toast.success("Contact deleted"); }, onError: (err) => toast.error(err.message) });
@@ -175,6 +176,9 @@ export default function Contacts() {
       </Card>
 
       {/* Contact List — Mobile cards + Desktop table */}
+      {contactsError ? (
+        <QueryError message="Failed to load contacts. Check your connection." onRetry={() => refetch()} />
+      ) : (
       <Card className="bg-card border-border/50 overflow-hidden">
         {/* Mobile Card View */}
         <div className="md:hidden">
@@ -315,6 +319,7 @@ export default function Contacts() {
           </div>
         )}
       </Card>
+      )}
 
       {/* Create/Edit Dialog */}
       <Dialog open={createOpen || editOpen} onOpenChange={(o) => { if (!o) { setCreateOpen(false); setEditOpen(false); } }}>

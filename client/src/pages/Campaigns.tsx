@@ -20,6 +20,7 @@ import {
   ChevronLeft, ChevronRight
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import QueryError from "@/components/QueryError";
 
 import type { LucideIcon } from "lucide-react";
 
@@ -93,7 +94,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function Campaigns() {
-  const { data: campaigns, isLoading, refetch } = trpc.campaigns.list.useQuery();
+  const { data: campaigns, isLoading, error: campaignsError, refetch } = trpc.campaigns.list.useQuery();
   const { data: templates } = trpc.templates.list.useQuery();
   const { data: contactData } = trpc.contacts.list.useQuery({ limit: 200 });
   const { data: platformHealth } = trpc.orchestrator.platformHealth.useQuery();
@@ -263,7 +264,9 @@ export default function Campaigns() {
 
         {/* ─── Campaigns Tab ─── */}
         <TabsContent value="campaigns" className="mt-4 space-y-3">
-          {isLoading ? (
+          {campaignsError ? (
+            <QueryError message="Failed to load campaigns. Check your connection." onRetry={() => refetch()} />
+          ) : isLoading ? (
             Array.from({ length: 3 }).map((_, i) => (
               <Card key={i} className="bg-card border-border/50"><CardContent className="p-5"><div className="h-16 bg-muted/30 rounded animate-pulse" /></CardContent></Card>
             ))
