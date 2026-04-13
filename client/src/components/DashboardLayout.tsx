@@ -32,6 +32,7 @@ import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 import { Button } from "./ui/button";
 import GlobalSearch from "./GlobalSearch";
+import NotificationCenter from "./NotificationCenter";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/" },
@@ -273,16 +274,20 @@ function DashboardLayoutContent({
                 {activeMenuItem?.label ?? "Menu"}
               </span>
             </div>
-            <div className="flex-1 max-w-[200px]">
-              <GlobalSearch compact />
+            <div className="flex items-center gap-1">
+              <div className="flex-1 max-w-[160px]">
+                <GlobalSearch compact />
+              </div>
+              <NotificationCenter />
             </div>
           </div>
         )}
         {!isMobile && (
-          <div className="flex border-b h-12 items-center px-6 bg-background/80 backdrop-blur sticky top-0 z-40">
+          <div className="flex border-b h-12 items-center justify-between px-6 bg-background/80 backdrop-blur sticky top-0 z-40">
             <div className="w-full max-w-md">
               <GlobalSearch />
             </div>
+            <NotificationCenter />
           </div>
         )}
         <main id="main-content" className="flex-1 p-4 sm:p-6" tabIndex={-1}>{children}</main>

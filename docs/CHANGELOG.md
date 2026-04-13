@@ -2,6 +2,16 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
+## [0.12.0] - 2026-04-13
+
+### Added
+- **Notification center** — Bell icon in desktop header and mobile top bar; shows 10 most recent activities with severity icons (success/info/warning/error), click navigates to source page, auto-refreshes every 30 seconds, alert badge count for warnings/errors
+- **Mobile contact cards** — Contacts page shows touch-friendly card layout on mobile (<768px) with name, tier badge, email, phone, platform indicators, and segment badge; desktop keeps full table view
+
+### Changed
+- Contacts table reduced from 8 to 7 columns on desktop (removed Score column for cleaner layout)
+- Desktop header now shows search bar + notification bell
+
 ## [0.11.0] - 2026-04-13
 
 ### Added

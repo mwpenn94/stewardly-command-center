@@ -32,7 +32,7 @@
 | G20 | Database schema (8 tables + migrations) | Done | 4 | Drizzle ORM, MySQL/TiDB, migration-first workflow | legacy |
 | G21 | Multi-platform campaign orchestration | Done | 3 | Orchestrator: sequences, health checks, pause/resume/cancel | legacy |
 | G22 | Test suite (205 tests) | Done | 4 | Unit + integration + live E2E across 10 files | legacy |
-| G23 | Real-time notifications | Open | 0 | Static — needs WebSocket or SSE for live updates | — |
+| G23 | Notification center | Done | 3 | Bell icon in header with popover, shows recent activity with severity badges, auto-refresh 30s | Pass 13 |
 | G24 | AI/Agentic continuous improvement engine | Open | 0 | Future: LLM integration, predictive analytics, churn prediction | — |
 | G25 | Predictive analytics | Open | 0 | Future: ML-based forecasting, propensity modeling | — |
 | G26 | OAuth2 standard auth flows | Open | 0 | Currently JWT/cookie extraction; needs standard OAuth2 | — |
@@ -45,6 +45,8 @@
 | G33 | Dashboard clickthrough navigation | Done | 4 | Activity items → source page, stat cards → entity pages, "View all" links | Pass 12 |
 | G34 | Actionable empty states | Done | 3 | CTAs with navigation links on empty contacts, platforms, campaigns, activity | Pass 12 |
 | G35 | Vendor chunk splitting | Done | 5 | React, Radix, Query separated; main bundle 725KB → 346KB (52% reduction) | Pass 12 |
+| G36 | Mobile contact cards | Done | 4 | Card layout on mobile (<768px) with name, badges, platforms; table on desktop | Pass 13 |
+| G37 | Notification center (bell icon) | Done | 3 | Popover with 10 latest activities, severity icons, click-to-navigate, auto-refresh | Pass 13 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -86,4 +88,5 @@
 - Pass 9 · doc correctness + mobile responsiveness + functional gaps · G11,G12,G15,G27 done; README/ARCH/PARITY rewritten; Settings page added; mobile fixes shipped · e59e2eb · 4 items completed · G23,G24,G25,G26,G28 deferred
 - Pass 10 · light mode + code splitting + global search · G27,G28,G29 done; light OKLCH theme, lazy routes, ⌘K search · a682b56 · 3 items completed · G23,G24,G25,G26 deferred
 - Pass 11 · contact detail + dashboard actions + accessibility · G30,G31,G32 done; detail modal, quick actions, skip-link, focus-visible · 4ee0a18 · 3 items completed · G23,G24,G25,G26 deferred
-- Pass 12 · cross-nav + empty states + vendor chunks · G33,G34,G35 done; clickable activity, actionable CTAs, bundle 346KB · PENDING · 3 items completed · G23,G24,G25,G26 deferred
+- Pass 12 · cross-nav + empty states + vendor chunks · G33,G34,G35 done; clickable activity, actionable CTAs, bundle 346KB · b62dfe0 · 3 items completed · G23,G24,G25,G26 deferred
+- Pass 13 · notifications + mobile contacts + campaign UX · G23,G36,G37 done; notification center, mobile cards, 30s auto-refresh · PENDING · 3 items completed · G24,G25,G26 deferred

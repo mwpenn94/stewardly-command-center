@@ -115,9 +115,56 @@ export default function Contacts() {
         </CardContent>
       </Card>
 
-      {/* Table */}
+      {/* Contact List — Mobile cards + Desktop table */}
       <Card className="bg-card border-border/50 overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile Card View */}
+        <div className="md:hidden">
+          {isLoading ? (
+            <div className="p-4 space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-24 bg-muted/30 rounded-lg animate-pulse" />
+              ))}
+            </div>
+          ) : data?.contacts?.length ? (
+            <div className="divide-y divide-border/30">
+              {data.contacts.map((c: any) => (
+                <button key={c.id} className="w-full text-left p-4 hover:bg-muted/10 transition-colors" onClick={() => setDetailContact(c)}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-foreground truncate">
+                          {[c.firstName, c.lastName].filter(Boolean).join(" ") || "—"}
+                        </p>
+                        <Badge className={`text-[9px] capitalize shrink-0 ${TIER_COLORS[c.tier] || TIER_COLORS.unscored}`}>{c.tier}</Badge>
+                      </div>
+                      {c.companyName && <p className="text-xs text-muted-foreground mt-0.5 truncate">{c.companyName}</p>}
+                      <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
+                        {c.email && <span className="truncate">{c.email}</span>}
+                        {c.phone && <span className="tabular-nums shrink-0">{c.phone}</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0 mt-1">
+                      <div className={`h-5 px-1 rounded text-[8px] flex items-center ${c.ghlContactId ? "bg-blue-500/15 text-blue-400" : "bg-muted/30 text-muted-foreground/30"}`}>GHL</div>
+                      <div className={`h-5 px-1 rounded text-[8px] flex items-center ${c.phone ? "bg-emerald-500/15 text-emerald-400" : "bg-muted/30 text-muted-foreground/30"}`}>SMS</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant="outline" className="text-[9px] capitalize">{SEGMENT_LABELS[c.segment] || c.segment}</Badge>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="p-12 text-center">
+              <Users className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
+              <p className="text-muted-foreground">No contacts found</p>
+              <p className="text-xs text-muted-foreground/60 mt-1">Import contacts or create one to get started.</p>
+            </div>
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border/50 bg-muted/20">
@@ -126,7 +173,6 @@ export default function Contacts() {
                 <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Phone</th>
                 <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Segment</th>
                 <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Tier</th>
-                <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Score</th>
                 <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Platforms</th>
                 <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Actions</th>
               </tr>
@@ -135,7 +181,7 @@ export default function Contacts() {
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-border/30">
-                    {Array.from({ length: 8 }).map((_, j) => (
+                    {Array.from({ length: 7 }).map((_, j) => (
                       <td key={j} className="p-3"><div className="h-4 bg-muted/30 rounded animate-pulse" /></td>
                     ))}
                   </tr>
@@ -159,12 +205,11 @@ export default function Contacts() {
                     <td className="p-3">
                       <Badge className={`text-[10px] capitalize ${TIER_COLORS[c.tier] || TIER_COLORS.unscored}`}>{c.tier}</Badge>
                     </td>
-                    <td className="p-3 text-muted-foreground tabular-nums">{c.propensityScore || "—"}</td>
                     <td className="p-3">
                       <div className="flex items-center gap-1">
-                        <div className={`h-5 px-1.5 rounded text-[9px] flex items-center gap-0.5 ${c.ghlContactId ? "bg-blue-500/15 text-blue-400" : "bg-muted/30 text-muted-foreground/30"}`} title={c.ghlContactId ? `GHL: ${c.ghlContactId}` : "Not in GHL"}>GHL</div>
-                        <div className={`h-5 px-1.5 rounded text-[9px] flex items-center gap-0.5 ${c.phone ? "bg-emerald-500/15 text-emerald-400" : "bg-muted/30 text-muted-foreground/30"}`} title={c.phone ? "Has phone for SMS-iT" : "No phone"}>SMS</div>
-                        <div className={`h-5 px-1.5 rounded text-[9px] flex items-center gap-0.5 ${c.linkedinUrl ? "bg-sky-500/15 text-sky-400" : "bg-muted/30 text-muted-foreground/30"}`} title={c.linkedinUrl ? "Has LinkedIn" : "No LinkedIn"}>LI</div>
+                        <div className={`h-5 px-1.5 rounded text-[9px] flex items-center ${c.ghlContactId ? "bg-blue-500/15 text-blue-400" : "bg-muted/30 text-muted-foreground/30"}`}>GHL</div>
+                        <div className={`h-5 px-1.5 rounded text-[9px] flex items-center ${c.phone ? "bg-emerald-500/15 text-emerald-400" : "bg-muted/30 text-muted-foreground/30"}`}>SMS</div>
+                        <div className={`h-5 px-1.5 rounded text-[9px] flex items-center ${c.linkedinUrl ? "bg-sky-500/15 text-sky-400" : "bg-muted/30 text-muted-foreground/30"}`}>LI</div>
                       </div>
                     </td>
                     <td className="p-3 text-right">
@@ -184,7 +229,7 @@ export default function Contacts() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="p-12 text-center">
+                  <td colSpan={7} className="p-12 text-center">
                     <Users className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
                     <p className="text-muted-foreground">No contacts found</p>
                     <p className="text-xs text-muted-foreground/60 mt-1">Import contacts or create one to get started.</p>
