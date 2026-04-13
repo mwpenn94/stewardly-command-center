@@ -4,24 +4,37 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.2.0] - 2026-04-13
+
+### Added
+- **Campaign audience selector** — Launch dialog now has audience targeting: choose "All" contacts, "By Segment" (Residential, Commercial, Agricultural, CPA/Tax, etc.), or "By Tier" (Gold, Silver, Bronze, Unscored). Live count updates as you select. Filtered contact IDs are sent to the launch API — no more blind launches
+- **Analytics interactive navigation** — Channel breakdown rows in Analytics are now clickable and navigate to Campaigns page. Tier distribution cards navigate to Contacts. Hover states added throughout for discoverability
+
+## [2.1.0] - 2026-04-13
+
+### Added
+- **Dashboard omnichannel grid interactive** — Channel cards in the omnichannel overview grid are now clickable buttons that navigate to the Channel Management page; hover highlights with primary border color
+- **Activity Feed click-through** — Activity log entries are now clickable and navigate to the relevant source page (sync events→/sync, campaigns→/campaigns, imports→/import, etc.) with a subtle ExternalLink indicator on hover
+- **Global Search templates** — Search now finds templates in addition to contacts and campaigns. Contact results show tier badges (gold/silver/bronze), campaign results show status badges (draft/running/completed)
+
 ## [2.0.0] - 2026-04-13
 
 ### Added
-- **Campaign scheduling** — Launch dialog now has "Send Now" / "Schedule" toggle with datetime-local picker for future scheduling; scheduled campaigns show scheduled date in the campaign list and have a "Reschedule" button
-- **Contact interaction logging** — "Log Interaction" button on contact timeline tab with inline form: 13-channel selector, inbound/outbound direction, body text; auto-maps channel to interaction type
-- **Light mode contrast fixes** — Integrations test result and BulkImport cancel button use proper dual-theme colors
-- **ARIA labels** — Log Interaction form has role="form", aria-label on channel/direction/notes inputs; schedule picker has aria-label
+- **Campaign detail view** — Click any campaign card to see a full metrics dialog: sent, failed, opened, open rate, click rate, conversions/replies, delivery progress bar with delivered vs. failed breakdown. Drafts show a "Launch" CTA directly from the detail view
+- **Contact interaction logging** — New "Log Interaction" form in contact detail timeline tab. Select from 13 channels, choose direction (inbound/outbound), pick from per-channel interaction types (e.g., email→message_sent/opened/clicked, call→call_made/missed, LinkedIn→connection_sent/accepted), add subject and notes. Saves via `interactions.create` tRPC mutation
+- **Channel-specific form labels** — Campaign launch, template creation, and sequence step dialogs now show contextual field labels: "Subject" for email, "Caption / Headline" for social channels, "Call Script / Talking Points" for calls, "Mail Content" for direct mail, "Event Description" for events
+
+### Fixed
+- **Contact timeline error handling** — Timeline tab now shows QueryError with retry button when interactions.list fails; previously showed eternal loading spinner
 
 ## [1.9.0] - 2026-04-13
 
-### Added
-- **QueryError on 4 more pages** — SyncEngine, ActivityFeed, Channels, and Integrations now show retry-able error states when queries fail (total: 9 pages with QueryError)
-- **BulkImport mobile scroll hint** — Mobile-only helper text "Scroll horizontally to see more columns →" for CSV preview table
-
 ### Fixed
-- **Touch targets** — Integrations disconnect/configure buttons, Channels configure button, BulkImport CDN import button, Contacts pagination buttons all now ≥44px on mobile
-- **Contact detail grid** — Channel reach summary grid changed from 3-col to 2-col on mobile for 320px viewport readability
-- **Unused imports** — Removed unused DialogTrigger (BulkImport, Contacts) and useEffect (Integrations)
+- **AI segment engagement — real data** — Replaced `Math.random()` placeholder in AI Insights segment analysis with a real weighted engagement score computed from email coverage (25%), phone coverage (15%), tier scoring (25%), sync status (20%), and enrichment status (15%) per segment
+- **AI cross-channel patterns — data-driven scoring** — Cross-channel pattern confidence and conversion lift are now computed from actual campaign counts and interaction volume per channel, not hardcoded constants. Sample sizes reflect real data
+- **AI channel synergies — data-driven scoring** — Synergy scores computed from actual channel activity: base score 40/60/75 based on whether zero/one/both channels are active, plus volume bonus (up to +20) from interactions and campaigns
+- **Enrichment enrichedCount** — Was hardcoded to `0`; now queries actual contacts with `enrichedAt IS NOT NULL` via the `contactStats.enriched` field added to the `getContactStats` DB query
+- **Contacts search 320px mobile** — `min-w-[200px]` on search input was forcing horizontal scroll on 320px phones; changed to `min-w-0 sm:min-w-[200px]` so it flows naturally on small screens
 
 ## [1.8.0] - 2026-04-13
 

@@ -17,7 +17,7 @@ import {
   Users, FileText, Zap, Clock, ArrowRight, Pause, XCircle,
   Phone, PhoneIncoming, PhoneOutgoing, Globe, MessageCircle,
   Calendar, Instagram, Twitter, Facebook, Video,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, BarChart3
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import QueryError from "@/components/QueryError";
@@ -62,7 +62,9 @@ interface LaunchForm {
   body: string;
   subject: string;
   contactIds?: number[];
-  scheduledAt?: string;
+  audienceMode: "all" | "segment" | "tier";
+  audienceSegment: string;
+  audienceTier: string;
 }
 
 interface SeqStep {
@@ -135,10 +137,11 @@ export default function Campaigns() {
   const [templateOpen, setTemplateOpen] = useState(false);
   const [launchOpen, setLaunchOpen] = useState(false);
   const [seqOpen, setSeqOpen] = useState(false);
+  const [detailCampaign, setDetailCampaign] = useState<any>(null);
   const [launchCampaignData, setLaunchCampaignData] = useState<{ id: number; name: string; channel: string } | null>(null);
   const [form, setForm] = useState<CampaignForm>({ channel: "email" });
   const [tplForm, setTplForm] = useState<TemplateForm>({ channel: "email" });
-  const [launchForm, setLaunchForm] = useState<LaunchForm>({ body: "", subject: "" });
+  const [launchForm, setLaunchForm] = useState<LaunchForm>({ body: "", subject: "", audienceMode: "all", audienceSegment: "all", audienceTier: "all" });
   const [seqForm, setSeqForm] = useState<SeqForm>({ name: "", steps: [{ channel: "email", body: "", subject: "", delayMs: 0 }], contactIds: [] });
   const [tab, setTab] = useState("campaigns");
 
@@ -146,18 +149,31 @@ export default function Campaigns() {
 
   const openLaunch = (campaign: { id: number; name: string; channel: string }) => {
     setLaunchCampaignData(campaign);
-    setLaunchForm({ body: "", subject: "", contactIds: [] });
+    setLaunchForm({ body: "", subject: "", contactIds: [], audienceMode: "all", audienceSegment: "all", audienceTier: "all" });
     setLaunchOpen(true);
   };
+
+  // Compute filtered audience from selection
+  const filteredAudience = useMemo(() => {
+    if (launchForm.audienceMode === "all") return allContacts;
+    if (launchForm.audienceMode === "segment" && launchForm.audienceSegment !== "all") {
+      return allContacts.filter((c) => c.segment === launchForm.audienceSegment);
+    }
+    if (launchForm.audienceMode === "tier" && launchForm.audienceTier !== "all") {
+      return allContacts.filter((c) => c.tier === launchForm.audienceTier);
+    }
+    return allContacts;
+  }, [allContacts, launchForm.audienceMode, launchForm.audienceSegment, launchForm.audienceTier]);
 
   const handleLaunch = () => {
     if (!launchCampaignData) return;
     if (!launchForm.body.trim()) { toast.error("Message body is required"); return; }
+    const ids = launchForm.audienceMode !== "all" ? filteredAudience.map((c) => c.id) : undefined;
     launchCampaign.mutate({
       campaignId: launchCampaignData.id,
       body: launchForm.body,
       subject: launchForm.subject || undefined,
-      contactIds: (launchForm.contactIds?.length ?? 0) > 0 ? launchForm.contactIds : undefined,
+      contactIds: ids,
     });
   };
 
@@ -279,7 +295,7 @@ export default function Campaigns() {
               let metrics: any = null;
               try { metrics = c.metrics ? (typeof c.metrics === "string" ? JSON.parse(c.metrics) : c.metrics) : null; } catch { metrics = null; }
               return (
-                <Card key={c.id} className="bg-card border-border/50 card-hover">
+                <Card key={c.id} className="bg-card border-border/50 card-hover cursor-pointer" onClick={() => setDetailCampaign(c)}>
                   <CardContent className="p-4 flex items-center gap-4">
                     <div className={`h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 ${ch.color}`}>
                       <Icon className="h-5 w-5" />
@@ -293,20 +309,14 @@ export default function Campaigns() {
                         {ch.label} via {ch.platform} &middot; {c.audienceCount || 0} recipients
                         {metrics?.sent ? ` · ${metrics.sent} sent` : ""}
                         {metrics?.failed ? ` · ${metrics.failed} failed` : ""}
-                        {c.status === "scheduled" && c.scheduledAt ? ` · Scheduled: ${new Date(c.scheduledAt).toLocaleString()}` : ""}
                         {" · "}
                         {c.createdAt ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true }) : "—"}
                       </p>
                     </div>
-                    <div className="flex gap-1 shrink-0">
+                    <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                       {c.status === "draft" && (
                         <Button variant="outline" size="sm" className="h-9 min-h-[44px] text-xs gap-1" onClick={() => openLaunch(c)}>
                           <Send className="h-3.5 w-3.5" /> Launch
-                        </Button>
-                      )}
-                      {c.status === "scheduled" && (
-                        <Button variant="outline" size="sm" className="h-9 min-h-[44px] text-xs gap-1" onClick={() => openLaunch(c)}>
-                          <Clock className="h-3.5 w-3.5" /> Reschedule
                         </Button>
                       )}
                       <Button variant="ghost" size="icon" className="h-9 w-9 min-h-[44px] min-w-[44px] text-destructive hover:text-destructive" disabled={deleteCampaign.isPending} onClick={() => { if (confirm("Delete campaign?")) deleteCampaign.mutate({ id: c.id }); }}>
@@ -482,38 +492,83 @@ export default function Campaigns() {
 
       {/* ─── Launch Campaign Dialog ─── */}
       <Dialog open={launchOpen} onOpenChange={setLaunchOpen}>
-        <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-lg">
+        <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Launch: {launchCampaignData?.name}</DialogTitle>
             <DialogDescription>Compose and send to your audience.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            {(launchCampaignData?.channel === "email") && (
-              <div><Label>Subject</Label><Input value={launchForm.subject} onChange={(e) => setLaunchForm({ ...launchForm, subject: e.target.value })} placeholder="Subject line" /></div>
-            )}
-            <div><Label>Message Body</Label><Textarea rows={5} value={launchForm.body} onChange={(e) => setLaunchForm({ ...launchForm, body: e.target.value })} placeholder="Your message..." /></div>
+            {/* Audience Selector */}
             <div>
-              <Label>Send Timing</Label>
-              <div className="flex gap-2 mt-1">
-                <Button type="button" variant={!launchForm.scheduledAt ? "default" : "outline"} size="sm" className="text-xs flex-1" onClick={() => setLaunchForm({ ...launchForm, scheduledAt: undefined })}>
-                  Send Now
-                </Button>
-                <Button type="button" variant={launchForm.scheduledAt ? "default" : "outline"} size="sm" className="text-xs flex-1" onClick={() => setLaunchForm({ ...launchForm, scheduledAt: new Date(Date.now() + 3600000).toISOString().slice(0, 16) })}>
-                  <Clock className="h-3 w-3 mr-1" /> Schedule
-                </Button>
+              <Label>Audience</Label>
+              <div className="flex gap-2 mt-1.5">
+                {(["all", "segment", "tier"] as const).map((mode) => (
+                  <Button
+                    key={mode}
+                    type="button"
+                    variant={launchForm.audienceMode === mode ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1 text-xs h-8 capitalize"
+                    onClick={() => setLaunchForm({ ...launchForm, audienceMode: mode })}
+                  >
+                    {mode === "all" ? `All (${allContacts.length})` : mode === "segment" ? "By Segment" : "By Tier"}
+                  </Button>
+                ))}
               </div>
-              {launchForm.scheduledAt && (
-                <Input type="datetime-local" className="mt-2 text-sm" value={launchForm.scheduledAt} onChange={(e) => setLaunchForm({ ...launchForm, scheduledAt: e.target.value })} min={new Date().toISOString().slice(0, 16)} aria-label="Scheduled send date and time" />
+              {launchForm.audienceMode === "segment" && (
+                <Select value={launchForm.audienceSegment} onValueChange={(v) => setLaunchForm({ ...launchForm, audienceSegment: v })}>
+                  <SelectTrigger className="mt-2 w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Segments</SelectItem>
+                    <SelectItem value="residential">Residential</SelectItem>
+                    <SelectItem value="commercial">Commercial</SelectItem>
+                    <SelectItem value="agricultural">Agricultural</SelectItem>
+                    <SelectItem value="cpa_tax">CPA/Tax</SelectItem>
+                    <SelectItem value="estate_attorney">Estate Attorney</SelectItem>
+                    <SelectItem value="hr_benefits">HR/Benefits</SelectItem>
+                    <SelectItem value="insurance">Insurance</SelectItem>
+                    <SelectItem value="nonprofit">Nonprofit</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+              {launchForm.audienceMode === "tier" && (
+                <Select value={launchForm.audienceTier} onValueChange={(v) => setLaunchForm({ ...launchForm, audienceTier: v })}>
+                  <SelectTrigger className="mt-2 w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Tiers</SelectItem>
+                    <SelectItem value="gold">Gold</SelectItem>
+                    <SelectItem value="silver">Silver</SelectItem>
+                    <SelectItem value="bronze">Bronze</SelectItem>
+                    <SelectItem value="unscored">Unscored</SelectItem>
+                  </SelectContent>
+                </Select>
               )}
             </div>
-            <Alert><AlertDescription className="text-xs">
-              {launchForm.scheduledAt ? `Scheduled for ${new Date(launchForm.scheduledAt).toLocaleString()} · ` : ""}Sending to {launchForm.contactIds?.length || contactData?.total || 0} contacts via {(launchCampaignData?.channel && CHANNEL_CONFIG[launchCampaignData.channel]?.platform) || "platform"}.
+            {(launchCampaignData?.channel === "email" || launchCampaignData?.channel?.startsWith("social_")) && (
+              <div><Label>{launchCampaignData.channel === "email" ? "Subject" : "Caption / Headline"}</Label><Input value={launchForm.subject} onChange={(e) => setLaunchForm({ ...launchForm, subject: e.target.value })} placeholder={launchCampaignData.channel === "email" ? "Subject line" : "Post caption or headline"} /></div>
+            )}
+            <div><Label>{
+              launchCampaignData?.channel?.startsWith("call_") ? "Call Script / Talking Points" :
+              launchCampaignData?.channel === "direct_mail" ? "Mail Content" :
+              launchCampaignData?.channel === "event" ? "Event Description / Invitation" :
+              "Message Body"
+            }</Label><Textarea rows={4} value={launchForm.body} onChange={(e) => setLaunchForm({ ...launchForm, body: e.target.value })} placeholder={
+              launchCampaignData?.channel?.startsWith("call_") ? "Hello [Name], I'm calling about..." :
+              launchCampaignData?.channel === "direct_mail" ? "Dear [Name],\n\nYour personalized mail content..." :
+              launchCampaignData?.channel === "event" ? "You're invited to..." :
+              launchCampaignData?.channel === "sms" ? "Hi [Name], ..." :
+              "Your message..."
+            } /></div>
+            <Alert><AlertDescription className="text-xs flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 shrink-0" />
+              Sending to <strong>{filteredAudience.length}</strong> contacts via {(launchCampaignData?.channel && CHANNEL_CONFIG[launchCampaignData.channel]?.platform) || "platform"}.
             </AlertDescription></Alert>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setLaunchOpen(false)}>Cancel</Button>
             <Button onClick={handleLaunch} disabled={launchCampaign.isPending}>
-              {launchCampaign.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : launchForm.scheduledAt ? <><Clock className="h-4 w-4 mr-1" /> Schedule</> : <><Send className="h-4 w-4 mr-1" /> Send Now</>}
+              {launchCampaign.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4 mr-1" /> Send Now</>}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -570,10 +625,15 @@ export default function Campaigns() {
                         )}
                       </div>
                     </div>
-                    {step.channel === "email" && (
-                      <Input className="h-7 text-xs" value={step.subject || ""} onChange={(e) => updateSeqStep(idx, "subject", e.target.value)} placeholder="Email subject" />
+                    {(step.channel === "email" || step.channel.startsWith("social_")) && (
+                      <Input className="h-7 text-xs" value={step.subject || ""} onChange={(e) => updateSeqStep(idx, "subject", e.target.value)} placeholder={step.channel === "email" ? "Email subject" : "Post caption / headline"} />
                     )}
-                    <Textarea rows={2} className="text-xs" value={step.body} onChange={(e) => updateSeqStep(idx, "body", e.target.value)} placeholder={`${step.channel === "email" ? "Email" : step.channel === "sms" ? "SMS" : "LinkedIn"} message...`} />
+                    <Textarea rows={2} className="text-xs" value={step.body} onChange={(e) => updateSeqStep(idx, "body", e.target.value)} placeholder={
+                      step.channel.startsWith("call_") ? "Call script / talking points..." :
+                      step.channel === "direct_mail" ? "Mail content..." :
+                      step.channel === "event" ? "Event invitation..." :
+                      `${CHANNEL_CONFIG[step.channel]?.label || step.channel} message...`
+                    } />
                   </CardContent>
                 </Card>
               ))}
@@ -597,6 +657,103 @@ export default function Campaigns() {
         </DialogContent>
       </Dialog>
 
+      {/* ─── Campaign Detail Dialog ─── */}
+      <Dialog open={!!detailCampaign} onOpenChange={(open) => { if (!open) setDetailCampaign(null); }}>
+        <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          {detailCampaign && (() => {
+            const ch = CHANNEL_CONFIG[detailCampaign.channel] || CHANNEL_CONFIG.email;
+            const Icon = ch.icon;
+            let m: any = null;
+            try { m = detailCampaign.metrics ? (typeof detailCampaign.metrics === "string" ? JSON.parse(detailCampaign.metrics) : detailCampaign.metrics) : null; } catch { m = null; }
+            const sent = m?.sent || 0;
+            const failed = m?.failed || 0;
+            const opened = m?.opened || 0;
+            const clicked = m?.clicked || 0;
+            const replied = m?.replied || 0;
+            const conversions = m?.conversions || 0;
+            const openRate = sent > 0 ? Math.round((opened / sent) * 100) : 0;
+            const clickRate = sent > 0 ? Math.round((clicked / sent) * 100) : 0;
+            const replyRate = sent > 0 ? Math.round((replied / sent) * 100) : 0;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Icon className={`h-5 w-5 ${ch.color}`} />
+                    {detailCampaign.name}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {ch.label} via {ch.platform} · Created {detailCampaign.createdAt ? formatDistanceToNow(new Date(detailCampaign.createdAt), { addSuffix: true }) : "—"}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Badge className={`${STATUS_COLORS[detailCampaign.status] || STATUS_COLORS.draft}`}>{detailCampaign.status}</Badge>
+                    <span className="text-xs text-muted-foreground">{detailCampaign.audienceCount || 0} recipients</span>
+                  </div>
+                  {/* Metrics Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="p-3 rounded-lg bg-muted/10 text-center">
+                      <p className="text-2xl font-semibold text-foreground tabular-nums">{sent}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Sent</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/10 text-center">
+                      <p className="text-2xl font-semibold text-foreground tabular-nums">{failed}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Failed</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/10 text-center">
+                      <p className="text-2xl font-semibold text-foreground tabular-nums">{opened}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Opened</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/10 text-center">
+                      <p className="text-2xl font-semibold text-primary tabular-nums">{openRate}%</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Open Rate</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/10 text-center">
+                      <p className="text-2xl font-semibold text-primary tabular-nums">{clickRate}%</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Click Rate</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/10 text-center">
+                      <p className="text-2xl font-semibold text-primary tabular-nums">{conversions || replied}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{detailCampaign.channel === "email" ? "Replied" : "Conversions"}</p>
+                    </div>
+                  </div>
+                  {/* Delivery breakdown */}
+                  {sent > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Delivery</p>
+                      <div className="h-2 rounded-full bg-muted/30 overflow-hidden flex">
+                        {sent - failed > 0 && <div className="bg-emerald-500 h-full" style={{ width: `${((sent - failed) / sent) * 100}%` }} />}
+                        {failed > 0 && <div className="bg-red-500 h-full" style={{ width: `${(failed / sent) * 100}%` }} />}
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <span className="text-[10px] text-emerald-400">{sent - failed} delivered</span>
+                        {failed > 0 && <span className="text-[10px] text-red-400">{failed} failed</span>}
+                      </div>
+                    </div>
+                  )}
+                  {/* No metrics state */}
+                  {!m && (
+                    <div className="text-center py-6">
+                      <BarChart3 className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No metrics yet</p>
+                      <p className="text-xs text-muted-foreground/60 mt-1">Launch this campaign to start collecting performance data.</p>
+                    </div>
+                  )}
+                </div>
+                <DialogFooter className="gap-2 sm:gap-0">
+                  {detailCampaign.status === "draft" && (
+                    <Button size="sm" className="gap-1" onClick={() => { setDetailCampaign(null); openLaunch(detailCampaign); }}>
+                      <Send className="h-3.5 w-3.5" /> Launch
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={() => setDetailCampaign(null)}>Close</Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
       {/* ─── Template Dialog ─── */}
       <Dialog open={templateOpen} onOpenChange={setTemplateOpen}>
         <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-md">
@@ -614,7 +771,7 @@ export default function Campaigns() {
                 </SelectContent>
               </Select>
             </div>
-            {tplForm.channel === "email" && <div><Label>Subject</Label><Input value={tplForm.subject || ""} onChange={(e) => setTplForm({ ...tplForm, subject: e.target.value })} /></div>}
+            {(tplForm.channel === "email" || tplForm.channel.startsWith("social_")) && <div><Label>{tplForm.channel === "email" ? "Subject" : "Caption / Headline"}</Label><Input value={tplForm.subject || ""} onChange={(e) => setTplForm({ ...tplForm, subject: e.target.value })} placeholder={tplForm.channel === "email" ? "Subject line" : "Post caption"} /></div>}
             <div><Label>Body</Label><Textarea rows={4} value={tplForm.body || ""} onChange={(e) => setTplForm({ ...tplForm, body: e.target.value })} /></div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">

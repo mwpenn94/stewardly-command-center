@@ -10,6 +10,7 @@ import {
   Facebook, Instagram, Twitter, Video
 } from "lucide-react";
 import { useMemo } from "react";
+import { useLocation } from "wouter";
 import QueryError from "@/components/QueryError";
 
 type CampaignMetrics = {
@@ -42,6 +43,7 @@ function formatNum(n: number): string {
 }
 
 export default function Analytics() {
+  const [, setLocation] = useLocation();
   const { data: campaigns, error: campaignsError, refetch: refetchCampaigns } = trpc.campaigns.list.useQuery();
   const { data: contactStats } = trpc.contacts.stats.useQuery();
 
@@ -183,8 +185,8 @@ export default function Analytics() {
               const chHasMetrics = data && (data.sent > 0 || data.delivered > 0);
 
               return (
-                <div key={ch.key} className="rounded-lg bg-muted/10 p-4">
-                  <div className="flex items-center gap-3 mb-3">
+                <div key={ch.key} className="rounded-lg bg-muted/10 p-4 hover:bg-muted/20 transition-colors">
+                  <button className="flex items-center gap-3 mb-3 w-full text-left" onClick={() => setLocation("/campaigns")}>
                     <div className={`h-8 w-8 rounded-lg ${ch.bg} flex items-center justify-center ${ch.color}`}>
                       <ch.icon className="h-4 w-4" />
                     </div>
@@ -197,7 +199,8 @@ export default function Analytics() {
                         {formatNum(data.sent)} sent
                       </Badge>
                     )}
-                  </div>
+                    <ArrowUpRight className="h-3.5 w-3.5 text-muted-foreground/30" />
+                  </button>
 
                   {chHasMetrics ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -305,10 +308,10 @@ export default function Analytics() {
                 };
                 const tier = t.tier || "unscored";
                 return (
-                  <div key={tier} className="text-center p-4 rounded-lg bg-muted/10">
+                  <button key={tier} className="text-center p-4 rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors cursor-pointer" onClick={() => setLocation("/contacts")}>
                     <p className={`text-2xl font-semibold tabular-nums ${tierColors[tier] || "text-foreground"}`}>{t.count.toLocaleString()}</p>
                     <p className="text-xs text-muted-foreground mt-1 capitalize">{tier}</p>
-                  </div>
+                  </button>
                 );
               })
             ) : (

@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -47,26 +46,11 @@ import {
   Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Tag, X, Users, RefreshCw,
   ExternalLink, Mail, Phone, Building2, MapPin, Eye, MessageSquare, Linkedin, Clock,
   PhoneIncoming, PhoneOutgoing, Globe, MessageCircle, Calendar, Facebook, Instagram,
-  Twitter, Video, Send, ArrowDownLeft, ArrowUpRight, Loader2, Download
+  Twitter, Video, Send, ArrowDownLeft, ArrowUpRight, Loader2
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import QueryError from "@/components/QueryError";
-
-const ALL_CHANNELS = [
-  "email", "sms", "linkedin",
-  "social_facebook", "social_instagram", "social_twitter", "social_tiktok",
-  "call_inbound", "call_outbound", "direct_mail",
-  "webform", "chat", "event"
-] as const;
-
-const CHANNEL_CONFIG: Record<string, { label: string }> = {
-  email: { label: "Email" }, sms: { label: "SMS" }, linkedin: { label: "LinkedIn" },
-  social_facebook: { label: "Facebook" }, social_instagram: { label: "Instagram" },
-  social_twitter: { label: "Twitter/X" }, social_tiktok: { label: "TikTok" },
-  call_inbound: { label: "Inbound Call" }, call_outbound: { label: "Outbound Call" },
-  direct_mail: { label: "Direct Mail" }, webform: { label: "Webform" },
-  chat: { label: "Chat" }, event: { label: "Event" },
-};
 
 const SEGMENTS = ["all", "residential", "commercial", "agricultural", "cpa_tax", "estate_attorney", "hr_benefits", "insurance", "nonprofit", "other"];
 const TIERS = ["all", "gold", "silver", "bronze", "unscored"];
@@ -150,32 +134,16 @@ export default function Contacts() {
             {data?.total !== undefined ? `${data.total.toLocaleString()} contacts` : "Loading..."}
           </p>
         </div>
-        <div className="flex gap-2 shrink-0">
-          <Button variant="outline" size="sm" className="gap-2 min-h-[44px] sm:min-h-0" onClick={() => {
-            const contacts = data?.contacts || [];
-            if (!contacts.length) { toast.error("No contacts to export"); return; }
-            const headers = ["firstName", "lastName", "email", "phone", "companyName", "segment", "tier", "city", "state"];
-            const csv = [headers.join(","), ...contacts.map((c: any) => headers.map(h => `"${(c[h] || "").toString().replace(/"/g, '""')}"`).join(","))].join("\n");
-            const blob = new Blob([csv], { type: "text/csv" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url; a.download = `contacts-export-${new Date().toISOString().slice(0, 10)}.csv`;
-            a.click(); URL.revokeObjectURL(url);
-            toast.success(`Exported ${contacts.length} contacts`);
-          }}>
-            <Download className="h-4 w-4" /> Export
-          </Button>
-          <Button onClick={openCreate} size="sm" className="gap-2 min-h-[44px] sm:min-h-0">
-            <Plus className="h-4 w-4" /> Add Contact
-          </Button>
-        </div>
+        <Button onClick={openCreate} size="sm" className="gap-2 min-h-[44px] sm:min-h-0 shrink-0">
+          <Plus className="h-4 w-4" /> Add Contact
+        </Button>
       </div>
 
       {/* Filters */}
       <Card className="bg-card border-border/50">
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-3">
-            <div className="relative flex-1 min-w-[200px]">
+            <div className="relative flex-1 min-w-0 sm:min-w-[200px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search contacts..."
@@ -603,24 +571,32 @@ export default function Contacts() {
 }
 
 function ContactTimeline({ contactId }: { contactId?: number }) {
-  const { data, isLoading, refetch } = trpc.interactions.list.useQuery(
+  const { data, isLoading, error, refetch } = trpc.interactions.list.useQuery(
     { contactId: contactId || 0, limit: 30 },
     { enabled: !!contactId }
   );
   const createInteraction = trpc.interactions.create.useMutation({
-    onSuccess: () => { refetch(); setShowLogForm(false); setLogForm({ channel: "email", direction: "outbound", body: "" }); toast.success("Interaction logged"); },
+    onSuccess: () => { refetch(); setShowAddForm(false); setNewInteraction({ channel: "email", direction: "outbound", type: "message_sent", subject: "", body: "" }); toast.success("Interaction logged"); },
     onError: (err) => toast.error(err.message),
   });
-  const [showLogForm, setShowLogForm] = useState(false);
-  const CHANNEL_TYPE_MAP: Record<string, string> = {
-    email: "message_sent", sms: "message_sent", linkedin: "dm_sent",
-    social_facebook: "post_published", social_instagram: "post_published",
-    social_twitter: "post_published", social_tiktok: "post_published",
-    call_inbound: "call_received", call_outbound: "call_made",
-    direct_mail: "mail_sent", webform: "form_submitted",
-    chat: "chat_message", event: "event_registered",
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newInteraction, setNewInteraction] = useState({ channel: "email", direction: "outbound" as "inbound" | "outbound", type: "message_sent", subject: "", body: "" });
+
+  const channelTypes: Record<string, string[]> = {
+    email: ["message_sent", "message_received", "message_opened", "message_clicked"],
+    sms: ["message_sent", "message_received"],
+    linkedin: ["connection_sent", "connection_accepted", "profile_viewed", "dm_sent", "dm_received"],
+    call_inbound: ["call_received", "call_missed", "voicemail_left"],
+    call_outbound: ["call_made", "voicemail_left"],
+    chat: ["chat_started", "chat_message"],
+    webform: ["form_submitted", "page_visited"],
+    event: ["event_registered", "event_attended", "event_missed"],
+    direct_mail: ["mail_sent", "mail_delivered", "mail_returned"],
+    social_facebook: ["post_published", "post_engaged", "dm_sent", "dm_received"],
+    social_instagram: ["post_published", "post_engaged", "dm_sent", "dm_received"],
+    social_twitter: ["post_published", "post_engaged", "dm_sent", "dm_received"],
+    social_tiktok: ["post_published", "post_engaged"],
   };
-  const [logForm, setLogForm] = useState({ channel: "email" as typeof ALL_CHANNELS[number], direction: "outbound" as "inbound" | "outbound", body: "" });
 
   if (isLoading) {
     return (
@@ -632,65 +608,87 @@ function ContactTimeline({ contactId }: { contactId?: number }) {
     );
   }
 
+  if (error) {
+    return <QueryError message="Failed to load interactions." onRetry={() => refetch()} />;
+  }
+
   const interactions = data?.interactions || [];
 
   return (
     <div className="space-y-2">
-      {/* Log Interaction */}
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-xs text-muted-foreground">{interactions.length} interaction{interactions.length !== 1 ? "s" : ""}</p>
-        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowLogForm(!showLogForm)}>
+      {/* Add Interaction Button/Form */}
+      {!showAddForm ? (
+        <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => setShowAddForm(true)}>
           <Plus className="h-3 w-3" /> Log Interaction
         </Button>
-      </div>
-      {showLogForm && (
-        <div className="p-3 rounded-lg border border-border/50 bg-muted/5 space-y-2 mb-3" role="form" aria-label="Log a new interaction">
-          <div className="grid grid-cols-2 gap-2">
-            <Select value={logForm.channel} onValueChange={(v) => setLogForm({ ...logForm, channel: v as typeof ALL_CHANNELS[number] })}>
-              <SelectTrigger className="h-8 text-xs" aria-label="Channel"><SelectValue /></SelectTrigger>
+      ) : (
+        <Card className="bg-muted/10 border-border/30">
+          <CardContent className="p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-foreground">Log Interaction</p>
+              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowAddForm(false)}>
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Select value={newInteraction.channel} onValueChange={(v) => {
+                const types = channelTypes[v] || ["message_sent"];
+                setNewInteraction({ ...newInteraction, channel: v, type: types[0] });
+              }}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Object.keys(TIMELINE_CHANNEL_ICONS).map((ch) => (
+                    <SelectItem key={ch} value={ch} className="text-xs">{ch.replace(/_/g, " ").replace("social ", "")}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={newInteraction.direction} onValueChange={(v) => setNewInteraction({ ...newInteraction, direction: v as "inbound" | "outbound" })}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="outbound" className="text-xs">Outbound</SelectItem>
+                  <SelectItem value="inbound" className="text-xs">Inbound</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Select value={newInteraction.type} onValueChange={(v) => setNewInteraction({ ...newInteraction, type: v })}>
+              <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
-                {ALL_CHANNELS.map((ch) => (
-                  <SelectItem key={ch} value={ch}>{CHANNEL_CONFIG[ch]?.label || ch}</SelectItem>
+                {(channelTypes[newInteraction.channel] || ["message_sent"]).map((t) => (
+                  <SelectItem key={t} value={t} className="text-xs">{t.replace(/_/g, " ")}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Select value={logForm.direction} onValueChange={(v) => setLogForm({ ...logForm, direction: v as "inbound" | "outbound" })}>
-              <SelectTrigger className="h-8 text-xs" aria-label="Direction"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="outbound">Outbound</SelectItem>
-                <SelectItem value="inbound">Inbound</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Textarea rows={2} className="text-xs" value={logForm.body} onChange={(e) => setLogForm({ ...logForm, body: e.target.value })} placeholder="Brief note about this interaction..." aria-label="Interaction notes" />
-          <div className="flex gap-2 justify-end">
-            <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setShowLogForm(false)}>Cancel</Button>
-            <Button size="sm" className="h-7 text-xs" disabled={createInteraction.isPending || !logForm.body.trim()} onClick={() => {
-              if (!contactId) return;
-              createInteraction.mutate({
-                contactId,
-                channel: logForm.channel,
-                type: (CHANNEL_TYPE_MAP[logForm.channel] || "message_sent") as any,
-                direction: logForm.direction,
-                body: logForm.body,
-              });
-            }}>
-              {createInteraction.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-              Save
-            </Button>
-          </div>
-        </div>
+            <Input className="h-8 text-xs" value={newInteraction.subject} onChange={(e) => setNewInteraction({ ...newInteraction, subject: e.target.value })} placeholder="Subject (optional)" />
+            <Textarea rows={2} className="text-xs" value={newInteraction.body} onChange={(e) => setNewInteraction({ ...newInteraction, body: e.target.value })} placeholder="Notes or message body..." />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setShowAddForm(false)}>Cancel</Button>
+              <Button size="sm" className="h-7 text-xs gap-1" disabled={createInteraction.isPending} onClick={() => {
+                if (!contactId) return;
+                createInteraction.mutate({
+                  contactId,
+                  channel: newInteraction.channel as any,
+                  direction: newInteraction.direction,
+                  type: newInteraction.type as any,
+                  subject: newInteraction.subject || undefined,
+                  body: newInteraction.body || undefined,
+                });
+              }}>
+                {createInteraction.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <><Plus className="h-3 w-3" /> Save</>}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {interactions.length === 0 && !showLogForm ? (
+      {interactions.length === 0 && !showAddForm && (
         <div className="text-center py-8">
           <Clock className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
           <p className="text-sm text-muted-foreground">No interactions recorded yet</p>
           <p className="text-xs text-muted-foreground/60 mt-1">
-            Interactions from all channels will appear here as a unified timeline.
+            Use "Log Interaction" above to record touchpoints across any channel.
           </p>
         </div>
-      ) : null}
+      )}
 
       {interactions.map((interaction) => {
         const Icon = TIMELINE_CHANNEL_ICONS[interaction.channel] || Mail;

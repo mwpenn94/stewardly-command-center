@@ -3,17 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sparkles, Users, Zap, Target } from "lucide-react";
-import { useMemo } from "react";
 
 export default function Enrichment() {
   const { data: stats } = trpc.contacts.stats.useQuery();
   const { data: tierData } = trpc.contacts.stats.useQuery();
 
-  const enrichedCount = useMemo(() => {
-    // Contacts with a tier other than "unscored" are considered scored/enriched
-    if (!tierData?.byTier) return 0;
-    return tierData.byTier.filter((t: { tier: string | null }) => t.tier && t.tier !== "unscored").reduce((sum: number, t: { count: number }) => sum + t.count, 0);
-  }, [tierData]);
+  const enrichedCount = stats?.enriched || 0;
   const totalContacts = stats?.total || 0;
   const enrichmentRate = totalContacts > 0 ? Math.round((enrichedCount / totalContacts) * 100) : 0;
 

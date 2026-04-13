@@ -125,14 +125,15 @@ export async function deleteContact(id: number, userId: number) {
 
 export async function getContactStats(userId: number) {
   const db = await getDb();
-  if (!db) return { total: 0, bySegment: [], byTier: [], bySyncStatus: [] };
-  const [total, bySegment, byTier, bySyncStatus] = await Promise.all([
+  if (!db) return { total: 0, enriched: 0, bySegment: [], byTier: [], bySyncStatus: [] };
+  const [total, enriched, bySegment, byTier, bySyncStatus] = await Promise.all([
     db.select({ count: count() }).from(contacts).where(eq(contacts.userId, userId)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.enrichedAt} IS NOT NULL`)),
     db.select({ segment: contacts.segment, count: count() }).from(contacts).where(eq(contacts.userId, userId)).groupBy(contacts.segment),
     db.select({ tier: contacts.tier, count: count() }).from(contacts).where(eq(contacts.userId, userId)).groupBy(contacts.tier),
     db.select({ syncStatus: contacts.syncStatus, count: count() }).from(contacts).where(eq(contacts.userId, userId)).groupBy(contacts.syncStatus),
   ]);
-  return { total: total[0]?.count || 0, bySegment, byTier, bySyncStatus };
+  return { total: total[0]?.count || 0, enriched: enriched[0]?.count || 0, bySegment, byTier, bySyncStatus };
 }
 
 // ─── Integrations ────────────────────────────────────────────────────────────
