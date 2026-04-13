@@ -262,3 +262,23 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] Fix all non-live test files to use userId 9999 instead of userId 1 to prevent tests from overwriting real credentials
 - [x] Fix dashboard stats query to count integrations with non-empty credentials (not just status='connected') so test-triggered status changes don't break the counter
 - [x] Verified: 144 tests pass AND real userId 1 credentials survive test runs
+
+## Sync Optimization & Documentation
+- [ ] Optimize sync script with 10 parallel workers targeting 500-600/min (matching earlier version)
+- [ ] Fix 403 Cloudflare issue with proper headers/timing
+- [ ] Write comprehensive documentation of all design and build work across entire task
+
+## Sync Optimization & Documentation
+- [ ] Optimize sync script with 10 parallel workers targeting 500-600/min (matching earlier version)
+- [ ] Fix Cloudflare 403 block with failover workarounds (session cycling, throttling, proxy)
+- [ ] Write comprehensive documentation of all design and build work across entire task
+
+## New Segment Imports (Google Drive)
+- [ ] Download recruiting professionals data (inbound candidates + outbound prospects) from Google Drive folder
+- [ ] Download strategic partners/COIs spreadsheet from Google Drive
+- [ ] Download COIs by events spreadsheet from Google Drive
+- [ ] Process and transform all 3 new sources into GHL-ready format
+- [ ] Tag with proper segments: Recruiting-Professional, Strategic-Partner-COI, COI-Event
+- [ ] Deduplicate against existing master CSV
+- [ ] Merge into master sync pipeline
+- [ ] Complete sync of all segments to GHL
