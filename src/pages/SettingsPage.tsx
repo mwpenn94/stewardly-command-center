@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Save, Bell, Shield, Database, Palette, Globe } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
+import { useStore } from '../store/useStore';
 
 interface SettingSection {
   id: string;
@@ -18,6 +19,7 @@ const sections: SettingSection[] = [
 ];
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useStore();
   const [activeSection, setActiveSection] = useState('notifications');
   const [notifications, setNotifications] = useState({
     emailPayments: true,
@@ -171,14 +173,15 @@ export default function SettingsPage() {
               <div>
                 <label className="block text-sm font-medium text-text-secondary mb-2">Theme</label>
                 <div className="flex gap-3">
-                  {['Light', 'Dark', 'System'].map((theme) => (
+                  {(['light', 'dark', 'system'] as const).map((t) => (
                     <button
-                      key={theme}
-                      className={`px-4 py-2 rounded-lg text-sm border transition-colors ${
-                        theme === 'Light' ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-border text-text-secondary hover:bg-surface-tertiary'
+                      key={t}
+                      onClick={() => setTheme(t)}
+                      className={`px-4 py-2 rounded-lg text-sm border transition-colors capitalize min-h-[44px] ${
+                        theme === t ? 'border-primary-500 bg-primary-50 text-primary-700' : 'border-border text-text-secondary hover:bg-surface-tertiary'
                       }`}
                     >
-                      {theme}
+                      {t}
                     </button>
                   ))}
                 </div>

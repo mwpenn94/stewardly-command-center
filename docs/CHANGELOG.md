@@ -2,6 +2,24 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
+## [0.3.0] - 2026-04-13
+
+### Added
+- Dark mode with light/dark/system toggle in header and Settings > Appearance
+- Theme preference persistence via localStorage
+- System preference detection with live switching via `prefers-color-scheme` media query
+- Skip-to-content accessibility link for keyboard navigation
+- Global `:focus-visible` ring styling for keyboard users
+- 44px minimum touch targets on all buttons and inputs for mobile
+- 404 Not Found page with navigation options
+- Error boundary wrapping entire app with recovery UI
+- Dark color scheme CSS variables for all theme tokens
+
+### Changed
+- Header actions now have proper 44px touch targets on mobile
+- Settings appearance section wired to actual theme toggle
+- Modal dialog uses explicit text color for dark mode compatibility
+
 ## [0.2.0] - 2026-04-13
 
 ### Added

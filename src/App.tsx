@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import ErrorBoundary from './components/ErrorBoundary';
 import AppLayout from './components/layout/AppLayout';
 import Dashboard from './pages/Dashboard';
 import Properties from './pages/Properties';
@@ -9,6 +10,7 @@ import CRM from './pages/CRM';
 import Marketing from './pages/Marketing';
 import Pipelines from './pages/Pipelines';
 import SettingsPage from './pages/SettingsPage';
+import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,21 +23,24 @@ const queryClient = new QueryClient({
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Routes>
-          <Route element={<AppLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="properties" element={<Properties />} />
-            <Route path="tenants" element={<Tenants />} />
-            <Route path="maintenance" element={<Maintenance />} />
-            <Route path="crm" element={<CRM />} />
-            <Route path="marketing" element={<Marketing />} />
-            <Route path="pipelines" element={<Pipelines />} />
-            <Route path="settings" element={<SettingsPage />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<AppLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="properties" element={<Properties />} />
+              <Route path="tenants" element={<Tenants />} />
+              <Route path="maintenance" element={<Maintenance />} />
+              <Route path="crm" element={<CRM />} />
+              <Route path="marketing" element={<Marketing />} />
+              <Route path="pipelines" element={<Pipelines />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

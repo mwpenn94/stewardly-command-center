@@ -43,7 +43,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: M
   return (
     <dialog
       ref={dialogRef}
-      className={`${sizeClasses[size]} w-[calc(100%-2rem)] rounded-xl border border-border bg-surface p-0 shadow-xl backdrop:bg-black/50`}
+      className={`${sizeClasses[size]} w-[calc(100%-2rem)] rounded-xl border border-border bg-surface text-text-primary p-0 shadow-xl backdrop:bg-black/50`}
       onClick={(e) => {
         if (e.target === dialogRef.current) onClose();
       }}

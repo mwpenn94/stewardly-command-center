@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary-50: #eff6ff;
   --color-primary-100: #dbeafe;
@@ -39,6 +41,22 @@
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+    --color-surface: #0f172a;
+    --color-surface-secondary: #0b1120;
+    --color-surface-tertiary: #1e293b;
+    --color-border: #334155;
+    --color-text-primary: #f1f5f9;
+    --color-text-secondary: #cbd5e1;
+    --color-text-muted: #64748b;
+    --color-primary-50: #172554;
+    --color-primary-100: #1e3a8a;
+    --color-accent-100: #14532d;
+    --color-accent-800: #86efac;
   }
 
   body {
@@ -46,6 +64,33 @@
     padding: 0;
     background-color: var(--color-surface-secondary);
     color: var(--color-text-primary);
+    transition: background-color 0.2s, color 0.2s;
+  }
+
+  /* Skip to content link for accessibility */
+  .skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--color-primary-600);
+    color: white;
+    padding: 8px 16px;
+    z-index: 100;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 0 0 8px 0;
+    transition: top 0.2s;
+  }
+
+  .skip-link:focus {
+    top: 0;
+  }
+
+  /* Focus visible ring for keyboard navigation */
+  :focus-visible {
+    outline: 2px solid var(--color-primary-500);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 }
 
@@ -59,21 +104,21 @@
            hover:bg-primary-700 active:bg-primary-800 transition-colors
            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2
            disabled:opacity-50 disabled:cursor-not-allowed
-           text-sm sm:text-base;
+           text-sm sm:text-base min-h-[44px] sm:min-h-0;
   }
 
   .btn-secondary {
     @apply bg-surface text-text-primary px-4 py-2 rounded-lg font-medium
            border border-border hover:bg-surface-tertiary active:bg-surface-secondary
            transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500
-           focus:ring-offset-2 text-sm sm:text-base;
+           focus:ring-offset-2 text-sm sm:text-base min-h-[44px] sm:min-h-0;
   }
 
   .input {
     @apply w-full px-3 py-2 rounded-lg border border-border bg-surface
            text-text-primary placeholder:text-text-muted
            focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500
-           text-sm sm:text-base;
+           text-sm sm:text-base min-h-[44px] sm:min-h-0;
   }
 
   .badge {
