@@ -79,6 +79,11 @@
 | G67 | Documentation alignment (omnichannel) | Done | 3 | DOCUMENTATION.md, ARCHITECTURE.md updated with 13 channels, 11 tables, 72 procedures, 16 pages | Pass 23 |
 | G68 | Accessibility on new pages | Done | 3 | ARIA labels on Channels cards/switches, Flow Builder reorder/remove buttons, Dashboard omnichannel region; expanded keyboard nav (G+B/N/T) | Pass 24 |
 | G69 | Keyboard shortcuts expanded | Done | 3 | 5 new G+ shortcuts (Import, Enrichment, Backups, Channels, AI Insights) added to navMap and KeyboardShortcuts dialog | Pass 24 |
+| G70 | Mobile touch targets 44px compliance | Done | 4 | Campaign delete/launch/cancel buttons, Flow Builder reorder/remove/channel-add buttons, Integrations password toggle all now ≥44px; Dashboard stat icons 44px | Pass 25 |
+| G71 | Campaign dialogs mobile responsive | Done | 3 | All 5 dialogs (Create, Launch, Sequence, Template, Channel Config) use responsive `max-w-[calc(100%-2rem)] sm:max-w-*` pattern | Pass 25 |
+| G72 | Dashboard omnichannel grid xs breakpoint | Done | 3 | 2-column layout for screens <400px, 3-col for 400px+, progressive up to 7-col on lg | Pass 25 |
+| G73 | Campaign backend all 13 channels | Done | 4 | CampaignEngine expanded: social channels route through GHL Social, call channels queue call tasks, direct mail/webform/chat/event queue for fulfillment; router enum expanded | Pass 25 |
+| G74 | Backups Platform Data Mirror wired to real data | Done | 3 | Platform health status, connected/disconnected indicators, contact mirror counts, last-checked timestamps — all from tRPC platformHealth + contacts.stats | Pass 25 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -116,7 +121,10 @@
 - Channel Management page: /channels with full 13-channel config UI
 - Drizzle migration 0002 for contact_interactions + channel_configs tables
 - Campaign Flow Builder: visual cross-channel sequence creation with step reordering
-- Platform data mirror continuity in Backups page
+- Platform data mirror continuity in Backups page — wired to real tRPC data
+- Campaign backend supports all 13 channels: email/sms/linkedin natively, social/call/mail/web/chat/event queued
+- All dialogs responsive on mobile with calc(100%-2rem) max-width
+- Flow Builder touch targets ≥44px for reorder, remove, and channel buttons
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -153,4 +161,5 @@
 - Pass 21 · data pipeline + channel management · G62-G63 done; Drizzle migration 0002, Channel Management page with 13 channels grouped by category, provider selection, daily limits, monthly budgets · 9c052e9 · 2 items completed · G26 deferred
 - Pass 22 · campaign flow builder + data mirror · G64-G65 done; visual cross-channel flow builder with step reordering and per-channel messages, platform data mirror status in Backups page · 53bc996 · 2 items completed · G26 deferred
 - Pass 23 · data integration + documentation · G66-G67 done; quick import from CDN data sources, DOCUMENTATION.md and ARCHITECTURE.md aligned with omnichannel features · 3d648cd · 2 items completed · G26 deferred
-- Pass 24 · accessibility + keyboard nav · G68-G69 done; ARIA labels on new pages, 5 new G+ shortcuts, expanded KeyboardShortcuts dialog · PENDING · 2 items completed · G26 deferred
+- Pass 24 · accessibility + keyboard nav · G68-G69 done; ARIA labels on new pages, 5 new G+ shortcuts, expanded KeyboardShortcuts dialog · 30ed0b8 · 2 items completed · G26 deferred
+- Pass 25 · mobile responsiveness + backend channel gap · G70-G74 done; 44px touch targets across 4 pages, responsive dialogs, xs grid breakpoint, campaign engine expanded to 13 channels, backups mirror wired to real data · PENDING · 5 items completed · G26 deferred

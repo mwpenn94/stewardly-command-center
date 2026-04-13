@@ -329,10 +329,10 @@ export default function Integrations() {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                    className="absolute right-0.5 top-1/2 -translate-y-1/2 h-9 w-9 min-h-[44px] min-w-[44px] p-0"
                     onClick={() => togglePassword(field.key)}
                   >
-                    {showPasswords[field.key] ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                    {showPasswords[field.key] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
                 {field.hint && (

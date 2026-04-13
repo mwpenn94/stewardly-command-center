@@ -24,6 +24,8 @@ const FORMAT_CONFIG: Record<string, { icon: LucideIcon; label: string }> = {
 
 export default function Backups() {
   const { data: backups, isLoading, refetch } = trpc.backups.list.useQuery();
+  const { data: platformHealth } = trpc.orchestrator.platformHealth.useQuery();
+  const { data: contactStats } = trpc.contacts.stats.useQuery();
   const createBackup = trpc.backups.create.useMutation({
     onSuccess: () => { refetch(); toast.success("Backup created successfully"); },
     onError: (err) => toast.error(err.message),
@@ -69,30 +71,80 @@ export default function Backups() {
             The command center maintains a local mirror of all synced data. If any external platform goes down, your data remains available and can be resynced when the platform returns.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {[
-              { platform: "GoHighLevel", icon: Mail, color: "text-blue-400", bg: "bg-blue-500/10", data: "Contacts, Campaigns, Forms, Calls" },
-              { platform: "SMS-iT", icon: MessageSquare, color: "text-emerald-400", bg: "bg-emerald-500/10", data: "SMS conversations, Contact records" },
-              { platform: "Dripify", icon: Linkedin, color: "text-sky-400", bg: "bg-sky-500/10", data: "LinkedIn connections, Campaign data" },
-            ].map((p) => (
-              <div key={p.platform} className="p-3 rounded-lg border border-border/30 space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className={`h-7 w-7 rounded ${p.bg} flex items-center justify-center`}>
-                    <p.icon className={`h-3.5 w-3.5 ${p.color}`} />
+            {(() => {
+              const ghlHealth = platformHealth?.find((p: { platform: string }) => p.platform === "ghl");
+              const smsitHealth = platformHealth?.find((p: { platform: string }) => p.platform === "smsit");
+              const dripifyHealth = platformHealth?.find((p: { platform: string }) => p.platform === "dripify");
+              const totalContacts = contactStats?.total ?? 0;
+              const syncedContacts = contactStats?.synced ?? 0;
+
+              const platforms = [
+                {
+                  platform: "GoHighLevel",
+                  icon: Mail,
+                  color: "text-blue-400",
+                  bg: "bg-blue-500/10",
+                  data: "Contacts, Campaigns, Forms, Calls",
+                  connected: ghlHealth?.connected ?? false,
+                  lastChecked: ghlHealth?.lastChecked ?? 0,
+                  mirrorCount: syncedContacts,
+                  mirrorLabel: "contacts mirrored",
+                },
+                {
+                  platform: "SMS-iT",
+                  icon: MessageSquare,
+                  color: "text-emerald-400",
+                  bg: "bg-emerald-500/10",
+                  data: "SMS conversations, Contact records",
+                  connected: smsitHealth?.connected ?? false,
+                  lastChecked: smsitHealth?.lastChecked ?? 0,
+                  mirrorCount: totalContacts,
+                  mirrorLabel: "contacts in local DB",
+                },
+                {
+                  platform: "Dripify",
+                  icon: Linkedin,
+                  color: "text-sky-400",
+                  bg: "bg-sky-500/10",
+                  data: "LinkedIn connections, Campaign data",
+                  connected: dripifyHealth?.connected ?? false,
+                  lastChecked: dripifyHealth?.lastChecked ?? 0,
+                  mirrorCount: totalContacts,
+                  mirrorLabel: "contacts in local DB",
+                },
+              ];
+
+              return platforms.map((p) => (
+                <div key={p.platform} className="p-3 rounded-lg border border-border/30 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className={`h-7 w-7 rounded ${p.bg} flex items-center justify-center`}>
+                      <p.icon className={`h-3.5 w-3.5 ${p.color}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-foreground">{p.platform}</p>
+                      <p className="text-[10px] text-muted-foreground truncate">{p.data}</p>
+                    </div>
+                    {p.connected ? (
+                      <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-medium text-foreground">{p.platform}</p>
-                    <p className="text-[10px] text-muted-foreground">{p.data}</p>
+                  <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <RefreshCw className="h-3 w-3" />
+                      {p.connected ? "Connected" : "Disconnected"}
+                    </span>
+                    <span className="tabular-nums">{p.mirrorCount.toLocaleString()} {p.mirrorLabel}</span>
                   </div>
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                  {p.lastChecked > 0 && (
+                    <p className="text-[9px] text-muted-foreground/60">
+                      Last checked {formatDistanceToNow(new Date(p.lastChecked), { addSuffix: true })}
+                    </p>
+                  )}
                 </div>
-                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <RefreshCw className="h-3 w-3" /> Auto-synced
-                  </span>
-                  <span>Local mirror active</span>
-                </div>
-              </div>
-            ))}
+              ));
+            })()}
           </div>
           <div className="mt-3 p-2 rounded-lg bg-primary/5 border border-primary/10">
             <p className="text-[11px] text-primary flex items-center gap-1.5">

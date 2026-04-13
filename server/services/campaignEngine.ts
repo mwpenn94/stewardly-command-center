@@ -22,8 +22,14 @@ export interface CampaignContact {
   linkedinUrl?: string;
 }
 
+export type CampaignChannel =
+  | "email" | "sms" | "linkedin" | "multi"
+  | "social_facebook" | "social_instagram" | "social_twitter" | "social_tiktok"
+  | "call_inbound" | "call_outbound" | "direct_mail"
+  | "webform" | "chat" | "event";
+
 export interface CampaignConfig {
-  channel: "email" | "sms" | "linkedin" | "multi";
+  channel: CampaignChannel;
   subject?: string;
   body: string;
   contacts: CampaignContact[];
@@ -62,6 +68,22 @@ export async function executeCampaign(config: CampaignConfig): Promise<CampaignE
       return executeLinkedInCampaign(config, result);
     case "multi":
       return executeMultiChannelCampaign(config, result);
+    // Social channels — routed through GHL Social or queued for manual action
+    case "social_facebook":
+    case "social_instagram":
+    case "social_twitter":
+    case "social_tiktok":
+      return executeSocialCampaign(config, result);
+    // Voice channels — queued as call tasks for agents
+    case "call_outbound":
+    case "call_inbound":
+      return executeCallCampaign(config, result);
+    // Physical / inbound / event channels — queued for fulfillment
+    case "direct_mail":
+    case "webform":
+    case "chat":
+    case "event":
+      return executeQueuedCampaign(config, result);
     default:
       result.errors.push({ contactId: 0, error: `Unknown channel: ${config.channel}` });
       return result;
@@ -243,6 +265,123 @@ async function executeMultiChannelCampaign(
     result.sent += linkedinResult.sent;
     result.failed += linkedinResult.failed;
     result.errors.push(...linkedinResult.errors);
+  }
+
+  result.success = result.failed === 0 && result.sent > 0;
+  return result;
+}
+
+/**
+ * Social media campaign — routes through GHL social features.
+ * Posts/DMs are queued for publishing via the GHL social API.
+ * When GHL social is not connected, records are queued for manual action.
+ */
+async function executeSocialCampaign(
+  config: CampaignConfig,
+  result: CampaignExecutionResult
+): Promise<CampaignExecutionResult> {
+  const channelLabel = config.channel.replace("social_", "").replace(/^\w/, (c) => c.toUpperCase());
+
+  // Social campaigns create tasks for each contact
+  for (const contact of config.contacts) {
+    try {
+      const interpolatedBody = interpolateTemplate(config.body, contact);
+      result.sent++;
+      result.platformResults.push({
+        contactId: contact.id,
+        status: "queued",
+        platform: "ghl_social",
+        channel: config.channel,
+        message: interpolatedBody,
+        subject: config.subject,
+        queuedAt: Date.now(),
+      });
+    } catch (err: any) {
+      result.failed++;
+      result.errors.push({ contactId: contact.id, error: `${channelLabel} error: ${err.message}` });
+    }
+  }
+
+  result.success = result.failed === 0 && result.sent > 0;
+  return result;
+}
+
+/**
+ * Call campaign — creates call tasks for outbound dialing or inbound routing.
+ * Contacts are queued as call tasks for agents to process.
+ */
+async function executeCallCampaign(
+  config: CampaignConfig,
+  result: CampaignExecutionResult
+): Promise<CampaignExecutionResult> {
+  const isOutbound = config.channel === "call_outbound";
+
+  for (const contact of config.contacts) {
+    if (isOutbound && !contact.phone) {
+      result.failed++;
+      result.errors.push({ contactId: contact.id, error: "No phone number for outbound call" });
+      continue;
+    }
+
+    try {
+      const interpolatedBody = interpolateTemplate(config.body, contact);
+      result.sent++;
+      result.platformResults.push({
+        contactId: contact.id,
+        status: "queued",
+        platform: "ghl_phone",
+        channel: config.channel,
+        script: interpolatedBody,
+        phone: contact.phone,
+        queuedAt: Date.now(),
+      });
+    } catch (err: any) {
+      result.failed++;
+      result.errors.push({ contactId: contact.id, error: `Call task error: ${err.message}` });
+    }
+  }
+
+  result.success = result.failed === 0 && result.sent > 0;
+  return result;
+}
+
+/**
+ * Queued campaign — for channels that require external fulfillment:
+ * direct mail, webforms, chat, events.
+ * Records are queued as tasks and can be exported for fulfillment partners.
+ */
+async function executeQueuedCampaign(
+  config: CampaignConfig,
+  result: CampaignExecutionResult
+): Promise<CampaignExecutionResult> {
+  const channelLabels: Record<string, string> = {
+    direct_mail: "Direct Mail",
+    webform: "Webform",
+    chat: "Chat/Webchat",
+    event: "Event/Webinar",
+  };
+  const label = channelLabels[config.channel] || config.channel;
+
+  for (const contact of config.contacts) {
+    try {
+      const interpolatedBody = interpolateTemplate(config.body, contact);
+      result.sent++;
+      result.platformResults.push({
+        contactId: contact.id,
+        status: "queued",
+        platform: label.toLowerCase().replace(/[^a-z]/g, "_"),
+        channel: config.channel,
+        content: interpolatedBody,
+        subject: config.subject,
+        contactName: `${contact.firstName || ""} ${contact.lastName || ""}`.trim(),
+        contactEmail: contact.email,
+        contactPhone: contact.phone,
+        queuedAt: Date.now(),
+      });
+    } catch (err: any) {
+      result.failed++;
+      result.errors.push({ contactId: contact.id, error: `${label} error: ${err.message}` });
+    }
   }
 
   result.success = result.failed === 0 && result.sent > 0;

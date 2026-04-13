@@ -517,7 +517,12 @@ export const appRouter = router({
     create: protectedProcedure
       .input(z.object({
         name: z.string(),
-        channel: z.enum(["email", "sms", "linkedin", "multi"]),
+        channel: z.enum([
+          "email", "sms", "linkedin", "multi",
+          "social_facebook", "social_instagram", "social_twitter", "social_tiktok",
+          "call_inbound", "call_outbound", "direct_mail",
+          "webform", "chat", "event",
+        ]),
         templateId: z.number().optional(),
         audienceFilter: z.any().optional(),
         scheduledAt: z.string().optional(),

@@ -4,6 +4,18 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.6.0] - 2026-04-13
+
+### Fixed
+- **Mobile touch targets** — Campaign delete/launch/cancel buttons, Flow Builder reorder/remove/channel-add buttons, and Integrations password toggle all now meet 44px minimum touch target size (were 28px)
+- **Campaign dialog widths** — All 5 dialogs (Create, Launch, Sequence, Template, Channel Config) now use responsive `max-w-[calc(100%-2rem)] sm:max-w-*` pattern instead of fixed widths that overflowed on mobile
+- **Dashboard omnichannel grid** — Added 2-column layout for screens under 400px; was forcing 3 columns on tiny screens causing cramped cards
+- **Backups Platform Data Mirror** — Previously hardcoded with static platform names; now wired to real `trpc.orchestrator.platformHealth` and `trpc.contacts.stats` showing live connected/disconnected status, last-checked timestamps, and actual contact mirror counts
+
+### Added
+- **Campaign engine all 13 channels** — Backend `CampaignEngine` expanded from 4 channels (email/sms/linkedin/multi) to all 13. Social channels route through GHL Social queue, call channels create agent call tasks, direct mail/webform/chat/event queue for external fulfillment. All channels record `platformResults` for tracking
+- **Dashboard stat card icons** — Stat card icons increased to 44px (h-11 w-11) for consistent touch targets
+
 ## [1.5.0] - 2026-04-13
 
 ### Added

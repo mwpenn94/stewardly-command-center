@@ -230,7 +230,7 @@ export default function Channels() {
 
       {/* Channel Config Dialog */}
       <Dialog open={configOpen} onOpenChange={setConfigOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {activeChannel && (

@@ -99,7 +99,7 @@ export default function Home() {
                     {isLoading ? "—" : s.value.toLocaleString()}
                   </p>
                 </div>
-                <div className={`h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center ${s.accent} group-hover:scale-110 transition-transform`}>
+                <div className={`h-11 w-11 rounded-lg bg-muted/50 flex items-center justify-center ${s.accent} group-hover:scale-110 transition-transform`}>
                   <s.icon className="h-5 w-5" />
                 </div>
               </div>
@@ -141,7 +141,7 @@ export default function Home() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-2">
+          <div className="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-2">
             {Object.entries(CHANNEL_DISPLAY).map(([key, ch]) => {
               const channelCount = crossChannelMetrics?.byChannel?.find(
                 (c: any) => c.channel === key

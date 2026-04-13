@@ -290,12 +290,12 @@ export default function Campaigns() {
                     </div>
                     <div className="flex gap-1 shrink-0">
                       {c.status === "draft" && (
-                        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => openLaunch(c)}>
-                          <Send className="h-3 w-3" /> Launch
+                        <Button variant="outline" size="sm" className="h-9 min-h-[44px] text-xs gap-1" onClick={() => openLaunch(c)}>
+                          <Send className="h-3.5 w-3.5" /> Launch
                         </Button>
                       )}
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => { if (confirm("Delete campaign?")) deleteCampaign.mutate({ id: c.id }); }}>
-                        <Trash2 className="h-3.5 w-3.5" />
+                      <Button variant="ghost" size="icon" className="h-9 w-9 min-h-[44px] min-w-[44px] text-destructive hover:text-destructive" onClick={() => { if (confirm("Delete campaign?")) deleteCampaign.mutate({ id: c.id }); }}>
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </CardContent>
@@ -354,8 +354,8 @@ export default function Campaigns() {
                     <div className="flex items-center gap-2">
                       <Badge className={`text-[10px] ${STATUS_COLORS[seq.status] || STATUS_COLORS.draft}`}>{seq.status}</Badge>
                       {seq.status === "running" && (
-                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => cancelSequence.mutate({ sequenceId: seq.id })}>
-                          <XCircle className="h-3.5 w-3.5 text-destructive" />
+                        <Button variant="ghost" size="icon" className="h-9 w-9 min-h-[44px] min-w-[44px]" onClick={() => cancelSequence.mutate({ sequenceId: seq.id })}>
+                          <XCircle className="h-4 w-4 text-destructive" />
                         </Button>
                       )}
                     </div>
@@ -428,7 +428,7 @@ export default function Campaigns() {
 
       {/* ─── Create Campaign Dialog ─── */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-md">
           <DialogHeader>
             <DialogTitle>New Campaign</DialogTitle>
             <DialogDescription>Create a single-channel campaign.</DialogDescription>
@@ -467,7 +467,7 @@ export default function Campaigns() {
 
       {/* ─── Launch Campaign Dialog ─── */}
       <Dialog open={launchOpen} onOpenChange={setLaunchOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Launch: {launchCampaignData?.name}</DialogTitle>
             <DialogDescription>Compose and send to your audience.</DialogDescription>
@@ -490,7 +490,7 @@ export default function Campaigns() {
 
       {/* ─── New Sequence Dialog ─── */}
       <Dialog open={seqOpen} onOpenChange={setSeqOpen}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto sm:max-h-[80vh]">
+        <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>New Multi-Platform Sequence</DialogTitle>
             <DialogDescription>Build a multi-step outreach sequence across Email, SMS, and LinkedIn.</DialogDescription>
@@ -568,7 +568,7 @@ export default function Campaigns() {
 
       {/* ─── Template Dialog ─── */}
       <Dialog open={templateOpen} onOpenChange={setTemplateOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-md">
           <DialogHeader><DialogTitle>New Template</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div><Label>Name</Label><Input value={tplForm.name || ""} onChange={(e) => setTplForm({ ...tplForm, name: e.target.value })} /></div>
@@ -784,17 +784,17 @@ function CampaignFlowBuilder({
                       </div>
                       <div className="flex items-center gap-1">
                         {idx > 0 && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => moveStep(idx, -1)} aria-label="Move step up">
-                            <ChevronLeft className="h-3 w-3" />
+                          <Button variant="ghost" size="icon" className="h-8 w-8 min-h-[44px] min-w-[44px]" onClick={() => moveStep(idx, -1)} aria-label="Move step up">
+                            <ChevronLeft className="h-3.5 w-3.5" />
                           </Button>
                         )}
                         {idx < steps.length - 1 && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => moveStep(idx, 1)} aria-label="Move step down">
-                            <ChevronRight className="h-3 w-3" />
+                          <Button variant="ghost" size="icon" className="h-8 w-8 min-h-[44px] min-w-[44px]" onClick={() => moveStep(idx, 1)} aria-label="Move step down">
+                            <ChevronRight className="h-3.5 w-3.5" />
                           </Button>
                         )}
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeStep(step.id)} aria-label={`Remove step ${idx + 1}`}>
-                          <Trash2 className="h-3 w-3" />
+                        <Button variant="ghost" size="icon" className="h-8 w-8 min-h-[44px] min-w-[44px] text-destructive" onClick={() => removeStep(step.id)} aria-label={`Remove step ${idx + 1}`}>
+                          <Trash2 className="h-3.5 w-3.5" />
                         </Button>
                       </div>
                     </div>
@@ -842,7 +842,7 @@ function CampaignFlowBuilder({
                       key={ch.key}
                       variant="outline"
                       size="sm"
-                      className={`h-7 text-[11px] gap-1 ${usedChannels.has(ch.key) ? "border-primary/30" : ""}`}
+                      className={`h-8 min-h-[44px] text-[11px] gap-1 ${usedChannels.has(ch.key) ? "border-primary/30" : ""}`}
                       onClick={() => addStep(ch.key)}
                     >
                       <CIcon className={`h-3 w-3 ${cfg.color}`} />
