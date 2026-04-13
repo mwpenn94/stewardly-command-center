@@ -244,7 +244,7 @@ export default function BulkImport() {
                 </div>
                 <p className="text-[10px] text-muted-foreground">{source.description}</p>
                 <p className="text-[10px] text-muted-foreground/60">{source.tags}</p>
-                <Button variant="outline" size="sm" className="w-full h-7 text-[10px] gap-1" disabled>
+                <Button variant="outline" size="sm" className="w-full h-7 min-h-[44px] text-[10px] gap-1" disabled>
                   <ArrowUpCircle className="h-3 w-3" /> Import (CDN source configured)
                 </Button>
               </div>

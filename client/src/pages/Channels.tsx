@@ -212,7 +212,7 @@ export default function Channels() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-6 px-2 text-[10px] ml-auto"
+                                className="h-6 min-h-[44px] px-2 text-[10px] ml-auto"
                                 onClick={() => openConfig(ch)}
                               >
                                 <Settings2 className="h-3 w-3 mr-1" /> Configure

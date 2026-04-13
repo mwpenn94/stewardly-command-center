@@ -99,6 +99,8 @@
 | G87 | TypeScript zero errors | Done | 5 | 17 TS errors fixed: HealthScore object→.overall, activity.entries extraction, syncStats.byStatus parsing, SequenceStep expanded to 13 channels, template z.enum expanded, vite.config async wrapper, target ES2022, Channels/Campaigns typed channels | Pass 32 |
 | G88 | Orchestrator omnichannel type alignment | Done | 4 | SequenceStep interface expanded from 3 channels (email/sms/linkedin) to all 13, matching tRPC router schema | Pass 32 |
 | G89 | AI engine data access fix | Done | 3 | aiEngine.ts activity log access fixed (was treating {entries,total} as array), syncStats extraction fixed (was treating {total,byStatus,byPlatform} as Record<string,number>) | Pass 32 |
+| G90 | Mobile touch targets deep pass | Done | 4 | Integrations disconnect/configure buttons, Channels configure button, BulkImport CDN import button, Contacts pagination buttons — all now ≥44px via min-h-[44px] or h-11 | Pass 33 |
+| G91 | Contact detail channel grid mobile | Done | 2 | Channel reach summary grid changed from 3-col to 2-col on mobile (<640px) for 320px viewport readability | Pass 33 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -152,6 +154,8 @@
 - Template creation supports all 13 channels (z.enum expanded)
 - SequenceStep type aligned: orchestrator + tRPC router both accept all 13 channels
 - AI engine correctly accesses activity.entries and syncStats.byStatus
+- Integrations/Channels/BulkImport action buttons ≥44px touch targets
+- Contact detail channel reach grid: 2-col on mobile for 320px readability
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -196,4 +200,5 @@
 - Pass 29 · security + observability · G82-G83 done; z.any() replaced with typed schemas on 6 routes, campaign body min(1), dailyLimit bounded, channel config activity logging · dcba2ef · 2 items completed · G26 deferred
 - Pass 30 · dark/light mode visual consistency · G84 done; NotFound page themed, silver tier contrast fixed, Twitter/X sky-300→sky-500 across 5 pages · 830d22c · 1 item completed · G26 deferred
 - Pass 31 · responsive layout + mobile UX · G85 done; SyncEngine filters full-width on mobile, queue items wrap badges, retry 44px + isPending · PENDING · 1 item completed · G26 deferred
-- Pass 32 · correctness + build health · G86-G89 done; npm install fixed, 17 TS errors eliminated (zero errors), orchestrator/AI engine data access corrected, template+sequence channels expanded to 13, vite.config async · PENDING · 4 items completed · none deferred
+- Pass 32 · correctness + build health · G86-G89 done; npm install fixed, 17 TS errors eliminated (zero errors), orchestrator/AI engine data access corrected, template+sequence channels expanded to 13, vite.config async · efe340f · 4 items completed · none deferred
+- Pass 33 · mobile responsive + touch targets · G90-G91 done; 6 buttons fixed to ≥44px across 4 pages, contact detail grid 2-col on mobile · PENDING · 2 items completed · none deferred
