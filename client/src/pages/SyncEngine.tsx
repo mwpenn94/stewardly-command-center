@@ -10,6 +10,7 @@ import {
   Inbox, Play, Square, Zap, ArrowDownToLine, Mail, MessageSquare, Linkedin, Loader2
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import QueryError from "@/components/QueryError";
 
 const STATUS_CONFIG: Record<string, { color: string; bg: string }> = {
   pending: { color: "text-muted-foreground", bg: "bg-muted" },
@@ -31,7 +32,7 @@ export default function SyncEngine() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [platformFilter, setPlatformFilter] = useState("all");
 
-  const { data: queue, isLoading, refetch } = trpc.sync.queue.useQuery({
+  const { data: queue, isLoading, isError, refetch } = trpc.sync.queue.useQuery({
     status: statusFilter !== "all" ? statusFilter : undefined,
     platform: platformFilter !== "all" ? platformFilter : undefined,
   });
@@ -189,7 +190,9 @@ export default function SyncEngine() {
 
       {/* ─── Queue Items ─── */}
       <div className="space-y-2">
-        {isLoading ? (
+        {isError ? (
+          <QueryError message="Failed to load sync queue. Check your connection." onRetry={() => refetch()} />
+        ) : isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
             <Card key={i} className="bg-card border-border/50"><CardContent className="p-4"><div className="h-12 bg-muted/30 rounded animate-pulse" /></CardContent></Card>
           ))

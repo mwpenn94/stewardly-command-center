@@ -4,6 +4,17 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.9.0] - 2026-04-13
+
+### Added
+- **QueryError on 4 more pages** — SyncEngine, ActivityFeed, Channels, and Integrations now show retry-able error states when queries fail (total: 9 pages with QueryError)
+- **BulkImport mobile scroll hint** — Mobile-only helper text "Scroll horizontally to see more columns →" for CSV preview table
+
+### Fixed
+- **Touch targets** — Integrations disconnect/configure buttons, Channels configure button, BulkImport CDN import button, Contacts pagination buttons all now ≥44px on mobile
+- **Contact detail grid** — Channel reach summary grid changed from 3-col to 2-col on mobile for 320px viewport readability
+- **Unused imports** — Removed unused DialogTrigger (BulkImport, Contacts) and useEffect (Integrations)
+
 ## [1.8.0] - 2026-04-13
 
 ### Fixed

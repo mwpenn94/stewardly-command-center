@@ -424,6 +424,7 @@ export default function BulkImport() {
             </div>
 
             {/* Sample Rows */}
+            <p className="text-[10px] text-muted-foreground/60 sm:hidden mb-1">Scroll horizontally to see more columns →</p>
             <div className="max-h-40 overflow-auto border border-border/30 rounded">
               <table className="w-full text-[10px]">
                 <thead>

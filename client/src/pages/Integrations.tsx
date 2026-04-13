@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Plug, CheckCircle2, XCircle, AlertTriangle, Settings, Zap, Shield, Eye, EyeOff, Loader2, Trash2, Info } from "lucide-react";
+import QueryError from "@/components/QueryError";
 
 const PLATFORMS = [
   {
@@ -71,7 +72,7 @@ const STATUS_CONFIG: Record<string, { icon: any; color: string; label: string; d
 };
 
 export default function Integrations() {
-  const { data: integrations, isLoading, refetch } = trpc.integrations.list.useQuery();
+  const { data: integrations, isLoading, isError, refetch } = trpc.integrations.list.useQuery();
   const upsertMut = trpc.integrations.upsert.useMutation({
     onSuccess: () => { refetch(); toast.success("Integration saved"); },
     onError: (err) => toast.error(err.message),
@@ -214,6 +215,9 @@ export default function Integrations() {
         </Alert>
       )}
 
+      {isError ? (
+        <QueryError message="Failed to load integrations. Check your connection." onRetry={() => refetch()} />
+      ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {PLATFORMS.map((platform) => {
           const integration = integrations?.find((i: any) => i.platform === platform.id);
@@ -277,6 +281,7 @@ export default function Integrations() {
           );
         })}
       </div>
+      )}
 
       {/* How it works */}
       <Card className="bg-card/50 border-border/30">

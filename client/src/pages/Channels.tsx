@@ -15,6 +15,7 @@ import {
   Send, Settings2, Zap, CheckCircle2, XCircle, Loader2
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import QueryError from "@/components/QueryError";
 
 type ChannelKey = "email" | "sms" | "linkedin" | "social_facebook" | "social_instagram" | "social_twitter" | "social_tiktok" | "call_inbound" | "call_outbound" | "direct_mail" | "webform" | "chat" | "event";
 
@@ -100,7 +101,7 @@ const CHANNELS: ChannelDef[] = [
 const CATEGORIES = ["Messaging", "Social", "Voice", "Physical", "Inbound", "Events"];
 
 export default function Channels() {
-  const { data: configs, isLoading, refetch } = trpc.channels.list.useQuery();
+  const { data: configs, isLoading, isError, refetch } = trpc.channels.list.useQuery();
   const upsertChannel = trpc.channels.upsert.useMutation({
     onSuccess: () => { refetch(); toast.success("Channel updated"); },
     onError: (err) => toast.error(err.message),
@@ -160,7 +161,9 @@ export default function Channels() {
         </Badge>
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <QueryError message="Failed to load channel configs. Check your connection." onRetry={() => refetch()} />
+      ) : isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i} className="bg-card border-border/50 animate-pulse">

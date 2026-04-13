@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Activity, RefreshCw, Bell } from "lucide-react";
+import QueryError from "@/components/QueryError";
 import { formatDistanceToNow, format } from "date-fns";
 
 const SEVERITY_CONFIG: Record<string, { dot: string; text: string }> = {
@@ -22,7 +23,7 @@ export default function ActivityFeed() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [severityFilter, setSeverityFilter] = useState("all");
 
-  const { data, isLoading, refetch } = trpc.activity.list.useQuery({
+  const { data, isLoading, isError, refetch } = trpc.activity.list.useQuery({
     type: typeFilter !== "all" ? typeFilter : undefined,
     limit: 50,
   });
@@ -73,7 +74,9 @@ export default function ActivityFeed() {
         <div className="absolute left-[15px] top-0 bottom-0 w-px bg-border/30" />
 
         <div className="space-y-1">
-          {isLoading ? (
+          {isError ? (
+            <QueryError message="Failed to load activity feed. Check your connection." onRetry={() => refetch()} />
+          ) : isLoading ? (
             Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="pl-10 py-3">
                 <div className="h-10 bg-muted/20 rounded animate-pulse" />
