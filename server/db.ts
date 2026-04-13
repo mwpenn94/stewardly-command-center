@@ -232,6 +232,41 @@ export async function deleteCampaign(id: number, userId: number) {
   await db.delete(campaigns).where(and(eq(campaigns.id, id), eq(campaigns.userId, userId)));
 }
 
+export async function getCampaignById(id: number, userId: number): Promise<Campaign | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(campaigns).where(and(eq(campaigns.id, id), eq(campaigns.userId, userId))).limit(1);
+  return rows[0] || null;
+}
+
+export async function getInteractionsByCampaign(userId: number, campaignId: number, opts?: {
+  channel?: string; limit?: number; offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return { interactions: [], total: 0 };
+  const conditions = [eq(contactInteractions.userId, userId), eq(contactInteractions.campaignId, campaignId)];
+  if (opts?.channel && opts.channel !== "all") conditions.push(eq(contactInteractions.channel, opts.channel as any));
+  const where = and(...conditions);
+  const [rows, totalResult] = await Promise.all([
+    db.select().from(contactInteractions).where(where).orderBy(desc(contactInteractions.createdAt)).limit(opts?.limit || 50).offset(opts?.offset || 0),
+    db.select({ count: count() }).from(contactInteractions).where(where),
+  ]);
+  return { interactions: rows, total: totalResult[0]?.count || 0 };
+}
+
+export async function getCampaignInteractionStats(userId: number, campaignId: number) {
+  const db = await getDb();
+  if (!db) return { total: 0, byChannel: [], byType: [], byDirection: [] };
+  const where = and(eq(contactInteractions.userId, userId), eq(contactInteractions.campaignId, campaignId));
+  const [total, byChannel, byType, byDirection] = await Promise.all([
+    db.select({ count: count() }).from(contactInteractions).where(where),
+    db.select({ channel: contactInteractions.channel, count: count() }).from(contactInteractions).where(where).groupBy(contactInteractions.channel),
+    db.select({ type: contactInteractions.type, count: count() }).from(contactInteractions).where(where).groupBy(contactInteractions.type),
+    db.select({ direction: contactInteractions.direction, count: count() }).from(contactInteractions).where(where).groupBy(contactInteractions.direction),
+  ]);
+  return { total: total[0]?.count || 0, byChannel, byType, byDirection };
+}
+
 // ─── Campaign Templates ─────────────────────────────────────────────────────
 export async function getTemplates(userId: number, channel?: string) {
   const db = await getDb();
@@ -279,13 +314,6 @@ export async function getSyncStats(userId: number) {
     db.select({ platform: syncQueue.platform, count: count() }).from(syncQueue).where(eq(syncQueue.userId, userId)).groupBy(syncQueue.platform),
   ]);
   return { total: total[0]?.count || 0, byStatus, byPlatform };
-}
-
-export async function addToSyncQueue(data: InsertSyncQueueItem) {
-  const db = await getDb();
-  if (!db) return null;
-  const result = await db.insert(syncQueue).values(data);
-  return result[0].insertId;
 }
 
 export async function retrySyncItem(id: number) {

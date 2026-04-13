@@ -662,6 +662,15 @@ export const appRouter = router({
         await db.deleteCampaign(input.id, ctx.user.id);
         return { success: true };
       }),
+    get: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const campaign = await db.getCampaignById(input.id, ctx.user.id);
+        if (!campaign) throw new Error("Campaign not found");
+        // Get interaction stats for this campaign
+        const interactionStats = await db.getCampaignInteractionStats(ctx.user.id, input.id);
+        return { ...campaign, interactionStats };
+      }),
   }),
 
   // ─── Templates ───────────────────────────────────────────────────────
@@ -1140,6 +1149,17 @@ export const appRouter = router({
       .input(z.object({ contactId: z.number().optional() }).optional())
       .query(async ({ ctx, input }) => {
         return db.getInteractionStats(ctx.user.id, input?.contactId);
+      }),
+
+    byCampaign: protectedProcedure
+      .input(z.object({
+        campaignId: z.number(),
+        channel: z.string().optional(),
+        limit: z.number().min(1).max(200).optional(),
+        offset: z.number().min(0).optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        return db.getInteractionsByCampaign(ctx.user.id, input.campaignId, input);
       }),
 
     crossChannelMetrics: protectedProcedure.query(async ({ ctx }) => {

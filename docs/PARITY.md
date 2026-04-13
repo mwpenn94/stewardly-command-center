@@ -28,7 +28,7 @@
 | G16 | Toast notification system | Done | 4 | Sonner toasts on all CRUD operations | legacy |
 | G17 | Skeleton loading states | Done | 3 | Skeleton loaders on tables, cards, lists | legacy |
 | G18 | Authentication flow | Done | 3 | Cookie-based auth, login redirect, role-based access | legacy |
-| G19 | tRPC API layer (73 procedures) | Done | 5 | Full type-safe API: contacts, campaigns, sync, integrations, channels, interactions, AI (67 core + 6 AI) | legacy + Pass 18 + 25 |
+| G19 | tRPC API layer (74 procedures) | Done | 5 | Full type-safe API: contacts, campaigns, sync, integrations, channels, interactions, AI (60 core + 6 AI + 8 omnichannel) | legacy + Pass 18 + 25 + 37 |
 | G20 | Database schema (9 tables + migrations) | Done | 4 | Drizzle ORM, MySQL/TiDB, migration-first workflow | legacy |
 | G21 | Multi-platform campaign orchestration | Done | 3 | Orchestrator: sequences, health checks, pause/resume/cancel | legacy |
 | G22 | Test suite (10 files, 3 tiers) | Done | 4 | Unit + integration + live E2E across 10 files | legacy |
@@ -106,6 +106,11 @@
 | G94 | QueryError on SyncEngine, ActivityFeed, Channels, Integrations | Done | 4 | 4 more pages now show retry-able error state when queries fail; total 9 pages with QueryError coverage | Pass 35 |
 | G95 | BulkImport CSV preview mobile scroll hint | Done | 2 | Mobile-only hint text "Scroll horizontally to see more columns →" for CSV preview table | Pass 35 |
 | G96 | Contact interaction logging | Done | 4 | "Log Interaction" button on contact timeline tab; inline form with channel selector (13 channels), direction toggle, body text; auto-maps channel to interaction type; creates via tRPC interactions.create | Pass 36 |
+| G97 | Campaign Detail view | Done | 4 | Click campaign name → detail dialog with Overview tab (audience/sent/failed/interactions metrics, channel breakdown, type breakdown, direction stats, timestamps) and Timeline tab (campaign interaction history with channel icons, sentiment, direction badges) | Pass 37 |
+| G98 | Campaign interaction tracking backend | Done | 4 | New tRPC procedures: campaigns.get (single campaign + interaction stats), interactions.byCampaign (filtered by campaignId); new DB functions: getCampaignById, getInteractionsByCampaign, getCampaignInteractionStats | Pass 37 |
+| G99 | Dead code removal — addToSyncQueue | Done | 2 | Removed unused addToSyncQueue function from db.ts (was never called from any router or service) | Pass 37 |
+| G100 | Documentation accuracy — procedure count + line counts | Done | 3 | All docs updated: 74 procedures (was 73), corrected line counts across README, ARCHITECTURE, DOCUMENTATION for all pages + services | Pass 37 |
+| G101 | Campaign metrics typed | Done | 2 | Campaign metrics changed from `any` to `Record<string, unknown>` in Campaigns.tsx — eliminates last page-level `any` type | Pass 37 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -164,6 +169,9 @@
 - No unused imports in page-level components (DialogTrigger, useEffect cleaned)
 - QueryError on 9 pages: Home, Analytics, Campaigns, Contacts, AIInsights, SyncEngine, ActivityFeed, Channels, Integrations
 - Contact timeline "Log Interaction" with channel selection, direction, and body
+- Campaign Detail dialog: overview metrics + interaction timeline, accessible via campaign name click
+- Campaign-level interaction tracking: campaigns.get returns interaction stats, interactions.byCampaign returns filtered timeline
+- Documentation accuracy: 74 procedures, verified line counts for all source files
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -213,3 +221,4 @@
 - Pass 34 · dead code + test coverage + unused imports · G92-G93 done; removed 3 unused imports, identified 3 orphaned dev components, verified 142/203 tests pass (25 live-only failures expected), docs updated · f6842e7 · 2 items completed · none deferred
 - Pass 35 · input validation + error states · G94-G95 done; QueryError added to 4 more pages (9 total), BulkImport CSV preview mobile scroll hint · ce2805d · 2 items completed · none deferred
 - Pass 36 · contact interaction logging + unified timeline · G96 done; "Log Interaction" feature on contact detail timeline with 13-channel select, direction toggle, auto-typed mutations · PENDING · 1 item completed · none deferred
+- Pass 37 · functional gaps + documentation accuracy + campaign detail · G97-G101 done; campaign detail dialog with overview+timeline, campaigns.get+interactions.byCampaign tRPC, dead code removed, metrics type fixed, all docs updated with accurate counts (74 procedures) · PENDING · 5 items completed · none deferred

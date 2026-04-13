@@ -4,6 +4,18 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.0] - 2026-04-13
+
+### Added
+- **Campaign Detail view** — Click any campaign name to open a detail dialog with two tabs: Overview (audience/sent/failed/interactions metrics, per-channel interaction breakdown, type breakdown, direction stats, timestamps) and Timeline (chronological campaign interaction history with channel icons, sentiment badges, direction indicators)
+- **Campaign interaction tracking backend** — New `campaigns.get` tRPC procedure returns single campaign with aggregated interaction stats (by channel, type, direction); new `interactions.byCampaign` procedure returns interactions filtered by campaign ID; 3 new DB functions: `getCampaignById`, `getInteractionsByCampaign`, `getCampaignInteractionStats`
+- **Campaign name clickable** — Campaign list items now have clickable names (hover underline, keyboard accessible) that open the detail dialog
+
+### Fixed
+- **Campaign metrics type** — Changed from `any` to `Record<string, unknown>` in Campaigns.tsx, eliminating the last page-level `any` type
+- **Dead code** — Removed unused `addToSyncQueue` function from db.ts (was defined but never called)
+- **Documentation accuracy** — All docs updated with verified counts: 74 tRPC procedures (was 73), corrected line counts across README (pages, services), ARCHITECTURE (custom components, services), DOCUMENTATION (procedures)
+
 ## [1.9.0] - 2026-04-13
 
 ### Added
