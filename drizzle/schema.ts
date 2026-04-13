@@ -108,7 +108,12 @@ export const campaigns = mysqlTable("campaigns", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   name: varchar("name", { length: 256 }).notNull(),
-  channel: mysqlEnum("channel", ["email", "sms", "linkedin", "multi"]).notNull(),
+  channel: mysqlEnum("channel", [
+    "email", "sms", "linkedin", "multi",
+    "social_facebook", "social_instagram", "social_twitter", "social_tiktok",
+    "call_inbound", "call_outbound", "direct_mail",
+    "webform", "chat", "event"
+  ]).notNull(),
   status: mysqlEnum("status", ["draft", "scheduled", "running", "paused", "completed", "failed"]).default("draft").notNull(),
   templateId: int("templateId"),
   audienceFilter: json("audienceFilter"), // filter criteria
@@ -129,7 +134,12 @@ export const campaignTemplates = mysqlTable("campaign_templates", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
   name: varchar("name", { length: 256 }).notNull(),
-  channel: mysqlEnum("channel", ["email", "sms", "linkedin"]).notNull(),
+  channel: mysqlEnum("channel", [
+    "email", "sms", "linkedin",
+    "social_facebook", "social_instagram", "social_twitter", "social_tiktok",
+    "call_inbound", "call_outbound", "direct_mail",
+    "webform", "chat", "event"
+  ]).notNull(),
   subject: varchar("subject", { length: 512 }),
   body: text("body"),
   variables: json("variables"), // string[] of merge fields
@@ -203,3 +213,68 @@ export const backups = mysqlTable("backups", {
 
 export type Backup = typeof backups.$inferSelect;
 export type InsertBackup = typeof backups.$inferInsert;
+
+// ─── Contact Interactions (Unified Cross-Channel Timeline) ──────────────────
+export const contactInteractions = mysqlTable("contact_interactions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  contactId: int("contactId").notNull(),
+  channel: mysqlEnum("channel", [
+    "email", "sms", "linkedin",
+    "social_facebook", "social_instagram", "social_twitter", "social_tiktok",
+    "call_inbound", "call_outbound", "direct_mail",
+    "webform", "chat", "event"
+  ]).notNull(),
+  direction: mysqlEnum("direction", ["inbound", "outbound"]).notNull(),
+  type: mysqlEnum("type", [
+    "message_sent", "message_received", "message_opened", "message_clicked",
+    "call_made", "call_received", "call_missed", "voicemail_left",
+    "form_submitted", "page_visited", "chat_started", "chat_message",
+    "event_registered", "event_attended", "event_missed",
+    "connection_sent", "connection_accepted", "profile_viewed",
+    "mail_sent", "mail_delivered", "mail_returned",
+    "post_published", "post_engaged", "dm_sent", "dm_received"
+  ]).notNull(),
+  subject: varchar("subject", { length: 512 }),
+  body: text("body"),
+  metadata: json("metadata"), // flexible: call duration, open count, click urls, etc.
+  campaignId: int("campaignId"),
+  platform: varchar("platform", { length: 64 }), // ghl, smsit, dripify, twilio, etc.
+  externalId: varchar("externalId", { length: 256 }), // id from external platform
+  sentiment: mysqlEnum("sentiment", ["positive", "neutral", "negative"]),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, (table) => [
+  index("idx_interactions_contactId").on(table.contactId),
+  index("idx_interactions_channel").on(table.channel),
+  index("idx_interactions_userId").on(table.userId),
+  index("idx_interactions_campaignId").on(table.campaignId),
+]);
+
+export type ContactInteraction = typeof contactInteractions.$inferSelect;
+export type InsertContactInteraction = typeof contactInteractions.$inferInsert;
+
+// ─── Channel Configurations ─────────────────────────────────────────────────
+export const channelConfigs = mysqlTable("channel_configs", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  channel: mysqlEnum("channel", [
+    "email", "sms", "linkedin",
+    "social_facebook", "social_instagram", "social_twitter", "social_tiktok",
+    "call_inbound", "call_outbound", "direct_mail",
+    "webform", "chat", "event"
+  ]).notNull(),
+  enabled: boolean("enabled").default(false).notNull(),
+  provider: varchar("provider", { length: 128 }), // ghl, smsit, dripify, twilio, lob, etc.
+  config: json("config"), // provider-specific configuration
+  dailyLimit: int("dailyLimit"),
+  monthlyBudget: decimal("monthlyBudget", { precision: 10, scale: 2 }),
+  status: mysqlEnum("status", ["active", "inactive", "error"]).default("inactive").notNull(),
+  lastActivityAt: timestamp("lastActivityAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+}, (table) => [
+  uniqueIndex("idx_channel_user_channel").on(table.userId, table.channel),
+]);
+
+export type ChannelConfig = typeof channelConfigs.$inferSelect;
+export type InsertChannelConfig = typeof channelConfigs.$inferInsert;

@@ -4,6 +4,19 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.0] - 2026-04-13
+
+### Added
+- **Omnichannel expansion (13 channels)** — Schema, campaigns, templates, and sequences now support all channels: Email, SMS, LinkedIn, Facebook, Instagram, Twitter/X, TikTok, Inbound Calls, Outbound Calls, Direct Mail, Webforms/Landing Pages, Chat/Webchat, Events/Webinars
+- **Contact interaction tracking** — New `contact_interactions` table with 25 interaction types (messages, calls, forms, events, social), direction (inbound/outbound), sentiment tracking, campaign linkage, and platform attribution
+- **Channel configuration system** — New `channel_configs` table with per-channel enable/disable, provider assignment, daily limits, monthly budgets, and status tracking
+- **Unified contact timeline** — Contact detail dialog now has 3-tab layout (Info / Timeline / Channels) showing cross-channel interaction history with channel icons, direction indicators, sentiment badges, and relative timestamps
+- **Dashboard omnichannel overview** — New 13-channel grid on dashboard showing per-channel interaction counts with live data, total interactions badge, and auto-refresh every 2 minutes
+- **Campaign Studio all-channel support** — Create campaigns and sequences across all 13 channels; platform health indicators expanded to show 5 providers (GHL, SMS-iT, Dripify, Direct Mail, Voice/Calls)
+- **Analytics all-channel expansion** — Per-channel metrics now cover all 13 channels; only channels with data shown (plus core 3 always visible)
+- **7 new tRPC procedures** — `interactions.list`, `interactions.create`, `interactions.stats`, `interactions.crossChannelMetrics`, `channels.list`, `channels.upsert`, `channels.get`
+- **DB layer functions** — `getContactInteractions`, `createInteraction`, `getInteractionStats`, `getCrossChannelMetrics`, `getChannelConfigs`, `upsertChannelConfig`, `getChannelConfig`
+
 ## [1.1.0] - 2026-04-13
 
 ### Added

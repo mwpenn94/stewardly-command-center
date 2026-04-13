@@ -1007,7 +1007,12 @@ export const appRouter = router({
       .input(z.object({
         name: z.string(),
         steps: z.array(z.object({
-          channel: z.enum(["email", "sms", "linkedin"]),
+          channel: z.enum([
+            "email", "sms", "linkedin",
+            "social_facebook", "social_instagram", "social_twitter", "social_tiktok",
+            "call_inbound", "call_outbound", "direct_mail",
+            "webform", "chat", "event"
+          ]),
           subject: z.string().optional(),
           body: z.string(),
           delayMs: z.number().min(0),
@@ -1071,6 +1076,94 @@ export const appRouter = router({
     webhook: publicProcedure
       .input(z.object({ platform: z.string(), payload: z.any() }))
       .mutation(({ input }) => syncScheduler.processWebhook(input.platform, input.payload)),
+  }),
+
+  // ─── Contact Interactions (Unified Cross-Channel Timeline) ──────────
+  interactions: router({
+    list: protectedProcedure
+      .input(z.object({
+        contactId: z.number(),
+        channel: z.string().optional(),
+        limit: z.number().min(1).max(200).optional(),
+        offset: z.number().min(0).optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        return db.getContactInteractions(ctx.user.id, input.contactId, input);
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        contactId: z.number(),
+        channel: z.enum([
+          "email", "sms", "linkedin",
+          "social_facebook", "social_instagram", "social_twitter", "social_tiktok",
+          "call_inbound", "call_outbound", "direct_mail",
+          "webform", "chat", "event"
+        ]),
+        direction: z.enum(["inbound", "outbound"]),
+        type: z.enum([
+          "message_sent", "message_received", "message_opened", "message_clicked",
+          "call_made", "call_received", "call_missed", "voicemail_left",
+          "form_submitted", "page_visited", "chat_started", "chat_message",
+          "event_registered", "event_attended", "event_missed",
+          "connection_sent", "connection_accepted", "profile_viewed",
+          "mail_sent", "mail_delivered", "mail_returned",
+          "post_published", "post_engaged", "dm_sent", "dm_received"
+        ]),
+        subject: z.string().optional(),
+        body: z.string().optional(),
+        metadata: z.any().optional(),
+        campaignId: z.number().optional(),
+        platform: z.string().optional(),
+        externalId: z.string().optional(),
+        sentiment: z.enum(["positive", "neutral", "negative"]).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const id = await db.createInteraction({ ...input, userId: ctx.user.id });
+        return { id };
+      }),
+
+    stats: protectedProcedure
+      .input(z.object({ contactId: z.number().optional() }).optional())
+      .query(async ({ ctx, input }) => {
+        return db.getInteractionStats(ctx.user.id, input?.contactId);
+      }),
+
+    crossChannelMetrics: protectedProcedure.query(async ({ ctx }) => {
+      return db.getCrossChannelMetrics(ctx.user.id);
+    }),
+  }),
+
+  // ─── Channel Configuration ─────────────────────────────────────────
+  channels: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return db.getChannelConfigs(ctx.user.id);
+    }),
+
+    upsert: protectedProcedure
+      .input(z.object({
+        channel: z.enum([
+          "email", "sms", "linkedin",
+          "social_facebook", "social_instagram", "social_twitter", "social_tiktok",
+          "call_inbound", "call_outbound", "direct_mail",
+          "webform", "chat", "event"
+        ]),
+        enabled: z.boolean(),
+        provider: z.string().optional(),
+        config: z.any().optional(),
+        dailyLimit: z.number().optional(),
+        monthlyBudget: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await db.upsertChannelConfig({ ...input, userId: ctx.user.id });
+        return { success: true };
+      }),
+
+    get: protectedProcedure
+      .input(z.object({ channel: z.string() }))
+      .query(async ({ ctx, input }) => {
+        return db.getChannelConfig(ctx.user.id, input.channel);
+      }),
   }),
 
   // ─── AI / Agentic Continuous Improvement Engine ─────────────────────

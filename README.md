@@ -1,11 +1,12 @@
 # Stewardly Command Center
 
-A full-stack marketing operations platform that unifies contact management, multi-platform campaign orchestration, and data synchronization across GoHighLevel (GHL), SMS-iT, and Dripify — all in one responsive, theme-switchable application.
+A unified omnichannel marketing command center that orchestrates campaigns, contacts, and data across 13 channels and 5+ platforms — Email, SMS, LinkedIn, Social Media (Facebook, Instagram, Twitter/X, TikTok), Inbound/Outbound Calls, Direct Mail, Webforms, Chat/Webchat, and Events/Webinars — all in one responsive, theme-switchable application.
 
 ## Features
 
 ### Dashboard
 - 4 KPI cards: Total Contacts, Active Campaigns, Sync Queue, Connected Platforms
+- **Omnichannel Overview** — 13-channel grid showing per-channel interaction counts with live data
 - Contact segment breakdown with distribution percentages
 - Recent activity feed with severity indicators and click-to-navigate
 - Live platform health monitoring (GHL, SMS-iT, Dripify)
@@ -16,15 +17,16 @@ A full-stack marketing operations platform that unifies contact management, mult
 - Searchable, filterable contact table with pagination (desktop)
 - Touch-friendly card layout on mobile (<768px)
 - Full CRUD with segment and tier assignment
-- Contact detail modal with platform connection status, tags, and classification
-- Platform sync indicators (GHL, SMS-iT, LinkedIn)
+- **Unified contact detail** — 3-tab dialog: Info (fields/classification/tags), Timeline (cross-channel interaction history), Channels (platform connections + channel reach summary)
+- Cross-channel interaction timeline with 25 interaction types, direction indicators, and sentiment analysis
+- Platform sync indicators (GHL, SMS-iT, LinkedIn) + 13-channel reach summary
 - Form validation: required fields, email format, phone format
 
 ### Campaign Studio
-- **Campaigns tab** — Create, launch, and track campaigns across Email (GHL), SMS (SMS-iT), and LinkedIn (Dripify)
-- **Sequences tab** — Multi-step, multi-platform outreach automation with delays and step progress
-- **Templates tab** — Reusable message templates per channel
-- Platform health indicators showing connection status
+- **Campaigns tab** — Create, launch, and track campaigns across all 13 channels: Email, SMS, LinkedIn, Facebook, Instagram, Twitter/X, TikTok, Inbound/Outbound Calls, Direct Mail, Webforms, Chat, Events
+- **Sequences tab** — Multi-step, multi-channel outreach automation across any combination of channels with configurable delays
+- **Templates tab** — Reusable message templates for any channel
+- Platform health indicators showing 5 provider connection statuses (GHL, SMS-iT, Dripify, Direct Mail, Voice)
 - All dialogs have explicit Cancel buttons
 
 ### Bulk Import

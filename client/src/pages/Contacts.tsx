@@ -7,9 +7,47 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
-import { Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Tag, X, Users, RefreshCw, ExternalLink, Mail, Phone, Building2, MapPin, Eye } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+
+const TIMELINE_CHANNEL_ICONS: Record<string, any> = {
+  email: Mail,
+  sms: MessageSquare,
+  linkedin: Linkedin,
+  social_facebook: Facebook,
+  social_instagram: Instagram,
+  social_twitter: Twitter,
+  social_tiktok: Video,
+  call_inbound: PhoneIncoming,
+  call_outbound: PhoneOutgoing,
+  direct_mail: Send,
+  webform: Globe,
+  chat: MessageCircle,
+  event: Calendar,
+};
+const TIMELINE_CHANNEL_COLORS: Record<string, string> = {
+  email: "text-blue-400 bg-blue-500/10",
+  sms: "text-emerald-400 bg-emerald-500/10",
+  linkedin: "text-sky-400 bg-sky-500/10",
+  social_facebook: "text-blue-500 bg-blue-500/10",
+  social_instagram: "text-pink-400 bg-pink-500/10",
+  social_twitter: "text-sky-300 bg-sky-300/10",
+  social_tiktok: "text-fuchsia-400 bg-fuchsia-500/10",
+  call_inbound: "text-green-400 bg-green-500/10",
+  call_outbound: "text-orange-400 bg-orange-500/10",
+  direct_mail: "text-amber-400 bg-amber-500/10",
+  webform: "text-indigo-400 bg-indigo-500/10",
+  chat: "text-teal-400 bg-teal-500/10",
+  event: "text-rose-400 bg-rose-500/10",
+};
+import {
+  Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Tag, X, Users, RefreshCw,
+  ExternalLink, Mail, Phone, Building2, MapPin, Eye, MessageSquare, Linkedin, Clock,
+  PhoneIncoming, PhoneOutgoing, Globe, MessageCircle, Calendar, Facebook, Instagram,
+  Twitter, Video, Send, ArrowDownLeft, ArrowUpRight
+} from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
 const SEGMENTS = ["all", "residential", "commercial", "agricultural", "cpa_tax", "estate_attorney", "hr_benefits", "insurance", "nonprofit", "other"];
@@ -369,7 +407,7 @@ export default function Contacts() {
       </Dialog>
       {/* Contact Detail Dialog */}
       <Dialog open={!!detailContact} onOpenChange={(o) => { if (!o) setDetailContact(null); }}>
-        <DialogContent className="sm:max-w-lg bg-card max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl bg-card max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-foreground flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium shrink-0">
@@ -384,62 +422,83 @@ export default function Contacts() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
-            {/* Contact Info */}
-            <div className="space-y-2">
-              {detailContact?.email && (
-                <div className="flex items-center gap-3 min-h-[36px]">
-                  <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <a href={`mailto:${detailContact.email}`} className="text-sm text-foreground hover:text-primary transition-colors truncate">
-                    {detailContact.email}
-                  </a>
+          <Tabs defaultValue="info" className="w-full">
+            <TabsList className="w-full bg-muted/30">
+              <TabsTrigger value="info" className="flex-1">Info</TabsTrigger>
+              <TabsTrigger value="timeline" className="flex-1">Timeline</TabsTrigger>
+              <TabsTrigger value="channels" className="flex-1">Channels</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="info" className="space-y-4 py-2">
+              {/* Contact Info */}
+              <div className="space-y-2">
+                {detailContact?.email && (
+                  <div className="flex items-center gap-3 min-h-[36px]">
+                    <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <a href={`mailto:${detailContact.email}`} className="text-sm text-foreground hover:text-primary transition-colors truncate">
+                      {detailContact.email}
+                    </a>
+                  </div>
+                )}
+                {detailContact?.phone && (
+                  <div className="flex items-center gap-3 min-h-[36px]">
+                    <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <a href={`tel:${detailContact.phone}`} className="text-sm text-foreground hover:text-primary transition-colors">
+                      {detailContact.phone}
+                    </a>
+                  </div>
+                )}
+                {(detailContact?.address || detailContact?.city) && (
+                  <div className="flex items-center gap-3 min-h-[36px]">
+                    <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="text-sm text-foreground">
+                      {[detailContact.address, detailContact.city, detailContact.state, detailContact.postalCode].filter(Boolean).join(", ")}
+                    </span>
+                  </div>
+                )}
+              </div>
+              <Separator />
+              {/* Classification */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-lg bg-muted/10">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Segment</p>
+                  <Badge variant="outline" className="text-xs capitalize">{SEGMENT_LABELS[detailContact?.segment] || detailContact?.segment || "—"}</Badge>
                 </div>
-              )}
-              {detailContact?.phone && (
-                <div className="flex items-center gap-3 min-h-[36px]">
-                  <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <a href={`tel:${detailContact.phone}`} className="text-sm text-foreground hover:text-primary transition-colors">
-                    {detailContact.phone}
-                  </a>
+                <div className="p-3 rounded-lg bg-muted/10">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Tier</p>
+                  <Badge className={`text-xs capitalize ${TIER_COLORS[detailContact?.tier] || TIER_COLORS.unscored}`}>{detailContact?.tier || "unscored"}</Badge>
                 </div>
-              )}
-              {(detailContact?.address || detailContact?.city) && (
-                <div className="flex items-center gap-3 min-h-[36px]">
-                  <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <span className="text-sm text-foreground">
-                    {[detailContact.address, detailContact.city, detailContact.state, detailContact.postalCode].filter(Boolean).join(", ")}
-                  </span>
+                <div className="p-3 rounded-lg bg-muted/10">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Score</p>
+                  <p className="text-sm font-medium text-foreground tabular-nums">{detailContact?.propensityScore || detailContact?.overallScore || "—"}</p>
                 </div>
+                <div className="p-3 rounded-lg bg-muted/10">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Sync Status</p>
+                  <p className="text-sm font-medium text-foreground capitalize">{detailContact?.syncStatus || "unknown"}</p>
+                </div>
+              </div>
+              {/* Tags */}
+              {detailContact?.tags && (
+                <>
+                  <Separator />
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Tags</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(typeof detailContact.tags === "string" ? JSON.parse(detailContact.tags) : detailContact.tags).map((tag: string) => (
+                        <Badge key={tag} variant="outline" className="text-[10px]">{tag}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                </>
               )}
-            </div>
+            </TabsContent>
 
-            <Separator />
+            <TabsContent value="timeline" className="py-2">
+              <ContactTimeline contactId={detailContact?.id} />
+            </TabsContent>
 
-            {/* Classification */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-lg bg-muted/10">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Segment</p>
-                <Badge variant="outline" className="text-xs capitalize">{SEGMENT_LABELS[detailContact?.segment] || detailContact?.segment || "—"}</Badge>
-              </div>
-              <div className="p-3 rounded-lg bg-muted/10">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Tier</p>
-                <Badge className={`text-xs capitalize ${TIER_COLORS[detailContact?.tier] || TIER_COLORS.unscored}`}>{detailContact?.tier || "unscored"}</Badge>
-              </div>
-              <div className="p-3 rounded-lg bg-muted/10">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Score</p>
-                <p className="text-sm font-medium text-foreground tabular-nums">{detailContact?.propensityScore || detailContact?.overallScore || "—"}</p>
-              </div>
-              <div className="p-3 rounded-lg bg-muted/10">
-                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Sync Status</p>
-                <p className="text-sm font-medium text-foreground capitalize">{detailContact?.syncStatus || "unknown"}</p>
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Platform Connections */}
-            <div>
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Platform Connections</p>
+            <TabsContent value="channels" className="py-2">
+              {/* Platform Connections */}
               <div className="space-y-2">
                 <div className={`flex items-center gap-3 p-2.5 rounded-lg border ${detailContact?.ghlContactId ? "border-blue-500/20 bg-blue-500/5" : "border-border/30 bg-muted/5"}`}>
                   <div className={`h-2 w-2 rounded-full ${detailContact?.ghlContactId ? "bg-blue-400" : "bg-muted-foreground/30"}`} />
@@ -447,6 +506,7 @@ export default function Contacts() {
                     <p className="text-xs font-medium text-foreground">GoHighLevel</p>
                     <p className="text-[10px] text-muted-foreground truncate">{detailContact?.ghlContactId ? `ID: ${detailContact.ghlContactId}` : "Not synced"}</p>
                   </div>
+                  <Badge variant="outline" className="text-[10px]">Email, Calls, Social, Forms, Chat</Badge>
                 </div>
                 <div className={`flex items-center gap-3 p-2.5 rounded-lg border ${detailContact?.phone ? "border-emerald-500/20 bg-emerald-500/5" : "border-border/30 bg-muted/5"}`}>
                   <div className={`h-2 w-2 rounded-full ${detailContact?.phone ? "bg-emerald-400" : "bg-muted-foreground/30"}`} />
@@ -454,6 +514,7 @@ export default function Contacts() {
                     <p className="text-xs font-medium text-foreground">SMS-iT</p>
                     <p className="text-[10px] text-muted-foreground">{detailContact?.phone ? "Ready (has phone)" : "No phone number"}</p>
                   </div>
+                  <Badge variant="outline" className="text-[10px]">SMS/MMS</Badge>
                 </div>
                 <div className={`flex items-center gap-3 p-2.5 rounded-lg border ${detailContact?.linkedinUrl ? "border-sky-500/20 bg-sky-500/5" : "border-border/30 bg-muted/5"}`}>
                   <div className={`h-2 w-2 rounded-full ${detailContact?.linkedinUrl ? "bg-sky-400" : "bg-muted-foreground/30"}`} />
@@ -461,25 +522,31 @@ export default function Contacts() {
                     <p className="text-xs font-medium text-foreground">LinkedIn / Dripify</p>
                     <p className="text-[10px] text-muted-foreground truncate">{detailContact?.linkedinUrl || detailContact?.dripifyProfileUrl || "Not connected"}</p>
                   </div>
+                  <Badge variant="outline" className="text-[10px]">LinkedIn</Badge>
                 </div>
               </div>
-            </div>
-
-            {/* Tags */}
-            {detailContact?.tags && (
-              <>
-                <Separator />
-                <div>
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Tags</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {(typeof detailContact.tags === "string" ? JSON.parse(detailContact.tags) : detailContact.tags).map((tag: string) => (
-                      <Badge key={tag} variant="outline" className="text-[10px]">{tag}</Badge>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+              <Separator className="my-3" />
+              <p className="text-xs text-muted-foreground mb-2">Channel Reach Summary</p>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {Object.entries(TIMELINE_CHANNEL_ICONS).map(([channel, Icon]) => {
+                  const colors = TIMELINE_CHANNEL_COLORS[channel] || "text-muted-foreground bg-muted/10";
+                  const [textColor, bgColor] = colors.split(" ");
+                  const reachable = (channel === "email" && detailContact?.email) ||
+                    (channel === "sms" && detailContact?.phone) ||
+                    (channel === "linkedin" && (detailContact?.linkedinUrl || detailContact?.dripifyProfileUrl)) ||
+                    channel === "webform" || channel === "chat" || channel === "event";
+                  return (
+                    <div key={channel} className={`flex items-center gap-1.5 p-2 rounded-lg border ${reachable ? "border-border/40" : "border-border/20 opacity-40"}`}>
+                      <div className={`h-5 w-5 rounded flex items-center justify-center ${bgColor}`}>
+                        <Icon className={`h-3 w-3 ${textColor}`} />
+                      </div>
+                      <span className="text-[10px] text-foreground capitalize truncate">{channel.replace("_", " ").replace("social ", "")}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </TabsContent>
+          </Tabs>
 
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => { setDetailContact(null); openEdit(detailContact); }} className="gap-1.5">
@@ -489,6 +556,84 @@ export default function Contacts() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function ContactTimeline({ contactId }: { contactId?: number }) {
+  const { data, isLoading } = trpc.interactions.list.useQuery(
+    { contactId: contactId || 0, limit: 30 },
+    { enabled: !!contactId }
+  );
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-14 bg-muted/30 rounded animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  const interactions = data?.interactions || [];
+
+  if (interactions.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Clock className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+        <p className="text-sm text-muted-foreground">No interactions recorded yet</p>
+        <p className="text-xs text-muted-foreground/60 mt-1">
+          Interactions from all channels will appear here as a unified timeline.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1">
+      {interactions.map((interaction) => {
+        const Icon = TIMELINE_CHANNEL_ICONS[interaction.channel] || Mail;
+        const colors = TIMELINE_CHANNEL_COLORS[interaction.channel] || "text-muted-foreground bg-muted/10";
+        const [textColor, bgColor] = colors.split(" ");
+        return (
+          <div key={interaction.id} className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-muted/10 transition-colors">
+            <div className={`h-7 w-7 rounded flex items-center justify-center shrink-0 mt-0.5 ${bgColor}`}>
+              <Icon className={`h-3.5 w-3.5 ${textColor}`} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-foreground capitalize">
+                  {interaction.type.replace(/_/g, " ")}
+                </span>
+                {interaction.direction === "inbound" ? (
+                  <ArrowDownLeft className="h-3 w-3 text-green-400" />
+                ) : (
+                  <ArrowUpRight className="h-3 w-3 text-blue-400" />
+                )}
+                <Badge variant="outline" className="text-[9px] capitalize">{interaction.channel.replace(/_/g, " ")}</Badge>
+              </div>
+              {interaction.subject && (
+                <p className="text-xs text-foreground mt-0.5 truncate">{interaction.subject}</p>
+              )}
+              {interaction.body && (
+                <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{interaction.body}</p>
+              )}
+              <p className="text-[10px] text-muted-foreground/60 mt-1">
+                {interaction.createdAt ? formatDistanceToNow(new Date(interaction.createdAt), { addSuffix: true }) : "—"}
+                {interaction.platform && ` · via ${interaction.platform}`}
+              </p>
+            </div>
+            {interaction.sentiment && (
+              <Badge variant="outline" className={`text-[9px] shrink-0 ${
+                interaction.sentiment === "positive" ? "text-green-400 border-green-400/30" :
+                interaction.sentiment === "negative" ? "text-red-400 border-red-400/30" :
+                "text-muted-foreground"
+              }`}>{interaction.sentiment}</Badge>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }

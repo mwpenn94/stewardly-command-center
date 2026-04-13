@@ -14,22 +14,41 @@ import { useState, useMemo } from "react";
 import {
   Plus, Megaphone, Mail, MessageSquare, Linkedin, Layers,
   Trash2, Play, Send, Loader2, AlertTriangle, CheckCircle2,
-  Users, FileText, Zap, Clock, ArrowRight, Pause, XCircle
+  Users, FileText, Zap, Clock, ArrowRight, Pause, XCircle,
+  Phone, PhoneIncoming, PhoneOutgoing, Globe, MessageCircle,
+  Calendar, Instagram, Twitter, Facebook, Video
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 import type { LucideIcon } from "lucide-react";
 
-type ChannelConfig = { icon: LucideIcon; label: string; color: string; platform: string };
+type ChannelConfig = { icon: LucideIcon; label: string; color: string; platform: string; category: string };
 
 const CHANNEL_CONFIG: Record<string, ChannelConfig> = {
-  email: { icon: Mail, label: "Email", color: "text-blue-400", platform: "GHL" },
-  sms: { icon: MessageSquare, label: "SMS", color: "text-emerald-400", platform: "SMS-iT" },
-  linkedin: { icon: Linkedin, label: "LinkedIn", color: "text-sky-400", platform: "Dripify" },
-  multi: { icon: Layers, label: "Multi-Channel", color: "text-violet-400", platform: "All" },
+  email: { icon: Mail, label: "Email", color: "text-blue-400", platform: "GHL", category: "messaging" },
+  sms: { icon: MessageSquare, label: "SMS", color: "text-emerald-400", platform: "SMS-iT", category: "messaging" },
+  linkedin: { icon: Linkedin, label: "LinkedIn", color: "text-sky-400", platform: "Dripify", category: "social" },
+  multi: { icon: Layers, label: "Multi-Channel", color: "text-violet-400", platform: "All", category: "orchestration" },
+  social_facebook: { icon: Facebook, label: "Facebook", color: "text-blue-500", platform: "GHL Social", category: "social" },
+  social_instagram: { icon: Instagram, label: "Instagram", color: "text-pink-400", platform: "GHL Social", category: "social" },
+  social_twitter: { icon: Twitter, label: "Twitter/X", color: "text-sky-300", platform: "GHL Social", category: "social" },
+  social_tiktok: { icon: Video, label: "TikTok", color: "text-fuchsia-400", platform: "GHL Social", category: "social" },
+  call_inbound: { icon: PhoneIncoming, label: "Inbound Call", color: "text-green-400", platform: "GHL Phone", category: "voice" },
+  call_outbound: { icon: PhoneOutgoing, label: "Outbound Call", color: "text-orange-400", platform: "GHL Phone", category: "voice" },
+  direct_mail: { icon: Send, label: "Direct Mail", color: "text-amber-400", platform: "Lob", category: "physical" },
+  webform: { icon: Globe, label: "Webform", color: "text-indigo-400", platform: "GHL Forms", category: "inbound" },
+  chat: { icon: MessageCircle, label: "Chat/Webchat", color: "text-teal-400", platform: "GHL Chat", category: "messaging" },
+  event: { icon: Calendar, label: "Events/Webinars", color: "text-rose-400", platform: "GHL Calendar", category: "events" },
 };
 
-type Channel = "email" | "linkedin" | "sms" | "multi";
+const ALL_CHANNELS = [
+  "email", "sms", "linkedin",
+  "social_facebook", "social_instagram", "social_twitter", "social_tiktok",
+  "call_inbound", "call_outbound", "direct_mail",
+  "webform", "chat", "event"
+] as const;
+
+type Channel = typeof ALL_CHANNELS[number] | "multi";
 
 interface CampaignForm {
   name?: string;
@@ -43,7 +62,7 @@ interface LaunchForm {
 }
 
 interface SeqStep {
-  channel: "email" | "linkedin" | "sms";
+  channel: string;
   body: string;
   subject: string;
   delayMs: number;
@@ -57,7 +76,7 @@ interface SeqForm {
 
 interface TemplateForm {
   name?: string;
-  channel: "email" | "linkedin" | "sms";
+  channel: string;
   subject?: string;
   body?: string;
 }
@@ -175,30 +194,55 @@ export default function Campaigns() {
       </div>
 
       {/* Platform Health Indicators */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
         {(platformHealth || [
           { platform: "ghl", connected: false, lastChecked: 0 },
           { platform: "smsit", connected: false, lastChecked: 0 },
           { platform: "dripify", connected: false, lastChecked: 0 },
         ]).map((p) => {
-          const cfg = p.platform === "ghl" ? { icon: Mail, label: "GoHighLevel", color: "text-blue-400", bg: "bg-blue-500/10" }
-            : p.platform === "smsit" ? { icon: MessageSquare, label: "SMS-iT", color: "text-emerald-400", bg: "bg-emerald-500/10" }
-            : { icon: Linkedin, label: "Dripify", color: "text-sky-400", bg: "bg-sky-500/10" };
+          const cfg = p.platform === "ghl" ? { icon: Mail, label: "GoHighLevel", color: "text-blue-400", bg: "bg-blue-500/10", channels: "Email, Calls, Social, Forms, Chat, Events" }
+            : p.platform === "smsit" ? { icon: MessageSquare, label: "SMS-iT", color: "text-emerald-400", bg: "bg-emerald-500/10", channels: "SMS/MMS" }
+            : { icon: Linkedin, label: "Dripify", color: "text-sky-400", bg: "bg-sky-500/10", channels: "LinkedIn" };
           return (
             <Card key={p.platform} className="bg-card/50 border-border/30">
-              <CardContent className="p-3 flex items-center gap-2.5">
-                <div className={`h-7 w-7 rounded ${cfg.bg} flex items-center justify-center`}>
+              <CardContent className="p-2.5 flex items-center gap-2">
+                <div className={`h-7 w-7 rounded ${cfg.bg} flex items-center justify-center shrink-0`}>
                   <cfg.icon className={`h-3.5 w-3.5 ${cfg.color}`} />
                 </div>
-                <div className="flex-1">
-                  <p className="text-xs font-medium text-foreground">{cfg.label}</p>
-                  <p className="text-[10px] text-muted-foreground">{p.details || (p.connected ? "Connected" : "Not connected")}</p>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-foreground truncate">{cfg.label}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{cfg.channels}</p>
                 </div>
-                <div className={`h-2 w-2 rounded-full ${p.connected ? "bg-emerald-400" : "bg-red-400"}`} />
+                <div className={`h-2 w-2 rounded-full shrink-0 ${p.connected ? "bg-emerald-400" : "bg-red-400"}`} />
               </CardContent>
             </Card>
           );
         })}
+        {/* Additional channel provider placeholders */}
+        <Card className="bg-card/50 border-border/30">
+          <CardContent className="p-2.5 flex items-center gap-2">
+            <div className="h-7 w-7 rounded bg-amber-500/10 flex items-center justify-center shrink-0">
+              <Send className="h-3.5 w-3.5 text-amber-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-foreground truncate">Direct Mail</p>
+              <p className="text-[10px] text-muted-foreground truncate">Lob / PostGrid</p>
+            </div>
+            <div className="h-2 w-2 rounded-full shrink-0 bg-muted-foreground/30" />
+          </CardContent>
+        </Card>
+        <Card className="bg-card/50 border-border/30">
+          <CardContent className="p-2.5 flex items-center gap-2">
+            <div className="h-7 w-7 rounded bg-orange-500/10 flex items-center justify-center shrink-0">
+              <Phone className="h-3.5 w-3.5 text-orange-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-medium text-foreground truncate">Voice/Calls</p>
+              <p className="text-[10px] text-muted-foreground truncate">Twilio / GHL Phone</p>
+            </div>
+            <div className="h-2 w-2 rounded-full shrink-0 bg-muted-foreground/30" />
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
@@ -379,11 +423,21 @@ export default function Campaigns() {
             <div><Label>Name</Label><Input value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Q2 Outreach" /></div>
             <div><Label>Channel</Label>
               <Select value={form.channel} onValueChange={(v) => setForm({ ...form, channel: v as Channel })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="email">Email (GHL)</SelectItem>
-                  <SelectItem value="sms">SMS (SMS-iT)</SelectItem>
-                  <SelectItem value="linkedin">LinkedIn (Dripify)</SelectItem>
+                  <SelectItem value="email">📧 Email (GHL)</SelectItem>
+                  <SelectItem value="sms">💬 SMS (SMS-iT)</SelectItem>
+                  <SelectItem value="linkedin">💼 LinkedIn (Dripify)</SelectItem>
+                  <SelectItem value="social_facebook">📘 Facebook (GHL Social)</SelectItem>
+                  <SelectItem value="social_instagram">📷 Instagram (GHL Social)</SelectItem>
+                  <SelectItem value="social_twitter">🐦 Twitter/X (GHL Social)</SelectItem>
+                  <SelectItem value="social_tiktok">🎵 TikTok (GHL Social)</SelectItem>
+                  <SelectItem value="call_inbound">📞 Inbound Call (GHL Phone)</SelectItem>
+                  <SelectItem value="call_outbound">📲 Outbound Call (GHL Phone)</SelectItem>
+                  <SelectItem value="direct_mail">✉️ Direct Mail (Lob)</SelectItem>
+                  <SelectItem value="webform">🌐 Webform (GHL Forms)</SelectItem>
+                  <SelectItem value="chat">💭 Chat/Webchat (GHL Chat)</SelectItem>
+                  <SelectItem value="event">📅 Events/Webinars (GHL Calendar)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -439,11 +493,12 @@ export default function Campaigns() {
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-[10px]">Step {idx + 1}</Badge>
                         <Select value={step.channel} onValueChange={(v) => updateSeqStep(idx, "channel", v)}>
-                          <SelectTrigger className="h-7 w-32 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="h-7 w-40 text-xs"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="email">Email (GHL)</SelectItem>
-                            <SelectItem value="sms">SMS (SMS-iT)</SelectItem>
-                            <SelectItem value="linkedin">LinkedIn (Dripify)</SelectItem>
+                            {ALL_CHANNELS.map((ch) => {
+                              const cfg = CHANNEL_CONFIG[ch];
+                              return <SelectItem key={ch} value={ch}>{cfg?.label || ch}</SelectItem>;
+                            })}
                           </SelectContent>
                         </Select>
                       </div>
@@ -504,12 +559,13 @@ export default function Campaigns() {
           <div className="space-y-3">
             <div><Label>Name</Label><Input value={tplForm.name || ""} onChange={(e) => setTplForm({ ...tplForm, name: e.target.value })} /></div>
             <div><Label>Channel</Label>
-              <Select value={tplForm.channel} onValueChange={(v) => setTplForm({ ...tplForm, channel: v as "email" | "linkedin" | "sms" })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+              <Select value={tplForm.channel} onValueChange={(v) => setTplForm({ ...tplForm, channel: v as any })}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="email">Email</SelectItem>
-                  <SelectItem value="sms">SMS</SelectItem>
-                  <SelectItem value="linkedin">LinkedIn</SelectItem>
+                  {ALL_CHANNELS.map((ch) => {
+                    const cfg = CHANNEL_CONFIG[ch];
+                    return <SelectItem key={ch} value={ch}>{cfg?.label || ch}</SelectItem>;
+                  })}
                 </SelectContent>
               </Select>
             </div>

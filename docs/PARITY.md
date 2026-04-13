@@ -61,6 +61,14 @@
 | G49 | Mobile responsiveness deep fix | Done | 4 | Responsive grids on BulkImport, full-width selects on mobile, reduced empty state padding (p-6 sm:p-12), dialog width fix | Pass 18 |
 | G50 | AI lead scoring engine | Done | 3 | Data-completeness + engagement-based scoring algorithm, bulk scoring mutation, tier auto-assignment | Pass 18 |
 | G51 | AI Insights page (full dashboard) | Done | 4 | Health gauges, recommendations with actionable CTAs, predictions with confidence, segment + campaign analysis, automation summary | Pass 18 |
+| G52 | Omnichannel schema expansion (13 channels) | Done | 4 | Campaigns, templates, interactions, channel configs support all 13 channels: Email, SMS, LinkedIn, Facebook, Instagram, Twitter/X, TikTok, Inbound/Outbound Calls, Direct Mail, Webforms, Chat, Events | Pass 19 |
+| G53 | Contact interaction tracking (unified timeline) | Done | 4 | New `contact_interactions` table with 25 interaction types, direction, sentiment, campaign linkage; tRPC CRUD + stats + cross-channel metrics | Pass 19 |
+| G54 | Channel configuration system | Done | 3 | New `channel_configs` table with per-channel enable/disable, provider, limits, budget; tRPC CRUD for channel management | Pass 19 |
+| G55 | Campaign Studio all-channel support | Done | 4 | Create campaigns on any of 13 channels; sequence steps support all channels; templates support all channels; platform health shows 5 providers | Pass 19 |
+| G56 | Unified contact detail (tabs: Info/Timeline/Channels) | Done | 4 | Contact detail dialog expanded with 3-tab layout: Info (fields/classification/tags), Timeline (cross-channel interaction history), Channels (platform connections + channel reach) | Pass 19 |
+| G57 | Dashboard omnichannel overview | Done | 4 | New 13-channel grid on dashboard showing per-channel interaction counts, total interactions badge, real-time cross-channel metrics | Pass 19 |
+| G58 | Analytics all-channel expansion | Done | 3 | Analytics page byChannel metrics expanded to all 13 channels; only shows channels with data plus core 3 always visible | Pass 19 |
+| G59 | tRPC interaction + channel routers | Done | 4 | 7 new procedures: interactions.list, interactions.create, interactions.stats, interactions.crossChannelMetrics, channels.list, channels.upsert, channels.get | Pass 19 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -86,6 +94,12 @@
 - AI Insights page accessible in sidebar navigation at /ai-insights
 - Mobile-responsive empty states (p-6 sm:p-12) across all pages
 - Full-width select filters on mobile for ActivityFeed, Backups, Contacts
+- Omnichannel schema: 13 channels supported across campaigns, templates, interactions, configs
+- Contact interaction tracking with unified timeline (contact_interactions table)
+- Channel configuration system (channel_configs table)
+- Campaign Studio supports all 13 channels for creation, sequencing, and templates
+- Contact detail tabs: Info, Timeline, Channels — unified cross-channel view
+- Dashboard omnichannel overview grid with per-channel interaction metrics
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -117,3 +131,4 @@
 - Pass 16 · dialog UX + type safety + security · G42-G46 done; Cancel buttons, 0 TS errors in pages, masked JWT, disabled coming-soon, backup status fix · PENDING · 5 items completed · G24,G25,G26 deferred
 - Pass 17 · documentation accuracy + build fix · G47,G48 done; all 5 doc files rewritten with verified counts, CHANGELOG purged of property-mgmt entries, vite config portable · PENDING · 2 items completed · G24,G25,G26 deferred
 - Pass 18 · AI engine + mobile deep fix + build health · G24,G25,G49-G51 done; AI insights page, lead scoring engine, 15+ mobile fixes, build verified · PENDING · 5 items completed · G26 deferred
+- Pass 19 · omnichannel expansion + unified timeline · G52-G59 done; 13 channels in schema/campaigns/templates, contact_interactions table, channel_configs table, unified timeline in contact detail, omnichannel dashboard grid, analytics all-channel, 7 new tRPC procedures · PENDING · 8 items completed · G26 deferred
