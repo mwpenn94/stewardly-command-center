@@ -4,6 +4,14 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.3.0] - 2026-04-13
+
+### Added
+- **Cross-channel pattern analysis** — AI engine identifies 5 key cross-channel patterns (LinkedIn→Email, Email→Call, Multi-Touch Social, Event→Follow-Up, SMS Urgency) with conversion lift metrics (2.5x-5x), confidence scores, and suggested channel sequences
+- **Channel synergy scoring** — 6 channel synergy pairs with 0-100 scores analyzing complementary channel combinations (Webform+Email: 90, Email+LinkedIn: 85, Email+Call: 80, etc.)
+- **AI cross-channel recommendations** — Engine detects when campaigns use fewer than 3 channels and recommends multi-channel expansion with expected conversion improvements
+- **Visual sequence flows** — Cross-channel patterns display suggested channel sequences with icons and arrows for intuitive understanding
+
 ## [1.2.0] - 2026-04-13
 
 ### Added
