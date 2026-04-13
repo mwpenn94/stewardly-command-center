@@ -46,7 +46,7 @@ import {
   Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Tag, X, Users, RefreshCw,
   ExternalLink, Mail, Phone, Building2, MapPin, Eye, MessageSquare, Linkedin, Clock,
   PhoneIncoming, PhoneOutgoing, Globe, MessageCircle, Calendar, Facebook, Instagram,
-  Twitter, Video, Send, ArrowDownLeft, ArrowUpRight, Loader2, Megaphone,
+  Twitter, Video, Send, ArrowDownLeft, ArrowUpRight, Loader2, Download, Megaphone,
   type LucideIcon
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -135,9 +135,28 @@ export default function Contacts() {
             {data?.total !== undefined ? `${data.total.toLocaleString()} contacts` : "Loading..."}
           </p>
         </div>
-        <Button onClick={openCreate} size="sm" className="gap-2 min-h-[44px] sm:min-h-0 shrink-0">
-          <Plus className="h-4 w-4" /> Add Contact
-        </Button>
+        <div className="flex gap-2 shrink-0">
+          <Button variant="outline" size="sm" className="gap-2 min-h-[44px] sm:min-h-0" onClick={() => {
+            const rows = data?.contacts || [];
+            if (rows.length === 0) { toast.error("No contacts to export"); return; }
+            const headers = ["First Name","Last Name","Email","Phone","Company","Segment","Tier","City","State"];
+            const csvRows = [headers.join(","), ...rows.map((c: any) =>
+              [c.firstName, c.lastName, c.email, c.phone, c.companyName, c.segment, c.tier, c.city, c.state]
+                .map((v: unknown) => `"${(v || "").toString().replace(/"/g, '""')}"`)
+                .join(",")
+            )];
+            const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a"); a.href = url; a.download = `contacts-${new Date().toISOString().split("T")[0]}.csv`; a.click();
+            URL.revokeObjectURL(url);
+            toast.success(`Exported ${rows.length} contacts`);
+          }}>
+            <Download className="h-4 w-4" /> Export
+          </Button>
+          <Button onClick={openCreate} size="sm" className="gap-2 min-h-[44px] sm:min-h-0">
+            <Plus className="h-4 w-4" /> Add Contact
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

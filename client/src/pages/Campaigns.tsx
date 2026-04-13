@@ -65,6 +65,8 @@ interface LaunchForm {
   audienceMode: "all" | "segment" | "tier";
   audienceSegment: string;
   audienceTier: string;
+  sendMode: "now" | "schedule";
+  scheduledAt: string;
 }
 
 interface SeqStep {
@@ -141,7 +143,7 @@ export default function Campaigns() {
   const [launchCampaignData, setLaunchCampaignData] = useState<{ id: number; name: string; channel: string } | null>(null);
   const [form, setForm] = useState<CampaignForm>({ channel: "email" });
   const [tplForm, setTplForm] = useState<TemplateForm>({ channel: "email" });
-  const [launchForm, setLaunchForm] = useState<LaunchForm>({ body: "", subject: "", audienceMode: "all", audienceSegment: "all", audienceTier: "all" });
+  const [launchForm, setLaunchForm] = useState<LaunchForm>({ body: "", subject: "", audienceMode: "all", audienceSegment: "all", audienceTier: "all", sendMode: "now", scheduledAt: "" });
   const [seqForm, setSeqForm] = useState<SeqForm>({ name: "", steps: [{ channel: "email", body: "", subject: "", delayMs: 0 }], contactIds: [] });
   const [tab, setTab] = useState("campaigns");
 
@@ -149,7 +151,7 @@ export default function Campaigns() {
 
   const openLaunch = (campaign: { id: number; name: string; channel: string }) => {
     setLaunchCampaignData(campaign);
-    setLaunchForm({ body: "", subject: "", contactIds: [], audienceMode: "all", audienceSegment: "all", audienceTier: "all" });
+    setLaunchForm({ body: "", subject: "", contactIds: [], audienceMode: "all", audienceSegment: "all", audienceTier: "all", sendMode: "now", scheduledAt: "" });
     setLaunchOpen(true);
   };
 
@@ -295,7 +297,7 @@ export default function Campaigns() {
               let metrics: Record<string, unknown> | null = null;
               try { metrics = c.metrics ? (typeof c.metrics === "string" ? JSON.parse(c.metrics) : c.metrics as Record<string, unknown>) : null; } catch { metrics = null; }
               return (
-                <Card key={c.id} className="bg-card border-border/50 card-hover cursor-pointer" onClick={() => setDetailCampaign(c)}>
+                <Card key={c.id} className="bg-card border-border/50 card-hover cursor-pointer" onClick={() => setDetailCampaignId(c.id)}>
                   <CardContent className="p-4 flex items-center gap-4">
                     <div className={`h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 ${ch.color}`}>
                       <Icon className="h-5 w-5" />
@@ -560,15 +562,33 @@ export default function Campaigns() {
               launchCampaignData?.channel === "sms" ? "Hi [Name], ..." :
               "Your message..."
             } /></div>
+            {/* Send Mode */}
+            <div>
+              <Label>When</Label>
+              <div className="flex gap-2 mt-1.5">
+                <Button type="button" variant={launchForm.sendMode === "now" ? "default" : "outline"} size="sm" className="flex-1 text-xs h-8" onClick={() => setLaunchForm({ ...launchForm, sendMode: "now" })}>
+                  Send Now
+                </Button>
+                <Button type="button" variant={launchForm.sendMode === "schedule" ? "default" : "outline"} size="sm" className="flex-1 text-xs h-8 gap-1" onClick={() => setLaunchForm({ ...launchForm, sendMode: "schedule" })}>
+                  <Clock className="h-3 w-3" /> Schedule
+                </Button>
+              </div>
+              {launchForm.sendMode === "schedule" && (
+                <Input type="datetime-local" className="mt-2" value={launchForm.scheduledAt} onChange={(e) => setLaunchForm({ ...launchForm, scheduledAt: e.target.value })} min={new Date().toISOString().slice(0, 16)} />
+              )}
+            </div>
             <Alert><AlertDescription className="text-xs flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5 shrink-0" />
+              {launchForm.sendMode === "schedule" && launchForm.scheduledAt
+                ? <>Scheduling for <strong>{new Date(launchForm.scheduledAt).toLocaleString()}</strong> · </>
+                : null}
               Sending to <strong>{filteredAudience.length}</strong> contacts via {(launchCampaignData?.channel && CHANNEL_CONFIG[launchCampaignData.channel]?.platform) || "platform"}.
             </AlertDescription></Alert>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setLaunchOpen(false)}>Cancel</Button>
-            <Button onClick={handleLaunch} disabled={launchCampaign.isPending}>
-              {launchCampaign.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4 mr-1" /> Send Now</>}
+            <Button onClick={handleLaunch} disabled={launchCampaign.isPending || (launchForm.sendMode === "schedule" && !launchForm.scheduledAt)}>
+              {launchCampaign.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : launchForm.sendMode === "schedule" ? <><Clock className="h-4 w-4 mr-1" /> Schedule</> : <><Send className="h-4 w-4 mr-1" /> Send Now</>}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -654,103 +674,6 @@ export default function Campaigns() {
               {startSequence.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Zap className="h-4 w-4 mr-1" /> Start Sequence</>}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ─── Campaign Detail Dialog ─── */}
-      <Dialog open={!!detailCampaign} onOpenChange={(open) => { if (!open) setDetailCampaign(null); }}>
-        <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-lg max-h-[90vh] overflow-y-auto">
-          {detailCampaign && (() => {
-            const ch = CHANNEL_CONFIG[detailCampaign.channel] || CHANNEL_CONFIG.email;
-            const Icon = ch.icon;
-            let m: any = null;
-            try { m = detailCampaign.metrics ? (typeof detailCampaign.metrics === "string" ? JSON.parse(detailCampaign.metrics) : detailCampaign.metrics) : null; } catch { m = null; }
-            const sent = m?.sent || 0;
-            const failed = m?.failed || 0;
-            const opened = m?.opened || 0;
-            const clicked = m?.clicked || 0;
-            const replied = m?.replied || 0;
-            const conversions = m?.conversions || 0;
-            const openRate = sent > 0 ? Math.round((opened / sent) * 100) : 0;
-            const clickRate = sent > 0 ? Math.round((clicked / sent) * 100) : 0;
-            const replyRate = sent > 0 ? Math.round((replied / sent) * 100) : 0;
-            return (
-              <>
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Icon className={`h-5 w-5 ${ch.color}`} />
-                    {detailCampaign.name}
-                  </DialogTitle>
-                  <DialogDescription>
-                    {ch.label} via {ch.platform} · Created {detailCampaign.createdAt ? formatDistanceToNow(new Date(detailCampaign.createdAt), { addSuffix: true }) : "—"}
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Badge className={`${STATUS_COLORS[detailCampaign.status] || STATUS_COLORS.draft}`}>{detailCampaign.status}</Badge>
-                    <span className="text-xs text-muted-foreground">{detailCampaign.audienceCount || 0} recipients</span>
-                  </div>
-                  {/* Metrics Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <div className="p-3 rounded-lg bg-muted/10 text-center">
-                      <p className="text-2xl font-semibold text-foreground tabular-nums">{sent}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Sent</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-muted/10 text-center">
-                      <p className="text-2xl font-semibold text-foreground tabular-nums">{failed}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Failed</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-muted/10 text-center">
-                      <p className="text-2xl font-semibold text-foreground tabular-nums">{opened}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Opened</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-muted/10 text-center">
-                      <p className="text-2xl font-semibold text-primary tabular-nums">{openRate}%</p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Open Rate</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-muted/10 text-center">
-                      <p className="text-2xl font-semibold text-primary tabular-nums">{clickRate}%</p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Click Rate</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-muted/10 text-center">
-                      <p className="text-2xl font-semibold text-primary tabular-nums">{conversions || replied}</p>
-                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{detailCampaign.channel === "email" ? "Replied" : "Conversions"}</p>
-                    </div>
-                  </div>
-                  {/* Delivery breakdown */}
-                  {sent > 0 && (
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-2">Delivery</p>
-                      <div className="h-2 rounded-full bg-muted/30 overflow-hidden flex">
-                        {sent - failed > 0 && <div className="bg-emerald-500 h-full" style={{ width: `${((sent - failed) / sent) * 100}%` }} />}
-                        {failed > 0 && <div className="bg-red-500 h-full" style={{ width: `${(failed / sent) * 100}%` }} />}
-                      </div>
-                      <div className="flex justify-between mt-1">
-                        <span className="text-[10px] text-emerald-400">{sent - failed} delivered</span>
-                        {failed > 0 && <span className="text-[10px] text-red-400">{failed} failed</span>}
-                      </div>
-                    </div>
-                  )}
-                  {/* No metrics state */}
-                  {!m && (
-                    <div className="text-center py-6">
-                      <BarChart3 className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">No metrics yet</p>
-                      <p className="text-xs text-muted-foreground/60 mt-1">Launch this campaign to start collecting performance data.</p>
-                    </div>
-                  )}
-                </div>
-                <DialogFooter className="gap-2 sm:gap-0">
-                  {detailCampaign.status === "draft" && (
-                    <Button size="sm" className="gap-1" onClick={() => { setDetailCampaign(null); openLaunch(detailCampaign); }}>
-                      <Send className="h-3.5 w-3.5" /> Launch
-                    </Button>
-                  )}
-                  <Button variant="outline" onClick={() => setDetailCampaign(null)}>Close</Button>
-                </DialogFooter>
-              </>
-            );
-          })()}
         </DialogContent>
       </Dialog>
 

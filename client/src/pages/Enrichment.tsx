@@ -148,7 +148,7 @@ export default function Enrichment() {
             { label: "Bronze", key: "bronze", color: "bg-orange-600" },
             { label: "Unscored", key: "unscored", color: "bg-muted-foreground/30" },
           ].map((tier) => {
-            const tierCount = tierData?.byTier?.find((t: { tier: string | null }) => t.tier === tier.key)?.count || 0;
+            const tierCount = stats?.byTier?.find((t: { tier: string | null }) => t.tier === tier.key)?.count || 0;
             const pct = totalContacts > 0 ? (tierCount / totalContacts) * 100 : 0;
             return (
               <div key={tier.key} className="space-y-1.5">

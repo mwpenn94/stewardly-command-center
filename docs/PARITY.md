@@ -138,6 +138,8 @@
 | G111 | Accessibility — ARIA on data visualizations | Done | 3 | role="meter" + aria-valuenow/min/max on Enrichment completeness bars and Analytics funnel steps; aria-hidden on decorative icons; role="status" + aria-label on campaign MetricCard; region label on campaign performance | Pass 41 |
 | G112 | Settings page — system status + quick links | Done | 4 | Settings shows live contact/campaign counts, platform connection status with badges, 6 quick links to key app areas (Integrations, Channels, Backups, AI Insights, Analytics, Import) | Pass 42 |
 | G113 | Home.tsx zero `any` types | Done | 3 | 5 `any` casts in Home.tsx replaced with explicit typed interfaces for crossChannelMetrics, aiRecommendations, contactStats, activityLog, platformHealth | Pass 42 |
+| G114 | Contact CSV export | Done | 3 | Export button on Contacts header; exports current page contacts as CSV with 9 columns (name, email, phone, company, segment, tier, city, state); client-side Blob download | Pass 40 (CTE7c) |
+| G115 | Campaign scheduling | Done | 3 | Launch dialog Send Now / Schedule toggle; datetime-local picker for future scheduling; button text and summary update based on mode; disabled when scheduled but no date | Pass 40 (CTE7c) |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -224,6 +226,8 @@
 - ARIA role="status" on campaign detail MetricCard components
 - Settings page: system status with live counts + platform connections + 6 quick links
 - Home.tsx zero any types: all tRPC result callbacks use explicit interfaces
+- Contact CSV export: client-side Blob download with 9 columns
+- Campaign scheduling: Send Now / Schedule toggle with datetime picker in launch dialog
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -275,12 +279,13 @@
 - Pass 36 · campaign UX completeness + contact interaction UX · G99-G102 done; campaign detail view with metrics, add interaction form in contact timeline, timeline error handling, channel-specific form labels · 6469126 · 4 items completed · none deferred
 - Pass 37 · cross-entity navigation + omnichannel drilldown · G103-G105 done; omnichannel grid clickable, activity feed entries clickable, global search templates + badges · ed53d35 · 3 items completed · none deferred
 - Pass 38 · campaign audience selection + analytics interactivity · G106-G107 done; audience selector (All/Segment/Tier) with live count, analytics channel/tier navigation · 883d3ce · 2 items completed · none deferred
-- Pass 39 · documentation accuracy + README completeness · G108 done; README updated with all passes 35-38 features (campaign detail, audience selector, interaction logging, cross-entity nav, channel-specific forms, analytics interactivity) · PENDING · 1 item completed · none deferred
-- Pass 35 · input validation + error states · G94-G95 done; QueryError added to 4 more pages (9 total), BulkImport CSV preview mobile scroll hint · ce2805d · 2 items completed · none deferred
-- Pass 36 · contact interaction logging + unified timeline · G96 done; "Log Interaction" feature on contact detail timeline with 13-channel select, direction toggle, auto-typed mutations · PENDING · 1 item completed · none deferred
-- Pass 37 · functional gaps + documentation accuracy + campaign detail · G97-G101 done; campaign detail dialog with overview+timeline, campaigns.get+interactions.byCampaign tRPC, dead code removed, metrics type fixed, all docs updated with accurate counts · 79b846b · 5 items completed · none deferred
-- Pass 38 · campaign lifecycle + contact attribution + dashboard metrics · G102-G104 done; pause/resume/cancel in campaign detail, contact campaign attribution section, dashboard campaign lifecycle badges, contacts.campaigns tRPC, getCampaignsForContact DB · 46d24d9 · 3 items completed · none deferred
-- Pass 39 · mobile UX + data completeness + type safety · G105-G108 done; Enrichment page data completeness bars, dashboard badge 44px targets, contact campaign mobile fix, TIMELINE_CHANNEL_ICONS typed · 2d360b6 · 4 items completed · none deferred
-- Pass 40 · unified search + analytics drill-down · G109-G110 done; global search now surfaces all 13 pages by keywords, analytics campaign performance chart with top 8 campaigns; any types eliminated in GlobalSearch · 19f5ba6 · 2 items completed · none deferred
-- Pass 41 · accessibility + ARIA on data visualizations · G111 done; role="meter" on Enrichment bars + Analytics funnel, aria-hidden on decorative icons, role="status" on MetricCards, region label on campaign performance · 2751e7f · 1 item completed · none deferred
-- Pass 42 · cross-app cohesion + type safety · G112-G113 done; Settings page enhanced with system status + quick links, Home.tsx any types eliminated · PENDING · 2 items completed · none deferred
+- Pass 35 (parallel) · input validation + error states · G94-G95 done · ce2805d · 2 items completed
+- Pass 36 (parallel) · contact interaction logging · G96 done · fd2cfe9 · 1 item completed
+- Pass 37 (parallel) · campaign detail + backend · G97-G101 done · 79b846b · 5 items completed
+- Pass 38 (parallel) · campaign lifecycle + attribution · G102-G104 done · 46d24d9 · 3 items completed
+- Pass 39 (parallel) · data completeness + type safety · G105-G108 done · 2d360b6 · 4 items completed
+- Pass 40 (parallel) · unified search + analytics drill-down · G109-G110 done · 19f5ba6 · 2 items completed
+- Pass 41 (parallel) · accessibility + ARIA · G111 done · 2751e7f · 1 item completed
+- Pass 42 (parallel) · settings system status + type safety · G112-G113 done · 4a894e0 · 2 items completed
+- Pass 39 (CTE7c) · documentation accuracy + README · G108 done · 551744c · 1 item completed
+- Pass 40 (CTE7c) · CSV export + campaign scheduling · G114-G115 done; contact CSV export, Send Now/Schedule toggle · 0855d93 · 2 items completed
