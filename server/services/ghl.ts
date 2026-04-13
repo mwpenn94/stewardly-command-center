@@ -7,6 +7,8 @@
  */
 
 import { Agent, fetch as undiciFetch } from "undici";
+import { execSync } from "child_process";
+import { existsSync } from "fs";
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 const GHL_INTERNAL_BASE = "https://backend.leadconnectorhq.com";
@@ -16,6 +18,15 @@ const GHL_PUBLIC_BASE = "https://services.leadconnectorhq.com";
 const insecureAgent = new Agent({
   connect: { rejectUnauthorized: false },
 });
+
+// curl-impersonate binary path (for bypassing Cloudflare TLS fingerprinting)
+const CURL_IMPERSONATE_PATHS = [
+  "/tmp/curl_chrome116",
+  "/home/ubuntu/.local/bin/curl_chrome116",
+  "/usr/local/bin/curl_chrome116",
+];
+const CURL_IMPERSONATE = CURL_IMPERSONATE_PATHS.find(p => existsSync(p)) || null;
+const CURL_LIB_PATH = "/tmp"; // LD_LIBRARY_PATH for curl-impersonate
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface GhlCredentials {
@@ -130,6 +141,10 @@ function getPublicHeaders(apiKey: string): Record<string, string> {
 }
 
 // ─── Low-level fetch wrapper ────────────────────────────────────────────────
+/**
+ * Make HTTP request using curl-impersonate (for internal GHL API to bypass Cloudflare)
+ * or undici fetch (for public API / when curl-impersonate is unavailable).
+ */
 async function ghlFetch(
   url: string,
   options: {
@@ -139,6 +154,13 @@ async function ghlFetch(
     timeout?: number;
   }
 ): Promise<{ status: number; data: any; text: string }> {
+  // Use curl-impersonate for internal API calls when available
+  const isInternalApi = url.includes("backend.leadconnectorhq.com");
+  if (isInternalApi && CURL_IMPERSONATE) {
+    return ghlFetchCurl(url, options);
+  }
+
+  // Fallback to undici fetch (works for public API)
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), options.timeout || 20000);
 
@@ -161,6 +183,49 @@ async function ghlFetch(
       return { status: 0, data: { error: "timeout" }, text: "Request timed out" };
     }
     return { status: 0, data: { error: err.message }, text: err.message };
+  }
+}
+
+/**
+ * curl-impersonate based fetch for GHL internal API.
+ * Bypasses Cloudflare TLS fingerprinting by mimicking Chrome's TLS handshake.
+ */
+function ghlFetchCurl(
+  url: string,
+  options: {
+    method: string;
+    headers: Record<string, string>;
+    body?: string;
+    timeout?: number;
+  }
+): { status: number; data: any; text: string } {
+  try {
+    const headerArgs = Object.entries(options.headers)
+      .map(([k, v]) => `-H '${k}: ${v}'`)
+      .join(" ");
+    const bodyArg = options.body ? `-d '${options.body.replace(/'/g, "'\\''")}' ` : "";
+    const timeoutSec = Math.ceil((options.timeout || 20000) / 1000);
+
+    const cmd = `LD_LIBRARY_PATH=${CURL_LIB_PATH} ${CURL_IMPERSONATE} ` +
+      `-s -w '\n%{http_code}' --max-time ${timeoutSec} ` +
+      `-X ${options.method} ${headerArgs} ${bodyArg}'${url}'`;
+
+    const output = execSync(cmd, {
+      encoding: "utf-8",
+      timeout: (options.timeout || 20000) + 5000,
+      env: { ...process.env, LD_LIBRARY_PATH: CURL_LIB_PATH },
+    }).trim();
+
+    // Parse response: body + status code on last line
+    const lines = output.split("\n");
+    const statusLine = lines.pop() || "0";
+    const status = parseInt(statusLine, 10) || 0;
+    const text = lines.join("\n");
+    let data: any = {};
+    try { data = JSON.parse(text); } catch { data = { raw: text }; }
+    return { status, data, text };
+  } catch (err: any) {
+    return { status: 0, data: { error: err.message?.slice(0, 300) }, text: err.message || "curl error" };
   }
 }
 

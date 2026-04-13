@@ -25,7 +25,7 @@ import { useIsMobile } from "@/hooks/useMobile";
 import {
   LayoutDashboard, Users, Upload, Megaphone, RefreshCw,
   Plug, Sparkles, BarChart3, HardDrive, Activity,
-  LogOut, PanelLeft, Shield, Settings, Brain, Radio,
+  LogOut, PanelLeft, Shield, Settings, Brain, Radio, ArrowDownToLine,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -46,6 +46,7 @@ const menuItems = [
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: Brain, label: "AI Insights", path: "/ai-insights" },
   { icon: Radio, label: "Channels", path: "/channels" },
+  { icon: ArrowDownToLine, label: "GHL Import", path: "/ghl-import" },
   { icon: HardDrive, label: "Backups", path: "/backups" },
   { icon: Activity, label: "Activity", path: "/activity" },
   { icon: Settings, label: "Settings", path: "/settings" },

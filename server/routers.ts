@@ -14,6 +14,7 @@ import { storagePut } from "./storage";
 import * as orchestrator from "./services/orchestrator";
 import { syncScheduler } from "./services/syncScheduler";
 import * as aiEngine from "./services/aiEngine";
+import * as ghlImport from "./services/ghlImport";
 
 const PLATFORMS_LABELS: Record<string, string> = {
   ghl: "GoHighLevel",
@@ -246,6 +247,12 @@ export const appRouter = router({
     dataCompleteness: protectedProcedure.query(async ({ ctx }) => {
       return db.getDataCompletenessStats(ctx.user.id);
     }),
+    // Get a single contact with all custom fields
+    getWithCustomFields: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ ctx, input }) => {
+        return db.getContactWithCustomFields(input.id, ctx.user.id);
+      }),
     // Search GHL contacts directly (pull from GHL)
     searchGhl: protectedProcedure
       .input(z.object({ query: z.string(), limit: z.number().optional() }))
@@ -334,6 +341,183 @@ export const appRouter = router({
         } as any);
 
         return { id, contact: c };
+      }),
+  }),
+
+  // ─── GHL Import (Pull contacts FROM GHL into local DB) ─────────────
+  ghlImport: router({
+    // Start a new import job
+    start: protectedProcedure
+      .input(z.object({
+        resumeJobId: z.number().optional(),
+      }).optional())
+      .mutation(async ({ ctx, input }) => {
+        const ghlCreds = await credentialHelper.getGhlCredentials(ctx.user.id);
+        if (!ghlCreds || (!ghlCreds.apiKey && !ghlCreds.jwt)) {
+          throw new Error("GHL credentials not configured. Set up GoHighLevel integration first.");
+        }
+
+        const dbInstance = await db.getDb();
+        if (!dbInstance) throw new Error("Database not available");
+
+        let jobId: number;
+        let resumeFromId: string | null = null;
+
+        if (input?.resumeJobId) {
+          // Resume existing job
+          const existingJob = await db.getGhlImportJob(input.resumeJobId);
+          if (!existingJob) throw new Error("Import job not found");
+          jobId = existingJob.id;
+          resumeFromId = existingJob.lastGhlContactId;
+        } else {
+          // Create new job
+          jobId = await db.createGhlImportJob({ userId: ctx.user.id }) as number;
+        }
+
+        // Sync custom field definitions first
+        const fieldMapping = {
+          "1bikOAO0auPgfS4iXuXB": { name: "WB Propensity Score", type: "NUMERICAL", fieldKey: "contact.wta_propensity_score" },
+          "AfmrK3jsgsRptUiRG1GJ": { name: "WB Original Score", type: "NUMERICAL", fieldKey: "contact.wta_original_score" },
+          "MJr07PvqdDl2zJXikFKS": { name: "WB Tier", type: "TEXT", fieldKey: "contact.wta_tier" },
+          "UpAWHk7zPxNCLj2zW6zJ": { name: "WB Region", type: "TEXT", fieldKey: "contact.years_in_business" },
+          "YE5FowxSJneHhDtvoCJS": { name: "WB Premium Financing", type: "TEXT", fieldKey: "contact.employee_range" },
+          "eVRHJlmgpZQUcF2OojdW": { name: "WB Campaign", type: "TEXT", fieldKey: "contact.import_batch" },
+          "jY2Oa5ZqdiAxsJkNd0Wm": { name: "WB Product Opportunities", type: "TEXT", fieldKey: "contact.naics_code" },
+          "qDsvKP1PpqvUSkQW2D2n": { name: "WB Specialist Route", type: "TEXT", fieldKey: "contact.sic_code" },
+          "xrTjJIKHkhWby96I3eAz": { name: "WB Segment", type: "TEXT", fieldKey: "contact.data_source" },
+          "0qhZxQPHkBWuHBfxXbqJ": { name: "Engagement Score", type: "NUMERICAL", fieldKey: "contact.engagement_score" },
+          "2gqT7BHQCHSVxLqcbLyp": { name: "Sequence Status", type: "SINGLE_OPTIONS", fieldKey: "contact.sequence_status" },
+          "3Jx2xWPFhHuKXQFNqhKW": { name: "Preferred Contact Method", type: "SINGLE_OPTIONS", fieldKey: "contact.preferred_contact_method" },
+          "4LCXqUaLLcWBTnVZDIXm": { name: "Industry", type: "TEXT", fieldKey: "contact.industry" },
+          "4UOmWGjYcnHnrVpXXFGK": { name: "Sequence Start Date", type: "DATE", fieldKey: "contact.sequence_start_date" },
+          "5FMuYcjnMVDLqXvBKJqU": { name: "Carrier Recommended", type: "TEXT", fieldKey: "contact.carrier_recommended" },
+          "6iVWxJNTdUCLUjkiVnVa": { name: "Annual Revenue", type: "NUMERICAL", fieldKey: "contact.annual_revenue" },
+          "8PbNZzTJMZvIqTJFjHKS": { name: "Prospect Tier", type: "SINGLE_OPTIONS", fieldKey: "contact.prospect_tier" },
+          "KrxlPxU6kyNEmrsRIWVL": { name: "Last Synced", type: "DATE", fieldKey: "contact.last_synced" },
+          "LbBku9NFbqUOEpAPAqO7": { name: "Carrier Current", type: "TEXT", fieldKey: "contact.carrier_current" },
+          "MXxsqYuh5Wr0RLsNot0b": { name: "Last Contacted By", type: "TEXT", fieldKey: "contact.last_contacted_by" },
+          "NVMWspG1dMe6IlIb8mE7": { name: "Sequence Cooldown Until", type: "DATE", fieldKey: "contact.sequence_cooldown_until" },
+          "QwMNo02qkUJ2Y2f4vlEm": { name: "Last Engagement Date", type: "DATE", fieldKey: "contact.last_engagement_date" },
+          "SHAa6uRa4XD4N92YVfvK": { name: "Workable Candidate ID", type: "TEXT", fieldKey: "contact.workable_candidate_id" },
+          "TGV90VsTLsbIsu6GxM1S": { name: "Dripify Campaign ID", type: "TEXT", fieldKey: "contact.dripify_campaign_id" },
+          "TQXBqS8iS0jt7JncLpaz": { name: "Contact Status", type: "SINGLE_OPTIONS", fieldKey: "contact.contact_status" },
+          "UAo9fy1h4d8RIxm9SIxo": { name: "UTM Source", type: "TEXT", fieldKey: "contact.utm_source" },
+          "UQCVsghKND8CxKt3s553": { name: "Stage Changed By", type: "TEXT", fieldKey: "contact.stage_changed_by" },
+          "USxGp2z2ZI1e1dVd22FO": { name: "Sequence End Date", type: "DATE", fieldKey: "contact.sequence_end_date" },
+          "WCW1ergwWGuxeRArhSGN": { name: "Event Date", type: "DATE", fieldKey: "contact.event_date" },
+          "WxoVpAYV7wpyhwI4L7fb": { name: "Contact Type", type: "SINGLE_OPTIONS", fieldKey: "contact.contact_type" },
+          "XjI82fNxEMXN5I8DnKOe": { name: "Tier", type: "SINGLE_OPTIONS", fieldKey: "contact.tier" },
+          "YGvAJDiGw4wQA2UQw3El": { name: "Owning User", type: "TEXT", fieldKey: "contact.owning_user" },
+          "Yg3WmEi7DI447b8NSWB3": { name: "Pipeline Score", type: "NUMERICAL", fieldKey: "contact.pipeline_score" },
+          "YpbKiMgfrKoMhtHzmFKc": { name: "LinkedIn Profile URL", type: "TEXT", fieldKey: "contact.linkedin_profile_url" },
+          "fA3xknUCWKvL1x0jSyKc": { name: "Years Experience", type: "NUMERICAL", fieldKey: "contact.years_experience" },
+          "fXjqanfPiKAiRgCDLXGx": { name: "Event Location", type: "TEXT", fieldKey: "contact.event_location" },
+          "jagHTl5378wbeMAySyTq": { name: "Cross-Reference ID", type: "TEXT", fieldKey: "contact.crossreference_id" },
+          "mmyrnHHeQuTMX12x5jUn": { name: "Dripify Synced", type: "CHECKBOX", fieldKey: "contact.dripify_synced" },
+          "nYbnBk0yB6wBxV3WcL9y": { name: "Lead Source", type: "SINGLE_OPTIONS", fieldKey: "contact.lead_source" },
+          "oEAvsZR3rLCcwjwGDz8C": { name: "UTM Campaign", type: "TEXT", fieldKey: "contact.utm_campaign" },
+          "rdiLaQb8FoYqED48cQvP": { name: "Licenses", type: "TEXT", fieldKey: "contact.licenses" },
+          "rguElwOH4CWpStikSK8M": { name: "Stage Changed Date", type: "DATE", fieldKey: "contact.stage_changed_date" },
+          "s4Qa9BxGcBKltJk2iGVe": { name: "Lead Score", type: "NUMERICAL", fieldKey: "contact.lead_score" },
+          "sisbfvgjd6aEZO30uyCI": { name: "Source Instance", type: "TEXT", fieldKey: "contact.source_instance" },
+          "tIaZIfMStU3allIagOpU": { name: "Designations", type: "TEXT", fieldKey: "contact.designations" },
+          "taQ0qOVoVxztncrO9F4A": { name: "Last Touch Channel", type: "TEXT", fieldKey: "contact.last_touch_channel" },
+          "utfioaBn6YWIvuy3eMum": { name: "Last Sync Timestamp", type: "DATE", fieldKey: "contact.last_sync_timestamp" },
+          "xXe4d9fxDTiaPUrQzX1Z": { name: "Strengths", type: "LARGE_TEXT", fieldKey: "contact.strengths" },
+          "yKtHOkkuuDJdEMOdrwJY": { name: "Cross-Instance Sync Status", type: "TEXT", fieldKey: "contact.crossinstance_sync_status" },
+          "ym2bDMtDIzyD18QvqIrQ": { name: "Workable Stage", type: "TEXT", fieldKey: "contact.workable_stage" },
+        };
+        await ghlImport.syncCustomFieldDefinitions(dbInstance, fieldMapping);
+
+        // Start import in background (non-blocking)
+        ghlImport.startImport(dbInstance, ctx.user.id, ghlCreds, jobId, resumeFromId).catch((err) => {
+          console.error("[GHL Import] Fatal error:", err);
+        });
+
+        await db.logActivity({
+          userId: ctx.user.id,
+          type: "import",
+          action: "ghl_import_started",
+          description: `Started GHL contact import job #${jobId}` + (resumeFromId ? ` (resuming from ${resumeFromId})` : ""),
+          severity: "info",
+        });
+
+        return { jobId };
+      }),
+
+    // Get import progress (live from memory or from DB)
+    progress: protectedProcedure
+      .input(z.object({ jobId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        // Try in-memory first (active job)
+        const liveProgress = ghlImport.getImportProgress(input.jobId);
+        if (liveProgress) return liveProgress;
+
+        // Fall back to DB
+        const job = await db.getGhlImportJob(input.jobId);
+        if (!job) return null;
+        return {
+          jobId: job.id,
+          status: job.status,
+          totalContacts: job.totalContacts || 0,
+          importedCount: job.importedCount || 0,
+          updatedCount: job.updatedCount || 0,
+          skippedCount: job.skippedCount || 0,
+          failedCount: job.failedCount || 0,
+          rate: 0,
+          eta: 0,
+          lastGhlContactId: job.lastGhlContactId,
+          errors: job.errorLog ? JSON.parse(job.errorLog as string) : [],
+        };
+      }),
+
+    // List all import jobs
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return db.getGhlImportJobs(ctx.user.id);
+    }),
+
+    // Pause import
+    pause: protectedProcedure
+      .input(z.object({ jobId: z.number() }))
+      .mutation(async ({ input }) => {
+        return { success: ghlImport.pauseImport(input.jobId) };
+      }),
+
+    // Resume import
+    resume: protectedProcedure
+      .input(z.object({ jobId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        // If job is not in memory, restart it from DB checkpoint
+        if (!ghlImport.isImportRunning(input.jobId)) {
+          const job = await db.getGhlImportJob(input.jobId);
+          if (!job) throw new Error("Import job not found");
+          const ghlCreds = await credentialHelper.getGhlCredentials(ctx.user.id);
+          if (!ghlCreds) throw new Error("GHL not configured");
+          const dbInstance = await db.getDb();
+          if (!dbInstance) throw new Error("Database not available");
+          ghlImport.startImport(dbInstance, ctx.user.id, ghlCreds, job.id, job.lastGhlContactId).catch(console.error);
+          return { success: true, restarted: true };
+        }
+        return { success: ghlImport.resumeImport(input.jobId), restarted: false };
+      }),
+
+    // Stop import
+    stop: protectedProcedure
+      .input(z.object({ jobId: z.number() }))
+      .mutation(async ({ input }) => {
+        return { success: ghlImport.stopImport(input.jobId) };
+      }),
+  }),
+
+  // ─── Custom Field Definitions ──────────────────────────────────────
+  customFields: router({
+    definitions: protectedProcedure.query(async () => {
+      return db.getCustomFieldDefinitions();
+    }),
+    byCategory: protectedProcedure
+      .input(z.object({ category: z.string() }))
+      .query(async ({ input }) => {
+        return db.getCustomFieldDefinitionsByCategory(input.category);
       }),
   }),
 

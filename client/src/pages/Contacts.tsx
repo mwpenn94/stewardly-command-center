@@ -139,9 +139,9 @@ export default function Contacts() {
           <Button variant="outline" size="sm" className="gap-2 min-h-[44px] sm:min-h-0" onClick={() => {
             const rows = data?.contacts || [];
             if (rows.length === 0) { toast.error("No contacts to export"); return; }
-            const headers = ["First Name","Last Name","Email","Phone","Company","Segment","Tier","City","State"];
+            const headers = ["First Name","Last Name","Email","Phone","Company","Segment","Tier","Address","City","State","Zip","Country","Source","Website","GHL ID","Score"];
             const csvRows = [headers.join(","), ...rows.map((c: any) =>
-              [c.firstName, c.lastName, c.email, c.phone, c.companyName, c.segment, c.tier, c.city, c.state]
+              [c.firstName, c.lastName, c.email, c.phone, c.companyName, c.segment, c.tier, c.address, c.city, c.state, c.postalCode, c.country, c.source, c.website, c.ghlContactId, c.propensityScore]
                 .map((v: unknown) => `"${(v || "").toString().replace(/"/g, '""')}"`)
                 .join(",")
             )];
@@ -413,6 +413,48 @@ export default function Contacts() {
               </div>
             </div>
           </div>
+          {/* Additional Fields (Expandable) */}
+          <details className="border-t border-border/30 pt-3">
+            <summary className="text-xs font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors">Additional Fields</summary>
+            <div className="grid grid-cols-2 gap-4 py-3">
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Country</Label>
+                <Input value={form.country || ""} onChange={(e) => setForm({ ...form, country: e.target.value })} className="bg-muted/30" placeholder="US" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Website</Label>
+                <Input value={form.website || ""} onChange={(e) => setForm({ ...form, website: e.target.value })} className="bg-muted/30" placeholder="https://" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Source</Label>
+                <Input value={form.source || ""} onChange={(e) => setForm({ ...form, source: e.target.value })} className="bg-muted/30" placeholder="e.g. referral, web" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Date of Birth</Label>
+                <Input value={form.dateOfBirth || ""} onChange={(e) => setForm({ ...form, dateOfBirth: e.target.value })} className="bg-muted/30" placeholder="YYYY-MM-DD" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Gender</Label>
+                <Select value={form.gender || "unspecified"} onValueChange={(v) => setForm({ ...form, gender: v === "unspecified" ? "" : v })}>
+                  <SelectTrigger className="bg-muted/30"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unspecified">Unspecified</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Timezone</Label>
+                <Input value={form.timezone || ""} onChange={(e) => setForm({ ...form, timezone: e.target.value })} className="bg-muted/30" placeholder="America/Phoenix" />
+              </div>
+              <div className="col-span-2 space-y-2">
+                <Label className="text-xs text-muted-foreground">Notes</Label>
+                <Textarea value={form.notes || ""} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="bg-muted/30" rows={2} placeholder="Internal notes..." />
+              </div>
+            </div>
+          </details>
           {/* GHL Sync Toggle */}
           <div className="flex items-center justify-between px-1 py-2 border-t border-border/30">
             <div className="flex items-center gap-2">
@@ -455,6 +497,7 @@ export default function Contacts() {
           <Tabs defaultValue="info" className="w-full">
             <TabsList className="w-full bg-muted/30">
               <TabsTrigger value="info" className="flex-1">Info</TabsTrigger>
+              <TabsTrigger value="custom" className="flex-1">Custom Fields</TabsTrigger>
               <TabsTrigger value="timeline" className="flex-1">Timeline</TabsTrigger>
               <TabsTrigger value="channels" className="flex-1">Channels</TabsTrigger>
             </TabsList>
@@ -521,8 +564,59 @@ export default function Contacts() {
                   </div>
                 </>
               )}
+              {/* Additional Details */}
+              {(detailContact?.country || detailContact?.website || detailContact?.source || detailContact?.dateOfBirth || detailContact?.gender) && (
+                <>
+                  <Separator />
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Additional Details</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {detailContact?.country && (
+                        <div className="p-2 rounded-lg bg-muted/10">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Country</p>
+                          <p className="text-xs text-foreground">{detailContact.country}</p>
+                        </div>
+                      )}
+                      {detailContact?.website && (
+                        <div className="p-2 rounded-lg bg-muted/10">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Website</p>
+                          <a href={detailContact.website.startsWith('http') ? detailContact.website : `https://${detailContact.website}`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline truncate block">{detailContact.website}</a>
+                        </div>
+                      )}
+                      {detailContact?.source && (
+                        <div className="p-2 rounded-lg bg-muted/10">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Source</p>
+                          <p className="text-xs text-foreground">{detailContact.source}</p>
+                        </div>
+                      )}
+                      {detailContact?.dateOfBirth && (
+                        <div className="p-2 rounded-lg bg-muted/10">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Date of Birth</p>
+                          <p className="text-xs text-foreground">{detailContact.dateOfBirth}</p>
+                        </div>
+                      )}
+                      {detailContact?.gender && (
+                        <div className="p-2 rounded-lg bg-muted/10">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Gender</p>
+                          <p className="text-xs text-foreground capitalize">{detailContact.gender}</p>
+                        </div>
+                      )}
+                      {detailContact?.timezone && (
+                        <div className="p-2 rounded-lg bg-muted/10">
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5">Timezone</p>
+                          <p className="text-xs text-foreground">{detailContact.timezone}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
               {/* Campaign Attribution */}
               {detailContact?.id && <ContactCampaigns contactId={detailContact.id} />}
+            </TabsContent>
+
+            <TabsContent value="custom" className="py-2">
+              {detailContact?.id && <ContactCustomFields contactId={detailContact.id} />}
             </TabsContent>
 
             <TabsContent value="timeline" className="py-2">
@@ -754,6 +848,87 @@ function ContactTimeline({ contactId }: { contactId?: number }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function ContactCustomFields({ contactId }: { contactId: number }) {
+  const { data, isLoading, error, refetch } = trpc.contacts.getWithCustomFields.useQuery(
+    { id: contactId },
+    { enabled: !!contactId }
+  );
+  const { data: definitions } = trpc.customFields.definitions.useQuery();
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-10 bg-muted/30 rounded animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return <QueryError message="Failed to load custom fields." onRetry={() => refetch()} />;
+  }
+
+  const customFields = data?.customFields || [];
+  const defMap = new Map((definitions || []).map((d: any) => [d.ghlFieldId, d]));
+
+  // Group custom fields by category
+  const grouped: Record<string, Array<{ label: string; value: string; fieldId: string }>> = {};
+  for (const cf of customFields) {
+    const def = defMap.get(cf.ghlFieldId);
+    const category = def?.category || "Other";
+    const label = def?.fieldName || cf.ghlFieldId;
+    if (!grouped[category]) grouped[category] = [];
+    grouped[category].push({ label, value: cf.value || "—", fieldId: cf.ghlFieldId });
+  }
+
+  // Also show definitions that have no value yet
+  for (const def of (definitions || []) as any[]) {
+    const category = def.category || "Other";
+    const exists = customFields.some((cf: any) => cf.ghlFieldId === def.ghlFieldId);
+    if (!exists) {
+      if (!grouped[category]) grouped[category] = [];
+      grouped[category].push({ label: def.fieldName, value: "—", fieldId: def.ghlFieldId });
+    }
+  }
+
+  const categories = Object.keys(grouped).sort();
+
+  if (categories.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Tag className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+        <p className="text-sm text-muted-foreground">No custom fields defined</p>
+        <p className="text-xs text-muted-foreground/60 mt-1">
+          Run a GHL Import to sync custom field definitions.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {categories.map((category) => (
+        <div key={category}>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">{category}</p>
+          <div className="grid grid-cols-2 gap-2">
+            {grouped[category].map((field) => (
+              <div key={field.fieldId} className="p-2 rounded-lg bg-muted/10">
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-0.5 truncate" title={field.label}>
+                  {field.label.replace(/^wb_/i, "").replace(/_/g, " ")}
+                </p>
+                <p className={`text-xs ${field.value !== "—" ? "text-foreground" : "text-muted-foreground/40"} truncate`} title={field.value}>
+                  {field.value}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

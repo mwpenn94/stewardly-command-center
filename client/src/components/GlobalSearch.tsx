@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import {
   Search, Users, X, Megaphone, ArrowRight, Upload, RefreshCw, BarChart3,
-  Sparkles, Archive, Activity, Settings, Brain, Radio, Plug,
+  Sparkles, Archive, Activity, Settings, Brain, Radio, Plug, Download,
   type LucideIcon
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Activity Feed", path: "/activity", icon: Activity, keywords: ["activity", "log", "audit", "events"], color: "text-orange-400" },
   { label: "AI Insights", path: "/ai-insights", icon: Brain, keywords: ["ai", "insights", "recommendations", "predictions", "scoring", "health"], color: "text-fuchsia-400" },
   { label: "Channels", path: "/channels", icon: Radio, keywords: ["channels", "email", "sms", "linkedin", "social", "voice", "mail"], color: "text-rose-400" },
+  { label: "GHL Import", path: "/ghl-import", icon: Download, keywords: ["ghl", "import", "gohighlevel", "pull", "contacts"], color: "text-cyan-400" },
   { label: "Settings", path: "/settings", icon: Settings, keywords: ["settings", "preferences", "theme", "notifications"], color: "text-muted-foreground" },
 ];
 

@@ -11,6 +11,9 @@ import {
   backups, InsertBackup, Backup,
   contactInteractions, InsertContactInteraction, ContactInteraction,
   channelConfigs, InsertChannelConfig, ChannelConfig,
+  contactCustomFields, InsertContactCustomField, ContactCustomField,
+  customFieldDefinitions, CustomFieldDefinition,
+  ghlImportJobs, InsertGhlImportJob, GhlImportJob,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -535,4 +538,90 @@ export async function getChannelConfig(userId: number, channel: string) {
     .where(and(eq(channelConfigs.userId, userId), eq(channelConfigs.channel, channel as any)))
     .limit(1);
   return result[0] || null;
+}
+
+// ─── GHL Import Jobs ────────────────────────────────────────────────────────
+export async function createGhlImportJob(data: InsertGhlImportJob) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.insert(ghlImportJobs).values(data);
+  return result[0].insertId;
+}
+
+export async function getGhlImportJobs(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(ghlImportJobs).where(eq(ghlImportJobs.userId, userId)).orderBy(desc(ghlImportJobs.createdAt));
+}
+
+export async function getGhlImportJob(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(ghlImportJobs).where(eq(ghlImportJobs.id, id)).limit(1);
+  return result[0] || null;
+}
+
+export async function updateGhlImportJob(id: number, data: Partial<InsertGhlImportJob>) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(ghlImportJobs).set(data).where(eq(ghlImportJobs.id, id));
+}
+
+// ─── Contact Custom Fields ──────────────────────────────────────────────────
+export async function getContactCustomFields(contactId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(contactCustomFields).where(eq(contactCustomFields.contactId, contactId));
+}
+
+export async function upsertContactCustomField(data: InsertContactCustomField) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(contactCustomFields).values(data).onDuplicateKeyUpdate({
+    set: {
+      value: data.value,
+      fieldName: data.fieldName,
+      fieldKey: data.fieldKey,
+      fieldType: data.fieldType,
+      updatedAt: new Date(),
+    },
+  });
+}
+
+export async function deleteContactCustomField(contactId: number, ghlFieldId: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(contactCustomFields).where(
+    and(eq(contactCustomFields.contactId, contactId), eq(contactCustomFields.ghlFieldId, ghlFieldId))
+  );
+}
+
+// ─── Custom Field Definitions ───────────────────────────────────────────────
+export async function getCustomFieldDefinitions() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(customFieldDefinitions).orderBy(asc(customFieldDefinitions.displayOrder));
+}
+
+export async function getCustomFieldDefinitionsByCategory(category: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(customFieldDefinitions)
+    .where(eq(customFieldDefinitions.category, category))
+    .orderBy(asc(customFieldDefinitions.displayOrder));
+}
+
+// ─── Contact with Custom Fields (joined query) ─────────────────────────────
+export async function getContactWithCustomFields(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const contact = await db.select().from(contacts)
+    .where(and(eq(contacts.id, id), eq(contacts.userId, userId)))
+    .limit(1);
+  if (!contact[0]) return null;
+
+  const customFields = await db.select().from(contactCustomFields)
+    .where(eq(contactCustomFields.contactId, id));
+
+  return { ...contact[0], customFields };
 }

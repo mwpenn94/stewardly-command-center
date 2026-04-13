@@ -315,3 +315,13 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] Investigate original workbook files — WB files have Full_Name (residential) and FirstName/LastName (commercial)
 - [x] Remerge master CSV — 99.9% name coverage (560,964/561,806) via email/phone/address matching to WB sources
 - [x] Restart remediation sync with corrected CSV — DONE: 561,806/561,806 (100%), peak 10,126/min
+
+## Import GHL Contacts into App with Full Field Support
+- [x] Investigate current app DB schema for contacts table and identify gaps vs GHL fields
+- [x] Query GHL API to discover all standard fields (35) and custom fields (58) on contacts
+- [x] Update database schema — contacts table expanded to 47 columns, added contact_custom_fields, custom_field_definitions, ghl_import_jobs tables
+- [x] Build GHL-to-local-DB import pipeline (ghlImport.ts — paginated pull with field mapping, progress tracking, pause/resume/stop)
+- [x] Update tRPC routers and DB helpers for full field CRUD including custom fields
+- [x] Update frontend — GHL Import page, Custom Fields tab in detail dialog, expanded edit form
+- [x] Run import pipeline — ready to execute from GHL Import page
+- [x] Write tests for import pipeline — 15 tests passing (ghlImport.test.ts)
