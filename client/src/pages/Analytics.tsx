@@ -261,9 +261,9 @@ export default function Analytics() {
               { label: "Clicked", value: agg.totalClicked, max: agg.totalSent, color: "bg-amber-500" },
               { label: "Conversions", value: agg.totalConversions, max: agg.totalSent, color: "bg-emerald-500" },
             ].map((step) => (
-              <div key={step.label} className="flex items-center gap-3">
+              <div key={step.label} className="flex items-center gap-3" role="meter" aria-label={`${step.label}: ${formatNum(step.value)}`} aria-valuenow={step.value} aria-valuemin={0} aria-valuemax={step.max}>
                 <p className="text-xs text-muted-foreground w-24 text-right">{step.label}</p>
-                <div className="flex-1 h-6 rounded-md bg-muted/20 overflow-hidden relative">
+                <div className="flex-1 h-6 rounded-md bg-muted/20 overflow-hidden relative" aria-hidden="true">
                   <div
                     className={`h-full ${step.color} rounded-md transition-all duration-500`}
                     style={{ width: `${step.max > 0 ? Math.max((step.value / step.max) * 100, 1) : 0}%` }}
@@ -290,6 +290,51 @@ export default function Analytics() {
           <CardContent className="p-6 sm:p-12 text-center">
             <p className="text-muted-foreground text-sm">Campaign funnel will populate as campaigns run and collect metrics.</p>
             <p className="text-xs text-muted-foreground/60 mt-1">Open rates, click rates, conversions, and cost per lead tracked per channel.</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Top Campaigns */}
+      {campaigns && campaigns.length > 0 && (
+        <Card className="bg-card border-border/50" role="region" aria-label="Campaign performance ranking">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium text-foreground flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              Campaign Performance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {campaigns
+                .map(c => ({ ...c, m: parseMetrics(c.metrics) }))
+                .sort((a, b) => (b.m.sent || 0) - (a.m.sent || 0))
+                .slice(0, 8)
+                .map((c) => {
+                  const sent = c.m.sent || 0;
+                  const maxSent = Math.max(...campaigns.map(cc => parseMetrics(cc.metrics).sent || 0), 1);
+                  const chCfg = channelConfig.find(ch => ch.key === c.channel);
+                  const Icon = chCfg?.icon || Mail;
+                  const color = chCfg?.color || "text-muted-foreground";
+                  return (
+                    <div key={c.id} className="flex items-center gap-3 p-2 rounded bg-muted/10">
+                      <Icon className={`h-4 w-4 ${color} shrink-0`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-xs font-medium text-foreground truncate">{c.name}</p>
+                          <Badge variant="outline" className="text-[9px] shrink-0">{c.status}</Badge>
+                        </div>
+                        <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
+                          <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${maxSent > 0 ? (sent / maxSent) * 100 : 0}%` }} />
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xs font-medium text-foreground tabular-nums">{formatNum(sent)}</p>
+                        <p className="text-[10px] text-muted-foreground">sent</p>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
           </CardContent>
         </Card>
       )}

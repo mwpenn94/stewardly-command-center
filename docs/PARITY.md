@@ -28,7 +28,7 @@
 | G16 | Toast notification system | Done | 4 | Sonner toasts on all CRUD operations | legacy |
 | G17 | Skeleton loading states | Done | 3 | Skeleton loaders on tables, cards, lists | legacy |
 | G18 | Authentication flow | Done | 3 | Cookie-based auth, login redirect, role-based access | legacy |
-| G19 | tRPC API layer (73 procedures) | Done | 5 | Full type-safe API: contacts, campaigns, sync, integrations, channels, interactions, AI (67 core + 6 AI) | legacy + Pass 18 + 25 |
+| G19 | tRPC API layer (76 procedures) | Done | 5 | Full type-safe API: contacts, campaigns, sync, integrations, channels, interactions, AI (62 core + 6 AI + 8 omnichannel) | legacy + Pass 18 + 25 + 37-39 |
 | G20 | Database schema (9 tables + migrations) | Done | 4 | Drizzle ORM, MySQL/TiDB, migration-first workflow | legacy |
 | G21 | Multi-platform campaign orchestration | Done | 3 | Orchestrator: sequences, health checks, pause/resume/cancel | legacy |
 | G22 | Test suite (10 files, 3 tiers) | Done | 4 | Unit + integration + live E2E across 10 files | legacy |
@@ -118,6 +118,26 @@
 | G106 | Campaign audience selector | Done | 4 | Launch dialog: choose All, By Segment (9 segments), or By Tier (gold/silver/bronze/unscored); live contact count updates based on selection; filtered IDs sent to launch API | Pass 38 |
 | G107 | Analytics interactive navigation | Done | 3 | Channel breakdown rows link to /campaigns, tier distribution cards link to /contacts; hover states added throughout Analytics page | Pass 38 |
 | G108 | Documentation accuracy — passes 35-38 | Done | 3 | README updated: campaign detail view, audience selector, channel-specific forms, flow builder, interaction logging, analytics nav, activity feed nav, global search templates | Pass 39 |
+| G94 | QueryError on SyncEngine, ActivityFeed, Channels, Integrations | Done | 4 | 4 more pages now show retry-able error state when queries fail; total 9 pages with QueryError coverage | Pass 35 |
+| G95 | BulkImport CSV preview mobile scroll hint | Done | 2 | Mobile-only hint text "Scroll horizontally to see more columns →" for CSV preview table | Pass 35 |
+| G96 | Contact interaction logging | Done | 4 | "Log Interaction" button on contact timeline tab; inline form with channel selector (13 channels), direction toggle, body text; auto-maps channel to interaction type; creates via tRPC interactions.create | Pass 36 |
+| G97 | Campaign Detail view | Done | 4 | Click campaign name → detail dialog with Overview tab (audience/sent/failed/interactions metrics, channel breakdown, type breakdown, direction stats, timestamps) and Timeline tab (campaign interaction history with channel icons, sentiment, direction badges) | Pass 37 |
+| G98 | Campaign interaction tracking backend | Done | 4 | New tRPC procedures: campaigns.get (single campaign + interaction stats), interactions.byCampaign (filtered by campaignId); new DB functions: getCampaignById, getInteractionsByCampaign, getCampaignInteractionStats | Pass 37 |
+| G99 | Dead code removal — addToSyncQueue | Done | 2 | Removed unused addToSyncQueue function from db.ts (was never called from any router or service) | Pass 37 |
+| G100 | Documentation accuracy — procedure count + line counts | Done | 3 | All docs updated: 75 procedures, corrected line counts across README, ARCHITECTURE, DOCUMENTATION for all pages + services | Pass 37 + 38 |
+| G101 | Campaign metrics typed | Done | 2 | Campaign metrics changed from `any` to `Record<string, unknown>` in Campaigns.tsx — eliminates last page-level `any` type | Pass 37 |
+| G102 | Campaign lifecycle management | Done | 3 | Pause/resume/cancel buttons in campaign detail dialog; status updates via campaigns.update mutation with toast feedback and query invalidation | Pass 38 |
+| G103 | Contact campaign attribution | Done | 3 | Contact detail Info tab shows "Campaigns" section with all campaigns the contact has interacted with; new contacts.campaigns tRPC procedure + getCampaignsForContact DB function | Pass 38 |
+| G104 | Dashboard campaign lifecycle metrics | Done | 3 | Campaign status breakdown badges (draft/scheduled/running/paused/completed/failed) displayed below stat cards; click navigates to /campaigns | Pass 38 |
+| G105 | Data completeness analytics | Done | 4 | Enrichment page shows per-field data completeness bars (Email, Phone, Address, City, Company, GHL Synced, Tier Scored, Segmented) with color-coded thresholds; avg completeness score; new contacts.dataCompleteness tRPC + getDataCompletenessStats DB | Pass 39 |
+| G106 | Mobile touch targets — dashboard badges | Done | 2 | Campaign lifecycle badges on dashboard have 44px min-height on mobile, keyboard accessible with role="button" | Pass 39 |
+| G107 | Contact campaign attribution — mobile | Done | 2 | Campaign channel text hidden on mobile (sm:inline) to prevent text overflow on 375px screens | Pass 39 |
+| G108 | TIMELINE_CHANNEL_ICONS typed | Done | 2 | Changed from Record<string, any> to Record<string, LucideIcon> in Contacts.tsx — removes another any type | Pass 39 |
+| G109 | Global search — page navigation | Done | 3 | ⌘K search now surfaces all 13 pages by label and keywords (e.g. type "ai" → AI Insights, type "sync" → Sync Engine); pages shown before contacts/campaigns; `any` types in search results replaced with explicit types | Pass 40 |
+| G110 | Analytics campaign performance chart | Done | 3 | Top 8 campaigns sorted by send volume with proportional bar chart, channel icon, status badge; campaign-level drill-down for analytics | Pass 40 |
+| G111 | Accessibility — ARIA on data visualizations | Done | 3 | role="meter" + aria-valuenow/min/max on Enrichment completeness bars and Analytics funnel steps; aria-hidden on decorative icons; role="status" + aria-label on campaign MetricCard; region label on campaign performance | Pass 41 |
+| G112 | Settings page — system status + quick links | Done | 4 | Settings shows live contact/campaign counts, platform connection status with badges, 6 quick links to key app areas (Integrations, Channels, Backups, AI Insights, Analytics, Import) | Pass 42 |
+| G113 | Home.tsx zero `any` types | Done | 3 | 5 `any` casts in Home.tsx replaced with explicit typed interfaces for crossChannelMetrics, aiRecommendations, contactStats, activityLog, platformHealth | Pass 42 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -188,6 +208,22 @@
 - Global Search: searches contacts + campaigns + templates with tier/status badges
 - Campaign audience selector: All / By Segment / By Tier with live count preview
 - Analytics: channel breakdown and tier distribution cards are interactive with navigation
+- QueryError on 9 pages: Home, Analytics, Campaigns, Contacts, AIInsights, SyncEngine, ActivityFeed, Channels, Integrations
+- Contact timeline "Log Interaction" with channel selection, direction, and body
+- Campaign Detail dialog: overview metrics + interaction timeline, accessible via campaign name click
+- Campaign-level interaction tracking: campaigns.get returns interaction stats, interactions.byCampaign returns filtered timeline
+- Documentation accuracy: 75 procedures, verified line counts for all source files
+- Campaign detail: pause/resume/cancel status management from detail dialog
+- Contact campaign attribution: Info tab shows campaigns the contact has interacted with
+- Dashboard campaign lifecycle: status breakdown badges with click-to-navigate
+- Data completeness analytics: per-field completeness bars on Enrichment page
+- TIMELINE_CHANNEL_ICONS typed as Record<string, LucideIcon> (no any)
+- Global search surfaces all 13 pages by label + keywords, plus contacts and campaigns
+- Analytics campaign performance: top campaigns sorted by send volume with proportional bars
+- ARIA role="meter" on data completeness bars and conversion funnel steps
+- ARIA role="status" on campaign detail MetricCard components
+- Settings page: system status with live counts + platform connections + 6 quick links
+- Home.tsx zero any types: all tRPC result callbacks use explicit interfaces
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -240,3 +276,11 @@
 - Pass 37 · cross-entity navigation + omnichannel drilldown · G103-G105 done; omnichannel grid clickable, activity feed entries clickable, global search templates + badges · ed53d35 · 3 items completed · none deferred
 - Pass 38 · campaign audience selection + analytics interactivity · G106-G107 done; audience selector (All/Segment/Tier) with live count, analytics channel/tier navigation · 883d3ce · 2 items completed · none deferred
 - Pass 39 · documentation accuracy + README completeness · G108 done; README updated with all passes 35-38 features (campaign detail, audience selector, interaction logging, cross-entity nav, channel-specific forms, analytics interactivity) · PENDING · 1 item completed · none deferred
+- Pass 35 · input validation + error states · G94-G95 done; QueryError added to 4 more pages (9 total), BulkImport CSV preview mobile scroll hint · ce2805d · 2 items completed · none deferred
+- Pass 36 · contact interaction logging + unified timeline · G96 done; "Log Interaction" feature on contact detail timeline with 13-channel select, direction toggle, auto-typed mutations · PENDING · 1 item completed · none deferred
+- Pass 37 · functional gaps + documentation accuracy + campaign detail · G97-G101 done; campaign detail dialog with overview+timeline, campaigns.get+interactions.byCampaign tRPC, dead code removed, metrics type fixed, all docs updated with accurate counts · 79b846b · 5 items completed · none deferred
+- Pass 38 · campaign lifecycle + contact attribution + dashboard metrics · G102-G104 done; pause/resume/cancel in campaign detail, contact campaign attribution section, dashboard campaign lifecycle badges, contacts.campaigns tRPC, getCampaignsForContact DB · 46d24d9 · 3 items completed · none deferred
+- Pass 39 · mobile UX + data completeness + type safety · G105-G108 done; Enrichment page data completeness bars, dashboard badge 44px targets, contact campaign mobile fix, TIMELINE_CHANNEL_ICONS typed · 2d360b6 · 4 items completed · none deferred
+- Pass 40 · unified search + analytics drill-down · G109-G110 done; global search now surfaces all 13 pages by keywords, analytics campaign performance chart with top 8 campaigns; any types eliminated in GlobalSearch · 19f5ba6 · 2 items completed · none deferred
+- Pass 41 · accessibility + ARIA on data visualizations · G111 done; role="meter" on Enrichment bars + Analytics funnel, aria-hidden on decorative icons, role="status" on MetricCards, region label on campaign performance · 2751e7f · 1 item completed · none deferred
+- Pass 42 · cross-app cohesion + type safety · G112-G113 done; Settings page enhanced with system status + quick links, Home.tsx any types eliminated · PENDING · 2 items completed · none deferred

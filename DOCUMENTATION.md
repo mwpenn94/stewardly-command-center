@@ -67,7 +67,7 @@ The application follows a layered architecture with clear separation of concerns
 │  └─ tRPC hooks (useQuery / useMutation)             │
 ├─────────────────────────────────────────────────────┤
 │  API Layer (tRPC Router — server/routers.ts)         │
-│  └─ 73 procedures (public + protected)              │
+│  └─ 76 procedures (public + protected)              │
 ├─────────────────────────────────────────────────────┤
 │  Service Layer (server/services/*.ts)                │
 │  └─ GHL, SMS-iT, Dripify, Orchestrator,            │
@@ -435,7 +435,7 @@ A Python script that processes all source CSV files, deduplicates by email, merg
 
 ### 10.1 tRPC Over REST
 
-The decision to use tRPC instead of traditional REST endpoints was driven by the need for end-to-end type safety. With 73 procedures and complex data shapes (contacts with 20+ fields, campaigns with nested templates across 13 channels), tRPC eliminates an entire class of serialization bugs and provides autocomplete in the frontend.
+The decision to use tRPC instead of traditional REST endpoints was driven by the need for end-to-end type safety. With 76 procedures and complex data shapes (contacts with 20+ fields, campaigns with nested templates across 13 channels), tRPC eliminates an entire class of serialization bugs and provides autocomplete in the frontend.
 
 ### 10.2 JWT Extraction via CDP
 

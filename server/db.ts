@@ -136,6 +136,39 @@ export async function getContactStats(userId: number) {
   return { total: total[0]?.count || 0, enriched: enriched[0]?.count || 0, bySegment, byTier, bySyncStatus };
 }
 
+export async function getDataCompletenessStats(userId: number) {
+  const db = await getDb();
+  if (!db) return { total: 0, fields: [] };
+  const totalResult = await db.select({ count: count() }).from(contacts).where(eq(contacts.userId, userId));
+  const total = totalResult[0]?.count || 0;
+  if (total === 0) return { total: 0, fields: [] };
+
+  const [hasEmail, hasPhone, hasAddress, hasCompany, hasGhl, hasTier, hasSegment, hasCity] = await Promise.all([
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.email} IS NOT NULL AND ${contacts.email} != ''`)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.phone} IS NOT NULL AND ${contacts.phone} != ''`)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.address} IS NOT NULL AND ${contacts.address} != ''`)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.companyName} IS NOT NULL AND ${contacts.companyName} != ''`)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.ghlContactId} IS NOT NULL AND ${contacts.ghlContactId} != ''`)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.tier} IS NOT NULL AND ${contacts.tier} != '' AND ${contacts.tier} != 'unscored'`)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.segment} IS NOT NULL AND ${contacts.segment} != '' AND ${contacts.segment} != 'other'`)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.city} IS NOT NULL AND ${contacts.city} != ''`)),
+  ]);
+
+  return {
+    total,
+    fields: [
+      { field: "Email", count: hasEmail[0]?.count || 0 },
+      { field: "Phone", count: hasPhone[0]?.count || 0 },
+      { field: "Address", count: hasAddress[0]?.count || 0 },
+      { field: "City", count: hasCity[0]?.count || 0 },
+      { field: "Company", count: hasCompany[0]?.count || 0 },
+      { field: "GHL Synced", count: hasGhl[0]?.count || 0 },
+      { field: "Tier Scored", count: hasTier[0]?.count || 0 },
+      { field: "Segmented", count: hasSegment[0]?.count || 0 },
+    ],
+  };
+}
+
 // ─── Integrations ────────────────────────────────────────────────────────────
 export async function getIntegrations(userId: number) {
   const db = await getDb();
@@ -233,6 +266,58 @@ export async function deleteCampaign(id: number, userId: number) {
   await db.delete(campaigns).where(and(eq(campaigns.id, id), eq(campaigns.userId, userId)));
 }
 
+export async function getCampaignById(id: number, userId: number): Promise<Campaign | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(campaigns).where(and(eq(campaigns.id, id), eq(campaigns.userId, userId))).limit(1);
+  return rows[0] || null;
+}
+
+export async function getInteractionsByCampaign(userId: number, campaignId: number, opts?: {
+  channel?: string; limit?: number; offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return { interactions: [], total: 0 };
+  const conditions = [eq(contactInteractions.userId, userId), eq(contactInteractions.campaignId, campaignId)];
+  if (opts?.channel && opts.channel !== "all") conditions.push(eq(contactInteractions.channel, opts.channel as any));
+  const where = and(...conditions);
+  const [rows, totalResult] = await Promise.all([
+    db.select().from(contactInteractions).where(where).orderBy(desc(contactInteractions.createdAt)).limit(opts?.limit || 50).offset(opts?.offset || 0),
+    db.select({ count: count() }).from(contactInteractions).where(where),
+  ]);
+  return { interactions: rows, total: totalResult[0]?.count || 0 };
+}
+
+export async function getCampaignInteractionStats(userId: number, campaignId: number) {
+  const db = await getDb();
+  if (!db) return { total: 0, byChannel: [], byType: [], byDirection: [] };
+  const where = and(eq(contactInteractions.userId, userId), eq(contactInteractions.campaignId, campaignId));
+  const [total, byChannel, byType, byDirection] = await Promise.all([
+    db.select({ count: count() }).from(contactInteractions).where(where),
+    db.select({ channel: contactInteractions.channel, count: count() }).from(contactInteractions).where(where).groupBy(contactInteractions.channel),
+    db.select({ type: contactInteractions.type, count: count() }).from(contactInteractions).where(where).groupBy(contactInteractions.type),
+    db.select({ direction: contactInteractions.direction, count: count() }).from(contactInteractions).where(where).groupBy(contactInteractions.direction),
+  ]);
+  return { total: total[0]?.count || 0, byChannel, byType, byDirection };
+}
+
+export async function getCampaignsForContact(userId: number, contactId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  // Get distinct campaign IDs from contact interactions, then fetch those campaigns
+  const interactionCampaigns = await db
+    .selectDistinct({ campaignId: contactInteractions.campaignId })
+    .from(contactInteractions)
+    .where(and(
+      eq(contactInteractions.userId, userId),
+      eq(contactInteractions.contactId, contactId),
+      sql`${contactInteractions.campaignId} IS NOT NULL`
+    ));
+  const campaignIds = interactionCampaigns.map(r => r.campaignId).filter((id): id is number => id != null);
+  if (campaignIds.length === 0) return [];
+  return db.select().from(campaigns).where(and(eq(campaigns.userId, userId), inArray(campaigns.id, campaignIds))).orderBy(desc(campaigns.createdAt));
+}
+
 // ─── Campaign Templates ─────────────────────────────────────────────────────
 export async function getTemplates(userId: number, channel?: string) {
   const db = await getDb();
@@ -280,13 +365,6 @@ export async function getSyncStats(userId: number) {
     db.select({ platform: syncQueue.platform, count: count() }).from(syncQueue).where(eq(syncQueue.userId, userId)).groupBy(syncQueue.platform),
   ]);
   return { total: total[0]?.count || 0, byStatus, byPlatform };
-}
-
-export async function addToSyncQueue(data: InsertSyncQueueItem) {
-  const db = await getDb();
-  if (!db) return null;
-  const result = await db.insert(syncQueue).values(data);
-  return result[0].insertId;
 }
 
 export async function retrySyncItem(id: number) {
@@ -344,8 +422,8 @@ export async function updateBackup(id: number, data: Partial<InsertBackup>) {
 // ─── Dashboard Stats ─────────────────────────────────────────────────────────
 export async function getDashboardStats(userId: number) {
   const db = await getDb();
-  if (!db) return { contacts: 0, campaigns: 0, syncPending: 0, integrations: 0, recentActivity: [] };
-  const [contactCount, campaignCount, syncPending, integrationCount, recentActivity] = await Promise.all([
+  if (!db) return { contacts: 0, campaigns: 0, syncPending: 0, integrations: 0, recentActivity: [], campaignsByStatus: [] };
+  const [contactCount, campaignCount, syncPending, integrationCount, recentActivity, campaignsByStatus] = await Promise.all([
     db.select({ count: count() }).from(contacts).where(eq(contacts.userId, userId)),
     db.select({ count: count() }).from(campaigns).where(eq(campaigns.userId, userId)),
     db.select({ count: count() }).from(syncQueue).where(and(eq(syncQueue.userId, userId), inArray(syncQueue.status, ["pending", "processing"]))),
@@ -357,6 +435,7 @@ export async function getDashboardStats(userId: number) {
       )
     ),
     db.select().from(activityLog).where(eq(activityLog.userId, userId)).orderBy(desc(activityLog.createdAt)).limit(10),
+    db.select({ status: campaigns.status, count: count() }).from(campaigns).where(eq(campaigns.userId, userId)).groupBy(campaigns.status),
   ]);
   return {
     contacts: contactCount[0]?.count || 0,
@@ -364,6 +443,7 @@ export async function getDashboardStats(userId: number) {
     syncPending: syncPending[0]?.count || 0,
     integrations: integrationCount[0]?.count || 0,
     recentActivity,
+    campaignsByStatus,
   };
 }
 

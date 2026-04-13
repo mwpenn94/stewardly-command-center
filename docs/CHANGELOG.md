@@ -5,6 +5,48 @@ All notable changes to the Stewardly Command Center project will be documented i
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [2.2.0] - 2026-04-13
+## [2.3.0] - 2026-04-13
+
+### Added
+- **Global search — page navigation** — ⌘K search now surfaces all 13 app pages matching by label and keywords (e.g., type "ai" → AI Insights, "sync" → Sync Engine, "import" → Bulk Import). Pages appear in results before contacts and campaigns for faster navigation
+- **Analytics campaign performance chart** — New "Campaign Performance" section shows top 8 campaigns sorted by send volume with proportional bar charts, channel icons, and status badges; provides campaign-level drill-down for analytics
+- **Accessibility — ARIA on data visualizations** — `role="meter"` with `aria-valuenow`/`aria-valuemin`/`aria-valuemax` on Enrichment data completeness bars and Analytics conversion funnel steps; `aria-hidden` on decorative icons; `role="status"` with `aria-label` on campaign detail MetricCard components; `role="region"` with label on Analytics campaign performance section
+- **Settings page — system status** — Settings page now shows live contact/campaign counts, platform connection status with connected/disconnected badges, and 6 quick links to key app areas (Integrations, Channels, Backups, AI Insights, Analytics, Import)
+
+### Fixed
+- **GlobalSearch type safety** — Replaced `any` types in contact and campaign search result callbacks with explicit typed interfaces
+- **Home.tsx type safety** — Eliminated all 5 `any` casts in Home.tsx; explicit typed interfaces for crossChannelMetrics, aiRecommendations, contactStats segments, activityLog entries, and platformHealth results
+
+## [2.2.0] - 2026-04-13
+
+### Added
+- **Data completeness analytics** — Enrichment page now shows live per-field data completeness bars (Email, Phone, Address, City, Company, GHL Synced, Tier Scored, Segmented) with color-coded thresholds (green ≥70%, amber ≥40%, red <40%); average data completeness score; new `contacts.dataCompleteness` tRPC procedure and `getDataCompletenessStats` DB function
+
+### Fixed
+- **Mobile touch targets** — Dashboard campaign lifecycle badges now have 44px minimum height on mobile with keyboard accessibility (`role="button"`, `tabIndex`, `onKeyDown`)
+- **Contact campaigns mobile** — Campaign channel text hidden on mobile (`hidden sm:inline`) to prevent text overflow on 375px screens
+- **Type safety** — `TIMELINE_CHANNEL_ICONS` in Contacts.tsx changed from `Record<string, any>` to `Record<string, LucideIcon>`, removing another `any` type
+
+## [2.1.0] - 2026-04-13
+
+### Added
+- **Campaign lifecycle management** — Pause, resume, and cancel buttons in campaign detail dialog; running campaigns can be paused, paused campaigns can be resumed, active campaigns can be cancelled; status updates via tRPC with toast feedback and query invalidation
+- **Contact campaign attribution** — Contact detail Info tab now shows a "Campaigns" section listing all campaigns the contact has interacted with, showing campaign name, status badge, and channel; new `contacts.campaigns` tRPC procedure and `getCampaignsForContact` DB function
+- **Dashboard campaign lifecycle metrics** — Campaign status breakdown badges (draft/scheduled/running/paused/completed/failed) displayed below stat cards; each badge shows count and clicks through to /campaigns
+
+## [2.0.0] - 2026-04-13
+
+### Added
+- **Campaign Detail view** — Click any campaign name to open a detail dialog with two tabs: Overview (audience/sent/failed/interactions metrics, per-channel interaction breakdown, type breakdown, direction stats, timestamps) and Timeline (chronological campaign interaction history with channel icons, sentiment badges, direction indicators)
+- **Campaign interaction tracking backend** — New `campaigns.get` tRPC procedure returns single campaign with aggregated interaction stats (by channel, type, direction); new `interactions.byCampaign` procedure returns interactions filtered by campaign ID; 3 new DB functions: `getCampaignById`, `getInteractionsByCampaign`, `getCampaignInteractionStats`
+- **Campaign name clickable** — Campaign list items now have clickable names (hover underline, keyboard accessible) that open the detail dialog
+
+### Fixed
+- **Campaign metrics type** — Changed from `any` to `Record<string, unknown>` in Campaigns.tsx, eliminating the last page-level `any` type
+- **Dead code** — Removed unused `addToSyncQueue` function from db.ts (was defined but never called)
+- **Documentation accuracy** — All docs updated with verified counts: 75 tRPC procedures, corrected line counts across README (pages, services), ARCHITECTURE (custom components, services), DOCUMENTATION (procedures)
+
+## [1.9.0] - 2026-04-13
 
 ### Added
 - **Campaign audience selector** — Launch dialog now has audience targeting: choose "All" contacts, "By Segment" (Residential, Commercial, Agricultural, CPA/Tax, etc.), or "By Tier" (Gold, Silver, Bronze, Unscored). Live count updates as you select. Filtered contact IDs are sent to the launch API — no more blind launches

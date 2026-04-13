@@ -19,7 +19,7 @@ Stewardly Command Center is a unified omnichannel marketing command center built
 │  └─ tRPC hooks (useQuery / useMutation)             │
 ├─────────────────────────────────────────────────────┤
 │  API Layer (tRPC Router — server/routers.ts)         │
-│  └─ 73 procedures (public + protected)              │
+│  └─ 76 procedures (public + protected)              │
 ├─────────────────────────────────────────────────────┤
 │  Service Layer (server/services/*.ts)                │
 │  └─ GHL, SMS-iT, Dripify, Orchestrator,            │
@@ -107,19 +107,19 @@ Mobile-first breakpoints: `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1
 | `syncScheduler.ts` | 205 | Periodic cross-platform sync scheduling |
 | `smsit.ts` | 181 | SMS-iT: send, balance, contacts, templates |
 | `credentials.ts` | 124 | DB credential loading + format normalization |
-| `aiEngine.ts` | 584 | AI/agentic engine: health scores, predictions, recommendations, lead scoring |
+| `aiEngine.ts` | 737 | AI/agentic engine: health scores, predictions, recommendations, lead scoring |
 
 ## Custom Components
 
 | Component | Lines | Purpose |
 |-----------|-------|---------|
-| `DashboardLayout.tsx` | 322 | Responsive sidebar + header + mobile drawer |
+| `DashboardLayout.tsx` | 324 | Responsive sidebar + header + mobile drawer |
 | `AIChatBox.tsx` | 335 | AI chat interface component |
 | `GlobalSearch.tsx` | 160 | Cmd+K search overlay across entities |
 | `Map.tsx` | 155 | Google Maps integration |
 | `NotificationCenter.tsx` | 130 | Bell icon popover with recent activities |
 | `ManusDialog.tsx` | 89 | Dialog wrapper component |
-| `KeyboardShortcuts.tsx` | 67 | ? shortcut help dialog |
+| `KeyboardShortcuts.tsx` | 72 | ? shortcut help dialog |
 | `ErrorBoundary.tsx` | 62 | App-level React error boundary with recovery |
 | `DashboardLayoutSkeleton.tsx` | 46 | Skeleton loader for layout |
 | `QueryError.tsx` | 25 | Reusable query error state with retry |

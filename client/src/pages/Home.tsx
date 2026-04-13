@@ -112,6 +112,28 @@ export default function Home() {
         ))}
       </div>
 
+      {/* Campaign Lifecycle */}
+      {stats?.campaignsByStatus && stats.campaignsByStatus.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {[
+            { status: "draft", label: "Draft", color: "bg-muted text-muted-foreground" },
+            { status: "scheduled", label: "Scheduled", color: "bg-blue-500/15 text-blue-400" },
+            { status: "running", label: "Running", color: "bg-emerald-500/15 text-emerald-400" },
+            { status: "paused", label: "Paused", color: "bg-amber-500/15 text-amber-400" },
+            { status: "completed", label: "Completed", color: "bg-primary/15 text-primary" },
+            { status: "failed", label: "Failed", color: "bg-red-500/15 text-red-400" },
+          ].map((s) => {
+            const found = stats.campaignsByStatus.find((c: { status: string; count: number }) => c.status === s.status);
+            if (!found) return null;
+            return (
+              <Badge key={s.status} className={`text-xs px-3 py-1.5 min-h-[44px] sm:min-h-0 flex items-center ${s.color} cursor-pointer`} onClick={() => setLocation("/campaigns")} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && setLocation("/campaigns")}>
+                {s.label}: {found.count}
+              </Badge>
+            );
+          })}
+        </div>
+      )}
+
       {/* Quick Actions */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
@@ -148,7 +170,7 @@ export default function Home() {
           <div className="grid grid-cols-2 min-[400px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-2">
             {Object.entries(CHANNEL_DISPLAY).map(([key, ch]) => {
               const channelCount = crossChannelMetrics?.byChannel?.find(
-                (c: any) => c.channel === key
+                (c: { channel: string; count: number }) => c.channel === key
               )?.count ?? 0;
               return (
                 <button
@@ -203,7 +225,7 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {(aiInsights.recommendations || []).slice(0, 3).map((rec: any, i: number) => (
+              {(aiInsights.recommendations || []).slice(0, 3).map((rec: { title?: string; description?: string; priority?: string; actionUrl?: string; impact?: string }, i: number) => (
                 <button
                   key={i}
                   onClick={() => rec.actionUrl ? setLocation(rec.actionUrl) : setLocation("/ai-insights")}
@@ -241,7 +263,7 @@ export default function Home() {
           </CardHeader>
           <CardContent className="space-y-3">
             {contactStats?.bySegment?.length ? (
-              contactStats.bySegment.map((s: any) => {
+              contactStats.bySegment.map((s: { segment: string | null; count: number }) => {
                 const pct = contactStats.total > 0 ? ((s.count / contactStats.total) * 100).toFixed(1) : "0";
                 return (
                   <div key={s.segment} className="flex items-center justify-between text-sm">
@@ -281,7 +303,7 @@ export default function Home() {
           <CardContent>
             {stats?.recentActivity?.length ? (
               <div className="space-y-1">
-                {stats.recentActivity.map((a: any) => {
+                {stats.recentActivity.map((a: { id: number; type: string; action?: string | null; description?: string | null; severity?: string | null; createdAt: string | Date }) => {
                   const typeRoutes: Record<string, string> = {
                     sync: "/sync", import: "/import", campaign: "/campaigns",
                     webhook: "/sync", enrichment: "/enrichment", backup: "/backups", system: "/activity",
@@ -293,7 +315,7 @@ export default function Home() {
                       className="flex items-start gap-3 text-sm w-full text-left p-2 rounded-lg hover:bg-muted/20 transition-colors min-h-[40px]"
                       onClick={() => setLocation(route)}
                     >
-                      <div className={`mt-1.5 h-1.5 w-1.5 rounded-full shrink-0 ${severityColors[a.severity] || "text-muted-foreground"}`} style={{ backgroundColor: "currentColor" }} />
+                      <div className={`mt-1.5 h-1.5 w-1.5 rounded-full shrink-0 ${severityColors[a.severity || "info"] || "text-muted-foreground"}`} style={{ backgroundColor: "currentColor" }} />
                       <div className="flex-1 min-w-0">
                         <p className="text-foreground truncate">{a.description || a.action}</p>
                         <p className="text-xs text-muted-foreground mt-0.5">
@@ -343,7 +365,7 @@ export default function Home() {
             </div>
           ) : platformHealth?.length ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {platformHealth.map((p: any) => (
+              {platformHealth.map((p: { platform: string; connected: boolean; lastChecked?: number; details?: string }) => (
                 <div
                   key={p.platform}
                   className={`flex items-center gap-3 rounded-lg border p-3 ${

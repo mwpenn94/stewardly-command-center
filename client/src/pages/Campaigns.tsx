@@ -17,7 +17,7 @@ import {
   Users, FileText, Zap, Clock, ArrowRight, Pause, XCircle,
   Phone, PhoneIncoming, PhoneOutgoing, Globe, MessageCircle,
   Calendar, Instagram, Twitter, Facebook, Video,
-  ChevronLeft, ChevronRight, BarChart3
+  ChevronLeft, ChevronRight, Activity
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import QueryError from "@/components/QueryError";
@@ -137,7 +137,7 @@ export default function Campaigns() {
   const [templateOpen, setTemplateOpen] = useState(false);
   const [launchOpen, setLaunchOpen] = useState(false);
   const [seqOpen, setSeqOpen] = useState(false);
-  const [detailCampaign, setDetailCampaign] = useState<any>(null);
+  const [detailCampaignId, setDetailCampaignId] = useState<number | null>(null);
   const [launchCampaignData, setLaunchCampaignData] = useState<{ id: number; name: string; channel: string } | null>(null);
   const [form, setForm] = useState<CampaignForm>({ channel: "email" });
   const [tplForm, setTplForm] = useState<TemplateForm>({ channel: "email" });
@@ -292,23 +292,23 @@ export default function Campaigns() {
             campaigns.map((c) => {
               const ch = CHANNEL_CONFIG[c.channel] || CHANNEL_CONFIG.email;
               const Icon = ch.icon;
-              let metrics: any = null;
-              try { metrics = c.metrics ? (typeof c.metrics === "string" ? JSON.parse(c.metrics) : c.metrics) : null; } catch { metrics = null; }
+              let metrics: Record<string, unknown> | null = null;
+              try { metrics = c.metrics ? (typeof c.metrics === "string" ? JSON.parse(c.metrics) : c.metrics as Record<string, unknown>) : null; } catch { metrics = null; }
               return (
                 <Card key={c.id} className="bg-card border-border/50 card-hover cursor-pointer" onClick={() => setDetailCampaign(c)}>
                   <CardContent className="p-4 flex items-center gap-4">
                     <div className={`h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 ${ch.color}`}>
                       <Icon className="h-5 w-5" />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setDetailCampaignId(c.id)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setDetailCampaignId(c.id); }}>
                       <div className="flex items-center gap-2">
-                        <p className="font-medium text-foreground text-sm truncate">{c.name}</p>
+                        <p className="font-medium text-foreground text-sm truncate hover:underline">{c.name}</p>
                         <Badge className={`text-[10px] ${STATUS_COLORS[c.status] || STATUS_COLORS.draft}`}>{c.status}</Badge>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {ch.label} via {ch.platform} &middot; {c.audienceCount || 0} recipients
-                        {metrics?.sent ? ` · ${metrics.sent} sent` : ""}
-                        {metrics?.failed ? ` · ${metrics.failed} failed` : ""}
+                        {metrics?.sent ? ` · ${String(metrics.sent)} sent` : ""}
+                        {metrics?.failed ? ` · ${String(metrics.failed)} failed` : ""}
                         {" · "}
                         {c.createdAt ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true }) : "—"}
                       </p>
@@ -780,6 +780,231 @@ export default function Campaigns() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* ─── Campaign Detail Dialog ─── */}
+      {detailCampaignId !== null && (
+        <CampaignDetailDialog
+          campaignId={detailCampaignId}
+          onClose={() => setDetailCampaignId(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Campaign Detail Dialog ────────────────────────────────────────────────
+
+function CampaignDetailDialog({ campaignId, onClose }: { campaignId: number; onClose: () => void }) {
+  const utils = trpc.useUtils();
+  const { data: campaign, isLoading, error } = trpc.campaigns.get.useQuery({ id: campaignId });
+  const { data: interactionData } = trpc.interactions.byCampaign.useQuery({ campaignId, limit: 50 });
+  const [detailTab, setDetailTab] = useState<"overview" | "timeline">("overview");
+  const updateStatus = trpc.campaigns.update.useMutation({
+    onSuccess: () => {
+      utils.campaigns.get.invalidate({ id: campaignId });
+      utils.campaigns.list.invalidate();
+      toast.success("Campaign status updated");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  let metrics: Record<string, unknown> | null = null;
+  try {
+    metrics = campaign?.metrics
+      ? typeof campaign.metrics === "string" ? JSON.parse(campaign.metrics) : campaign.metrics as Record<string, unknown>
+      : null;
+  } catch { metrics = null; }
+
+  const interactionStats = campaign?.interactionStats;
+  const interactions = interactionData?.interactions || [];
+
+  return (
+    <Dialog open onOpenChange={() => onClose()}>
+      <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {isLoading ? (
+              <span className="text-muted-foreground">Loading...</span>
+            ) : error ? (
+              <span className="text-destructive">Error loading campaign</span>
+            ) : (
+              <>
+                {(() => { const ch = CHANNEL_CONFIG[campaign?.channel || "email"] || CHANNEL_CONFIG.email; const I = ch.icon; return <I className={`h-5 w-5 ${ch.color}`} />; })()}
+                <span className="truncate">{campaign?.name}</span>
+                {campaign?.status && (
+                  <Badge className={`text-[10px] ml-1 ${STATUS_COLORS[campaign.status] || STATUS_COLORS.draft}`}>{campaign.status}</Badge>
+                )}
+              </>
+            )}
+          </DialogTitle>
+          <DialogDescription>
+            {campaign && (
+              <>
+                {(CHANNEL_CONFIG[campaign.channel] || CHANNEL_CONFIG.email).label} via {(CHANNEL_CONFIG[campaign.channel] || CHANNEL_CONFIG.email).platform}
+                {campaign.createdAt && ` · Created ${formatDistanceToNow(new Date(campaign.createdAt), { addSuffix: true })}`}
+              </>
+            )}
+          </DialogDescription>
+        </DialogHeader>
+
+        {isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-12 bg-muted/30 rounded animate-pulse" />)}
+          </div>
+        ) : error ? (
+          <QueryError message="Failed to load campaign details." onRetry={() => {}} />
+        ) : campaign ? (
+          <Tabs value={detailTab} onValueChange={(v) => setDetailTab(v as "overview" | "timeline")}>
+            <TabsList className="w-full">
+              <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
+              <TabsTrigger value="timeline" className="flex-1">
+                Timeline {interactionData?.total ? <Badge variant="secondary" className="ml-1 text-[10px]">{interactionData.total}</Badge> : null}
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="overview" className="mt-3 space-y-4">
+              {/* Campaign metrics */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <MetricCard label="Audience" value={campaign.audienceCount || 0} icon={Users} />
+                <MetricCard label="Sent" value={metrics?.sent != null ? Number(metrics.sent) : 0} icon={Send} />
+                <MetricCard label="Failed" value={metrics?.failed != null ? Number(metrics.failed) : 0} icon={XCircle} color="text-destructive" />
+                <MetricCard label="Interactions" value={interactionStats?.total || 0} icon={Activity} />
+              </div>
+
+              {/* Channel breakdown from interactions */}
+              {interactionStats && interactionStats.byChannel.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Interaction Breakdown by Channel</p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {interactionStats.byChannel.map((ch) => {
+                      const cfg = CHANNEL_CONFIG[ch.channel] || CHANNEL_CONFIG.email;
+                      const I = cfg.icon;
+                      return (
+                        <div key={ch.channel} className="flex items-center gap-2 p-2 rounded bg-muted/20">
+                          <I className={`h-4 w-4 ${cfg.color}`} />
+                          <span className="text-xs text-foreground">{cfg.label}</span>
+                          <span className="text-xs text-muted-foreground ml-auto">{ch.count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Type breakdown from interactions */}
+              {interactionStats && interactionStats.byType.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">By Interaction Type</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {interactionStats.byType.map((t) => (
+                      <Badge key={t.type} variant="secondary" className="text-[10px]">
+                        {t.type.replace(/_/g, " ")} ({t.count})
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Direction breakdown */}
+              {interactionStats && interactionStats.byDirection.length > 0 && (
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground mb-2">Direction</p>
+                  <div className="flex gap-3">
+                    {interactionStats.byDirection.map((d) => (
+                      <div key={d.direction} className="flex items-center gap-1.5">
+                        <ArrowRight className={`h-3.5 w-3.5 ${d.direction === "outbound" ? "text-blue-400" : "text-emerald-400 rotate-180"}`} />
+                        <span className="text-xs text-foreground capitalize">{d.direction}</span>
+                        <span className="text-xs text-muted-foreground">({d.count})</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Timestamps */}
+              <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t border-border/30">
+                {campaign.startedAt && <p>Started: {new Date(campaign.startedAt).toLocaleString()}</p>}
+                {campaign.completedAt && <p>Completed: {new Date(campaign.completedAt).toLocaleString()}</p>}
+                {campaign.createdAt && <p>Created: {new Date(campaign.createdAt).toLocaleString()}</p>}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="timeline" className="mt-3">
+              {interactions.length > 0 ? (
+                <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+                  {interactions.map((ix) => {
+                    const cfg = CHANNEL_CONFIG[ix.channel] || CHANNEL_CONFIG.email;
+                    const I = cfg.icon;
+                    return (
+                      <div key={ix.id} className="flex items-start gap-3 p-2.5 rounded bg-muted/10 border border-border/20">
+                        <div className={`h-7 w-7 rounded flex items-center justify-center shrink-0 ${cfg.color} bg-muted/30`}>
+                          <I className="h-3.5 w-3.5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <Badge variant="secondary" className="text-[10px]">{ix.type.replace(/_/g, " ")}</Badge>
+                            <Badge variant="outline" className="text-[10px]">{ix.direction}</Badge>
+                            {ix.sentiment && (
+                              <Badge className={`text-[10px] ${ix.sentiment === "positive" ? "bg-emerald-500/15 text-emerald-400" : ix.sentiment === "negative" ? "bg-red-500/15 text-red-400" : "bg-muted text-muted-foreground"}`}>
+                                {ix.sentiment}
+                              </Badge>
+                            )}
+                          </div>
+                          {ix.subject && <p className="text-xs text-foreground mt-1 font-medium truncate">{ix.subject}</p>}
+                          {ix.body && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{ix.body}</p>}
+                          <p className="text-[10px] text-muted-foreground/60 mt-1">
+                            {ix.createdAt ? formatDistanceToNow(new Date(ix.createdAt), { addSuffix: true }) : "—"}
+                            {ix.platform && ` · ${ix.platform}`}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-6 sm:p-12 text-center">
+                  <Activity className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">No interactions recorded for this campaign</p>
+                  <p className="text-xs text-muted-foreground/60 mt-1">Interactions are tracked when campaigns are executed across channels.</p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        ) : null}
+
+        <DialogFooter className="flex-col sm:flex-row gap-2">
+          <div className="flex gap-2 flex-1">
+            {campaign?.status === "running" && (
+              <Button variant="outline" size="sm" className="gap-1 min-h-[44px] sm:min-h-0" disabled={updateStatus.isPending} onClick={() => updateStatus.mutate({ id: campaignId, status: "paused" })}>
+                {updateStatus.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Pause className="h-3.5 w-3.5" />} Pause
+              </Button>
+            )}
+            {campaign?.status === "paused" && (
+              <Button variant="outline" size="sm" className="gap-1 min-h-[44px] sm:min-h-0" disabled={updateStatus.isPending} onClick={() => updateStatus.mutate({ id: campaignId, status: "running" })}>
+                {updateStatus.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />} Resume
+              </Button>
+            )}
+            {(campaign?.status === "running" || campaign?.status === "paused" || campaign?.status === "scheduled") && (
+              <Button variant="destructive" size="sm" className="gap-1 min-h-[44px] sm:min-h-0" disabled={updateStatus.isPending} onClick={() => { if (confirm("Cancel this campaign?")) updateStatus.mutate({ id: campaignId, status: "failed" }); }}>
+                <XCircle className="h-3.5 w-3.5" /> Cancel
+              </Button>
+            )}
+          </div>
+          <Button variant="outline" onClick={onClose}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function MetricCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: LucideIcon; color?: string }) {
+  return (
+    <div className="p-3 rounded-lg bg-muted/20 border border-border/20" role="status" aria-label={`${label}: ${value.toLocaleString()}`}>
+      <div className="flex items-center gap-2 mb-1">
+        <Icon className={`h-4 w-4 ${color || "text-muted-foreground"}`} aria-hidden="true" />
+        <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{label}</span>
+      </div>
+      <p className="text-lg font-semibold text-foreground">{value.toLocaleString()}</p>
     </div>
   );
 }
