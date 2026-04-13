@@ -3,12 +3,17 @@ import { Plus, Search, Mail, Phone, Tag } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import StatusBadge from '../components/ui/StatusBadge';
 import DataTable from '../components/ui/DataTable';
-import { contacts } from '../data/mock';
+import Modal from '../components/ui/Modal';
+import ContactForm from '../components/crm/ContactForm';
+import { useDataStore } from '../store/useDataStore';
 import type { Contact } from '../types';
 
 export default function CRM() {
+  const { contacts, addContact, updateContact } = useDataStore();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<Contact | undefined>();
 
   const filtered = contacts.filter((c) => {
     const matchesSearch =
@@ -19,6 +24,18 @@ export default function CRM() {
     const matchesType = typeFilter === 'all' || c.type === typeFilter;
     return matchesSearch && matchesType;
   });
+
+  const handleCreate = (data: Omit<Contact, 'id' | 'createdAt'>) => {
+    addContact(data);
+    setFormOpen(false);
+  };
+
+  const handleUpdate = (data: Omit<Contact, 'id' | 'createdAt'>) => {
+    if (editing) {
+      updateContact(editing.id, data);
+      setEditing(undefined);
+    }
+  };
 
   const columns = [
     {
@@ -88,7 +105,7 @@ export default function CRM() {
         title="CRM"
         subtitle="Manage leads, contacts, vendors, and partners"
         action={
-          <button className="btn-primary flex items-center gap-2">
+          <button className="btn-primary flex items-center gap-2" onClick={() => { setEditing(undefined); setFormOpen(true); }}>
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Add Contact</span>
             <span className="sm:hidden">Add</span>
@@ -96,7 +113,7 @@ export default function CRM() {
         }
       />
 
-      {/* Pipeline summary cards */}
+      {/* Pipeline summary */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         {['new', 'contacted', 'qualified', 'converted', 'lost'].map((status) => {
           const count = contacts.filter((c) => c.status === status).length;
@@ -144,7 +161,22 @@ export default function CRM() {
         data={filtered}
         keyExtractor={(c) => c.id}
         emptyMessage="No contacts match your search"
+        onRowClick={(c) => setEditing(c)}
       />
+
+      {/* Create/Edit Modal */}
+      <Modal
+        open={formOpen || !!editing}
+        onClose={() => { setFormOpen(false); setEditing(undefined); }}
+        title={editing ? 'Edit Contact' : 'Add Contact'}
+        size="lg"
+      >
+        <ContactForm
+          initial={editing}
+          onSubmit={editing ? handleUpdate : handleCreate}
+          onCancel={() => { setFormOpen(false); setEditing(undefined); }}
+        />
+      </Modal>
     </div>
   );
 }

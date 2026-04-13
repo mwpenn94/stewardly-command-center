@@ -1,13 +1,19 @@
 import { useState } from 'react';
-import { Building2, Plus, MapPin, Search } from 'lucide-react';
+import { Building2, Plus, MapPin, Search, Pencil, Trash2 } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import StatusBadge from '../components/ui/StatusBadge';
-import { properties } from '../data/mock';
+import Modal from '../components/ui/Modal';
+import PropertyForm from '../components/properties/PropertyForm';
+import { useDataStore } from '../store/useDataStore';
 import type { Property } from '../types';
 
 export default function Properties() {
+  const { properties, addProperty, updateProperty, deleteProperty } = useDataStore();
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<Property | undefined>();
+  const [detailProperty, setDetailProperty] = useState<Property | undefined>();
 
   const filtered = properties.filter((p) => {
     const matchesFilter = filter === 'all' || p.type === filter;
@@ -19,13 +25,25 @@ export default function Properties() {
     return matchesFilter && matchesSearch;
   });
 
+  const handleCreate = (data: Omit<Property, 'id' | 'createdAt'>) => {
+    addProperty(data);
+    setFormOpen(false);
+  };
+
+  const handleUpdate = (data: Omit<Property, 'id' | 'createdAt'>) => {
+    if (editing) {
+      updateProperty(editing.id, data);
+      setEditing(undefined);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Properties"
         subtitle={`${properties.length} properties in your portfolio`}
         action={
-          <button className="btn-primary flex items-center gap-2">
+          <button className="btn-primary flex items-center gap-2" onClick={() => { setEditing(undefined); setFormOpen(true); }}>
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Add Property</span>
             <span className="sm:hidden">Add</span>
@@ -66,7 +84,7 @@ export default function Properties() {
       {/* Property Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {filtered.map((property: Property) => (
-          <div key={property.id} className="card hover:shadow-md transition-shadow cursor-pointer">
+          <div key={property.id} className="card hover:shadow-md transition-shadow cursor-pointer" onClick={() => setDetailProperty(property)}>
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center flex-shrink-0">
@@ -107,6 +125,76 @@ export default function Properties() {
           <p className="text-text-muted">No properties match your search</p>
         </div>
       )}
+
+      {/* Create/Edit Form Modal */}
+      <Modal
+        open={formOpen || !!editing}
+        onClose={() => { setFormOpen(false); setEditing(undefined); }}
+        title={editing ? 'Edit Property' : 'Add Property'}
+        size="lg"
+      >
+        <PropertyForm
+          initial={editing}
+          onSubmit={editing ? handleUpdate : handleCreate}
+          onCancel={() => { setFormOpen(false); setEditing(undefined); }}
+        />
+      </Modal>
+
+      {/* Detail Modal */}
+      <Modal
+        open={!!detailProperty}
+        onClose={() => setDetailProperty(undefined)}
+        title={detailProperty?.name ?? ''}
+        size="lg"
+      >
+        {detailProperty && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <StatusBadge status={detailProperty.status} />
+              <span className="text-sm text-text-muted capitalize">{detailProperty.type}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-text-muted">Address</p>
+                <p className="text-sm font-medium">{detailProperty.address}</p>
+                <p className="text-sm text-text-secondary">{detailProperty.city}, {detailProperty.state} {detailProperty.zip}</p>
+              </div>
+              <div>
+                <p className="text-xs text-text-muted">Created</p>
+                <p className="text-sm font-medium">{new Date(detailProperty.createdAt).toLocaleDateString()}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-4 py-3 border-y border-border">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-text-primary">{detailProperty.units}</p>
+                <p className="text-xs text-text-muted">Total Units</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-text-primary">{detailProperty.occupancyRate}%</p>
+                <p className="text-xs text-text-muted">Occupancy</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-text-primary">${detailProperty.monthlyRevenue.toLocaleString()}</p>
+                <p className="text-xs text-text-muted">Monthly Revenue</p>
+              </div>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button
+                className="btn-primary flex items-center gap-2"
+                onClick={() => { setDetailProperty(undefined); setEditing(detailProperty); }}
+              >
+                <Pencil className="w-4 h-4" /> Edit
+              </button>
+              <button
+                className="btn-secondary flex items-center gap-2 text-red-600 hover:bg-red-50"
+                onClick={() => { deleteProperty(detailProperty.id); setDetailProperty(undefined); }}
+              >
+                <Trash2 className="w-4 h-4" /> Delete
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

@@ -3,7 +3,9 @@ import { Plus, Search, Mail, Share2, MessageSquare, Printer, Monitor, TrendingUp
 import PageHeader from '../components/ui/PageHeader';
 import StatusBadge from '../components/ui/StatusBadge';
 import MetricCard from '../components/ui/MetricCard';
-import { campaigns } from '../data/mock';
+import Modal from '../components/ui/Modal';
+import CampaignForm from '../components/marketing/CampaignForm';
+import { useDataStore } from '../store/useDataStore';
 import type { Campaign } from '../types';
 
 const typeIcons: Record<string, typeof Mail> = {
@@ -15,8 +17,11 @@ const typeIcons: Record<string, typeof Mail> = {
 };
 
 export default function Marketing() {
+  const { campaigns, addCampaign, updateCampaign } = useDataStore();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<Campaign | undefined>();
 
   const filtered = campaigns.filter((c) => {
     const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
@@ -32,13 +37,25 @@ export default function Marketing() {
   const totalSpent = campaigns.reduce((sum, c) => sum + c.spent, 0);
   const totalBudget = campaigns.reduce((sum, c) => sum + c.budget, 0);
 
+  const handleCreate = (data: Omit<Campaign, 'id' | 'createdAt'>) => {
+    addCampaign(data);
+    setFormOpen(false);
+  };
+
+  const handleUpdate = (data: Omit<Campaign, 'id' | 'createdAt'>) => {
+    if (editing) {
+      updateCampaign(editing.id, data);
+      setEditing(undefined);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Marketing"
         subtitle="Campaigns, outreach, and performance across all channels"
         action={
-          <button className="btn-primary flex items-center gap-2">
+          <button className="btn-primary flex items-center gap-2" onClick={() => { setEditing(undefined); setFormOpen(true); }}>
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">New Campaign</span>
             <span className="sm:hidden">New</span>
@@ -48,11 +65,7 @@ export default function Marketing() {
 
       {/* Summary Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <MetricCard
-          title="Total Reach"
-          value={totalReach.toLocaleString()}
-          icon={<Users className="w-5 h-5" />}
-        />
+        <MetricCard title="Total Reach" value={totalReach.toLocaleString()} icon={<Users className="w-5 h-5" />} />
         <MetricCard
           title="Conversions"
           value={totalConversions}
@@ -67,11 +80,7 @@ export default function Marketing() {
           changeType="neutral"
           icon={<DollarSign className="w-5 h-5" />}
         />
-        <MetricCard
-          title="Active Campaigns"
-          value={campaigns.filter((c) => c.status === 'active').length}
-          icon={<TrendingUp className="w-5 h-5" />}
-        />
+        <MetricCard title="Active Campaigns" value={campaigns.filter((c) => c.status === 'active').length} icon={<TrendingUp className="w-5 h-5" />} />
       </div>
 
       {/* Filters */}
@@ -112,7 +121,11 @@ export default function Marketing() {
             ? Math.round((campaign.spent / campaign.budget) * 100)
             : 0;
           return (
-            <div key={campaign.id} className="card hover:shadow-md transition-shadow cursor-pointer">
+            <div
+              key={campaign.id}
+              className="card hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => setEditing(campaign)}
+            >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="p-2 rounded-lg bg-primary-50 flex-shrink-0">
@@ -173,6 +186,20 @@ export default function Marketing() {
           <p className="text-text-muted">No campaigns match your filters</p>
         </div>
       )}
+
+      {/* Create/Edit Modal */}
+      <Modal
+        open={formOpen || !!editing}
+        onClose={() => { setFormOpen(false); setEditing(undefined); }}
+        title={editing ? 'Edit Campaign' : 'New Campaign'}
+        size="lg"
+      >
+        <CampaignForm
+          initial={editing}
+          onSubmit={editing ? handleUpdate : handleCreate}
+          onCancel={() => { setFormOpen(false); setEditing(undefined); }}
+        />
+      </Modal>
     </div>
   );
 }

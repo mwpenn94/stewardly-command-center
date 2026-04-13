@@ -1,7 +1,7 @@
 import { Plus, RefreshCw, Database, ArrowRight, Play, Pause, Settings } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import StatusBadge from '../components/ui/StatusBadge';
-import { dataPipelines } from '../data/mock';
+import { useDataStore } from '../store/useDataStore';
 import type { DataPipeline } from '../types';
 
 const statusActions: Record<string, { icon: typeof Play; label: string }> = {
@@ -12,6 +12,13 @@ const statusActions: Record<string, { icon: typeof Play; label: string }> = {
 };
 
 export default function Pipelines() {
+  const { pipelines: dataPipelines, updatePipeline } = useDataStore();
+
+  const togglePipeline = (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'paused' : 'active';
+    updatePipeline(id, { status: newStatus as DataPipeline['status'] });
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -90,6 +97,7 @@ export default function Pipelines() {
                   <button
                     className="btn-secondary flex items-center gap-1.5 py-1.5 px-3 text-xs"
                     aria-label={`${action?.label} ${pipeline.name}`}
+                    onClick={() => togglePipeline(pipeline.id, pipeline.status)}
                   >
                     <ActionIcon className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">{action?.label}</span>

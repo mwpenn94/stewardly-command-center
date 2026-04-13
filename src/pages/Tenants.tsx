@@ -3,12 +3,18 @@ import { Plus, Search, Mail, Phone } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import StatusBadge from '../components/ui/StatusBadge';
 import DataTable from '../components/ui/DataTable';
-import { tenants, properties } from '../data/mock';
+import Modal from '../components/ui/Modal';
+import TenantForm from '../components/tenants/TenantForm';
+import { useDataStore } from '../store/useDataStore';
 import type { Tenant } from '../types';
 
 export default function Tenants() {
+  const { tenants, properties, addTenant, updateTenant } = useDataStore();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<Tenant | undefined>();
+  const [detailTenant, setDetailTenant] = useState<Tenant | undefined>();
 
   const filtered = tenants.filter((t) => {
     const matchesSearch =
@@ -21,6 +27,18 @@ export default function Tenants() {
 
   const getPropertyName = (propertyId: string) => {
     return properties.find((p) => p.id === propertyId)?.name ?? 'Unknown';
+  };
+
+  const handleCreate = (data: Omit<Tenant, 'id'>) => {
+    addTenant(data);
+    setFormOpen(false);
+  };
+
+  const handleUpdate = (data: Omit<Tenant, 'id'>) => {
+    if (editing) {
+      updateTenant(editing.id, data);
+      setEditing(undefined);
+    }
   };
 
   const columns = [
@@ -83,16 +101,10 @@ export default function Tenants() {
       hideOnMobile: true,
       render: (t: Tenant) => (
         <div className="flex gap-2">
-          <button
-            className="p-1.5 rounded-md hover:bg-surface-tertiary"
-            aria-label={`Email ${t.firstName}`}
-          >
+          <button className="p-1.5 rounded-md hover:bg-surface-tertiary" aria-label={`Email ${t.firstName}`}>
             <Mail className="w-4 h-4 text-text-muted" />
           </button>
-          <button
-            className="p-1.5 rounded-md hover:bg-surface-tertiary"
-            aria-label={`Call ${t.firstName}`}
-          >
+          <button className="p-1.5 rounded-md hover:bg-surface-tertiary" aria-label={`Call ${t.firstName}`}>
             <Phone className="w-4 h-4 text-text-muted" />
           </button>
         </div>
@@ -106,7 +118,7 @@ export default function Tenants() {
         title="Tenants"
         subtitle={`${tenants.length} total tenants across your properties`}
         action={
-          <button className="btn-primary flex items-center gap-2">
+          <button className="btn-primary flex items-center gap-2" onClick={() => { setEditing(undefined); setFormOpen(true); }}>
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Add Tenant</span>
             <span className="sm:hidden">Add</span>
@@ -149,7 +161,74 @@ export default function Tenants() {
         data={filtered}
         keyExtractor={(t) => t.id}
         emptyMessage="No tenants match your search"
+        onRowClick={(t) => setDetailTenant(t)}
       />
+
+      {/* Create/Edit Modal */}
+      <Modal
+        open={formOpen || !!editing}
+        onClose={() => { setFormOpen(false); setEditing(undefined); }}
+        title={editing ? 'Edit Tenant' : 'Add Tenant'}
+        size="lg"
+      >
+        <TenantForm
+          initial={editing}
+          onSubmit={editing ? handleUpdate : handleCreate}
+          onCancel={() => { setFormOpen(false); setEditing(undefined); }}
+        />
+      </Modal>
+
+      {/* Detail Modal */}
+      <Modal
+        open={!!detailTenant}
+        onClose={() => setDetailTenant(undefined)}
+        title={detailTenant ? `${detailTenant.firstName} ${detailTenant.lastName}` : ''}
+      >
+        {detailTenant && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <StatusBadge status={detailTenant.status} />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-text-muted">Email</p>
+                <p className="text-sm font-medium">{detailTenant.email}</p>
+              </div>
+              <div>
+                <p className="text-xs text-text-muted">Phone</p>
+                <p className="text-sm font-medium">{detailTenant.phone}</p>
+              </div>
+              <div>
+                <p className="text-xs text-text-muted">Property</p>
+                <p className="text-sm font-medium">{getPropertyName(detailTenant.propertyId)}</p>
+                <p className="text-xs text-text-muted">Unit {detailTenant.unitNumber}</p>
+              </div>
+              <div>
+                <p className="text-xs text-text-muted">Monthly Rent</p>
+                <p className="text-sm font-medium">${detailTenant.monthlyRent.toLocaleString()}</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4 py-3 border-y border-border">
+              <div>
+                <p className="text-xs text-text-muted">Lease Period</p>
+                <p className="text-sm">{new Date(detailTenant.leaseStart).toLocaleDateString()} — {new Date(detailTenant.leaseEnd).toLocaleDateString()}</p>
+              </div>
+              <div>
+                <p className="text-xs text-text-muted">Outstanding Balance</p>
+                <p className={`text-sm font-semibold ${detailTenant.balance > 0 ? 'text-red-600' : 'text-accent-600'}`}>
+                  ${detailTenant.balance.toLocaleString()}
+                </p>
+              </div>
+            </div>
+            <button
+              className="btn-primary"
+              onClick={() => { setDetailTenant(undefined); setEditing(detailTenant); }}
+            >
+              Edit Tenant
+            </button>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

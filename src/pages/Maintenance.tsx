@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Plus, Search, AlertTriangle, Clock, CheckCircle2, XCircle } from 'lucide-react';
 import PageHeader from '../components/ui/PageHeader';
 import StatusBadge from '../components/ui/StatusBadge';
-import { maintenanceRequests, properties, tenants } from '../data/mock';
+import Modal from '../components/ui/Modal';
+import MaintenanceForm from '../components/maintenance/MaintenanceForm';
+import { useDataStore } from '../store/useDataStore';
 import type { MaintenanceRequest } from '../types';
 
 const priorityColors: Record<string, string> = {
@@ -20,8 +22,11 @@ const statusIcons: Record<string, typeof Clock> = {
 };
 
 export default function Maintenance() {
+  const { maintenanceRequests, properties, tenants, addMaintenanceRequest, updateMaintenanceRequest } = useDataStore();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<MaintenanceRequest | undefined>();
 
   const filtered = maintenanceRequests.filter((m) => {
     const matchesStatus = statusFilter === 'all' || m.status === statusFilter;
@@ -44,13 +49,25 @@ export default function Maintenance() {
     completed: maintenanceRequests.filter((m) => m.status === 'completed').length,
   };
 
+  const handleCreate = (data: Omit<MaintenanceRequest, 'id' | 'createdAt' | 'updatedAt'>) => {
+    addMaintenanceRequest(data);
+    setFormOpen(false);
+  };
+
+  const handleUpdate = (data: Omit<MaintenanceRequest, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (editing) {
+      updateMaintenanceRequest(editing.id, data);
+      setEditing(undefined);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Maintenance"
         subtitle={`${counts.open} open, ${counts.in_progress} in progress`}
         action={
-          <button className="btn-primary flex items-center gap-2">
+          <button className="btn-primary flex items-center gap-2" onClick={() => { setEditing(undefined); setFormOpen(true); }}>
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">New Request</span>
             <span className="sm:hidden">New</span>
@@ -96,6 +113,7 @@ export default function Maintenance() {
             <div
               key={req.id}
               className={`card border-l-4 ${priorityColors[req.priority]} cursor-pointer hover:shadow-md transition-shadow`}
+              onClick={() => setEditing(req)}
             >
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -133,6 +151,20 @@ export default function Maintenance() {
           <p className="text-text-muted">No maintenance requests match your filters</p>
         </div>
       )}
+
+      {/* Create/Edit Modal */}
+      <Modal
+        open={formOpen || !!editing}
+        onClose={() => { setFormOpen(false); setEditing(undefined); }}
+        title={editing ? 'Edit Request' : 'New Maintenance Request'}
+        size="lg"
+      >
+        <MaintenanceForm
+          initial={editing}
+          onSubmit={editing ? handleUpdate : handleCreate}
+          onCancel={() => { setFormOpen(false); setEditing(undefined); }}
+        />
+      </Modal>
     </div>
   );
 }

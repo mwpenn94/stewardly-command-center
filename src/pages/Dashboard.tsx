@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import MetricCard from '../components/ui/MetricCard';
 import StatusBadge from '../components/ui/StatusBadge';
-import { dashboardMetrics, recentActivities, properties } from '../data/mock';
+import { useDataStore } from '../store/useDataStore';
+import { recentActivities } from '../data/mock';
 
 const activityIcons: Record<string, typeof CreditCard> = {
   payment: CreditCard,
@@ -26,6 +27,24 @@ const activityIcons: Record<string, typeof CreditCard> = {
 };
 
 export default function Dashboard() {
+  const { properties, tenants, maintenanceRequests } = useDataStore();
+
+  const dashboardMetrics = {
+    totalProperties: properties.length,
+    totalUnits: properties.reduce((sum, p) => sum + p.units, 0),
+    occupancyRate: properties.length > 0 ? Math.round(properties.reduce((sum, p) => sum + p.occupancyRate, 0) / properties.length) : 0,
+    monthlyRevenue: properties.reduce((sum, p) => sum + p.monthlyRevenue, 0),
+    openMaintenanceRequests: maintenanceRequests.filter((m) => m.status === 'open' || m.status === 'in_progress').length,
+    activeTenants: tenants.filter((t) => t.status === 'active').length,
+    upcomingLeaseExpirations: tenants.filter((t) => {
+      const end = new Date(t.leaseEnd);
+      const now = new Date();
+      const diff = end.getTime() - now.getTime();
+      return diff > 0 && diff < 90 * 24 * 60 * 60 * 1000;
+    }).length,
+    outstandingBalance: tenants.reduce((sum, t) => sum + t.balance, 0),
+  };
+
   return (
     <div className="space-y-6">
       {/* Page title */}
