@@ -109,6 +109,7 @@
 | G97 | Light mode contrast fixes | Done | 3 | Integrations test result text uses dark:text-*-300 / text-*-600 for light mode; BulkImport cancel button uses dark:text-red-400 / text-red-600 | Pass 37 |
 | G98 | ARIA labels on Log Interaction form | Done | 2 | role="form", aria-label on channel selector, direction selector, notes textarea | Pass 37 |
 | G99 | Campaign scheduling | Done | 4 | Launch dialog has "Send Now" / "Schedule" toggle; datetime-local picker for future scheduling; scheduled campaigns show date in list; "Reschedule" button on scheduled campaigns | Pass 38 |
+| G100 | Contact CSV export | Done | 3 | "Export" button on Contacts page header; exports current page contacts as CSV with headers (name, email, phone, company, segment, tier, city, state); client-side Blob download | Pass 39 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -169,6 +170,7 @@
 - Contact timeline "Log Interaction" with channel selection, direction, and body
 - Campaign scheduling: Send Now / Schedule toggle with datetime picker
 - Scheduled campaigns show date in list with Reschedule button
+- Contact CSV export: client-side Blob download with 9 columns
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -219,4 +221,5 @@
 - Pass 35 · input validation + error states · G94-G95 done; QueryError added to 4 more pages (9 total), BulkImport CSV preview mobile scroll hint · ce2805d · 2 items completed · none deferred
 - Pass 36 · contact interaction logging + unified timeline · G96 done; "Log Interaction" feature on contact detail timeline with 13-channel select, direction toggle, auto-typed mutations · fd2cfe9 · 1 item completed · none deferred
 - Pass 37 · light mode contrast + accessibility · G97-G98 done; light mode text contrast fixes on Integrations/BulkImport, ARIA labels on Log Interaction form · f3c647f · 2 items completed · none deferred
-- Pass 38 · campaign scheduling + status UX · G99 done; Send Now/Schedule toggle, datetime-local picker, scheduled date in campaign list, Reschedule button · PENDING · 1 item completed · none deferred
+- Pass 38 · campaign scheduling + status UX · G99 done; Send Now/Schedule toggle, datetime-local picker, scheduled date in campaign list, Reschedule button · 0ee6101 · 1 item completed · none deferred
+- Pass 39 · data export + CRM enhancement · G100 done; Contact CSV export button with client-side download · PENDING · 1 item completed · none deferred

@@ -47,7 +47,7 @@ import {
   Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Tag, X, Users, RefreshCw,
   ExternalLink, Mail, Phone, Building2, MapPin, Eye, MessageSquare, Linkedin, Clock,
   PhoneIncoming, PhoneOutgoing, Globe, MessageCircle, Calendar, Facebook, Instagram,
-  Twitter, Video, Send, ArrowDownLeft, ArrowUpRight, Loader2
+  Twitter, Video, Send, ArrowDownLeft, ArrowUpRight, Loader2, Download
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import QueryError from "@/components/QueryError";
@@ -150,9 +150,25 @@ export default function Contacts() {
             {data?.total !== undefined ? `${data.total.toLocaleString()} contacts` : "Loading..."}
           </p>
         </div>
-        <Button onClick={openCreate} size="sm" className="gap-2 min-h-[44px] sm:min-h-0 shrink-0">
-          <Plus className="h-4 w-4" /> Add Contact
-        </Button>
+        <div className="flex gap-2 shrink-0">
+          <Button variant="outline" size="sm" className="gap-2 min-h-[44px] sm:min-h-0" onClick={() => {
+            const contacts = data?.contacts || [];
+            if (!contacts.length) { toast.error("No contacts to export"); return; }
+            const headers = ["firstName", "lastName", "email", "phone", "companyName", "segment", "tier", "city", "state"];
+            const csv = [headers.join(","), ...contacts.map((c: any) => headers.map(h => `"${(c[h] || "").toString().replace(/"/g, '""')}"`).join(","))].join("\n");
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url; a.download = `contacts-export-${new Date().toISOString().slice(0, 10)}.csv`;
+            a.click(); URL.revokeObjectURL(url);
+            toast.success(`Exported ${contacts.length} contacts`);
+          }}>
+            <Download className="h-4 w-4" /> Export
+          </Button>
+          <Button onClick={openCreate} size="sm" className="gap-2 min-h-[44px] sm:min-h-0">
+            <Plus className="h-4 w-4" /> Add Contact
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}

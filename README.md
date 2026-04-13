@@ -22,6 +22,7 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 - Cross-channel interaction timeline with 25 interaction types, direction indicators, and sentiment analysis
 - **Log Interaction** — manually record interactions from any of 13 channels with direction toggle and notes
 - Platform sync indicators (GHL, SMS-iT, LinkedIn) + 13-channel reach summary
+- **CSV Export** — download current contacts as CSV with name, email, phone, company, segment, tier, location
 - Form validation: required fields, email format, phone format
 
 ### Campaign Studio
