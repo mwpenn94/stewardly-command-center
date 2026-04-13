@@ -2,6 +2,14 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
+## [0.7.1] - 2026-04-13
+
+### Changed
+- Removed unused Vite template assets (hero.png, react.svg, vite.svg, icons.svg)
+- Updated package.json with description and version 0.7.0
+- Comprehensive README rewrite documenting all features, project structure, tech stack
+- Architecture document refresh with complete component inventory and AI infrastructure docs
+
 ## [0.7.0] - 2026-04-13
 
 ### Added

@@ -75,4 +75,5 @@
 - Pass 4 · cross-app navigation + search + toasts · G24-G26 done · f827126 · 3 items completed · G11,G12,G15,G17-G20,G27 deferred
 - Pass 5 · marketing outreach + cross-entity nav · G19,G27-G29 done · 813b86c · 4 items completed · G11,G12,G15,G17,G18,G20 deferred
 - Pass 6 · CRM enhancement + pipeline CRUD · G30-G32 done, G20 in progress · 43d13fc · 3 items completed · G11,G12,G15,G17,G18 deferred
-- Pass 7 · dashboard charts + AI insights · G33-G35 done, G1 depth 5, G17-G18 started · PENDING · 4 items completed · G11,G12,G15 deferred
+- Pass 7 · dashboard charts + AI insights · G33-G35 done, G1 depth 5, G17-G18 started · 2645449 · 4 items completed · G11,G12,G15 deferred
+- Pass 8 · cleanup + docs refresh + merge · dead code removed, README/ARCH updated, package.json v0.7.0 · PENDING · docs refreshed · G11,G12,G15 deferred

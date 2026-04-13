@@ -1,7 +1,8 @@
 {
   "name": "stewardly-command-center",
+  "description": "Comprehensive property management platform with dashboard, CRM, marketing, maintenance tracking, and data pipelines",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.7.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
