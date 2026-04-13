@@ -4,6 +4,16 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.0.0] - 2026-04-13
+
+### Added
+- **Campaign detail view** — Click any campaign card to see a full metrics dialog: sent, failed, opened, open rate, click rate, conversions/replies, delivery progress bar with delivered vs. failed breakdown. Drafts show a "Launch" CTA directly from the detail view
+- **Contact interaction logging** — New "Log Interaction" form in contact detail timeline tab. Select from 13 channels, choose direction (inbound/outbound), pick from per-channel interaction types (e.g., email→message_sent/opened/clicked, call→call_made/missed, LinkedIn→connection_sent/accepted), add subject and notes. Saves via `interactions.create` tRPC mutation
+- **Channel-specific form labels** — Campaign launch, template creation, and sequence step dialogs now show contextual field labels: "Subject" for email, "Caption / Headline" for social channels, "Call Script / Talking Points" for calls, "Mail Content" for direct mail, "Event Description" for events
+
+### Fixed
+- **Contact timeline error handling** — Timeline tab now shows QueryError with retry button when interactions.list fails; previously showed eternal loading spinner
+
 ## [1.9.0] - 2026-04-13
 
 ### Fixed

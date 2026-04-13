@@ -17,7 +17,7 @@ import {
   Users, FileText, Zap, Clock, ArrowRight, Pause, XCircle,
   Phone, PhoneIncoming, PhoneOutgoing, Globe, MessageCircle,
   Calendar, Instagram, Twitter, Facebook, Video,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight, BarChart3
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import QueryError from "@/components/QueryError";
@@ -134,6 +134,7 @@ export default function Campaigns() {
   const [templateOpen, setTemplateOpen] = useState(false);
   const [launchOpen, setLaunchOpen] = useState(false);
   const [seqOpen, setSeqOpen] = useState(false);
+  const [detailCampaign, setDetailCampaign] = useState<any>(null);
   const [launchCampaignData, setLaunchCampaignData] = useState<{ id: number; name: string; channel: string } | null>(null);
   const [form, setForm] = useState<CampaignForm>({ channel: "email" });
   const [tplForm, setTplForm] = useState<TemplateForm>({ channel: "email" });
@@ -278,7 +279,7 @@ export default function Campaigns() {
               let metrics: any = null;
               try { metrics = c.metrics ? (typeof c.metrics === "string" ? JSON.parse(c.metrics) : c.metrics) : null; } catch { metrics = null; }
               return (
-                <Card key={c.id} className="bg-card border-border/50 card-hover">
+                <Card key={c.id} className="bg-card border-border/50 card-hover cursor-pointer" onClick={() => setDetailCampaign(c)}>
                   <CardContent className="p-4 flex items-center gap-4">
                     <div className={`h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 ${ch.color}`}>
                       <Icon className="h-5 w-5" />
@@ -296,7 +297,7 @@ export default function Campaigns() {
                         {c.createdAt ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true }) : "—"}
                       </p>
                     </div>
-                    <div className="flex gap-1 shrink-0">
+                    <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                       {c.status === "draft" && (
                         <Button variant="outline" size="sm" className="h-9 min-h-[44px] text-xs gap-1" onClick={() => openLaunch(c)}>
                           <Send className="h-3.5 w-3.5" /> Launch
@@ -481,10 +482,21 @@ export default function Campaigns() {
             <DialogDescription>Compose and send to your audience.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            {(launchCampaignData?.channel === "email") && (
-              <div><Label>Subject</Label><Input value={launchForm.subject} onChange={(e) => setLaunchForm({ ...launchForm, subject: e.target.value })} placeholder="Subject line" /></div>
+            {(launchCampaignData?.channel === "email" || launchCampaignData?.channel?.startsWith("social_")) && (
+              <div><Label>{launchCampaignData.channel === "email" ? "Subject" : "Caption / Headline"}</Label><Input value={launchForm.subject} onChange={(e) => setLaunchForm({ ...launchForm, subject: e.target.value })} placeholder={launchCampaignData.channel === "email" ? "Subject line" : "Post caption or headline"} /></div>
             )}
-            <div><Label>Message Body</Label><Textarea rows={5} value={launchForm.body} onChange={(e) => setLaunchForm({ ...launchForm, body: e.target.value })} placeholder="Your message..." /></div>
+            <div><Label>{
+              launchCampaignData?.channel?.startsWith("call_") ? "Call Script / Talking Points" :
+              launchCampaignData?.channel === "direct_mail" ? "Mail Content" :
+              launchCampaignData?.channel === "event" ? "Event Description / Invitation" :
+              "Message Body"
+            }</Label><Textarea rows={5} value={launchForm.body} onChange={(e) => setLaunchForm({ ...launchForm, body: e.target.value })} placeholder={
+              launchCampaignData?.channel?.startsWith("call_") ? "Hello [Name], I'm calling about..." :
+              launchCampaignData?.channel === "direct_mail" ? "Dear [Name],\n\nYour personalized mail content..." :
+              launchCampaignData?.channel === "event" ? "You're invited to..." :
+              launchCampaignData?.channel === "sms" ? "Hi [Name], ..." :
+              "Your message..."
+            } /></div>
             <Alert><AlertDescription className="text-xs">Sending to {launchForm.contactIds?.length || contactData?.total || 0} contacts via {(launchCampaignData?.channel && CHANNEL_CONFIG[launchCampaignData.channel]?.platform) || "platform"}.</AlertDescription></Alert>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
@@ -547,10 +559,15 @@ export default function Campaigns() {
                         )}
                       </div>
                     </div>
-                    {step.channel === "email" && (
-                      <Input className="h-7 text-xs" value={step.subject || ""} onChange={(e) => updateSeqStep(idx, "subject", e.target.value)} placeholder="Email subject" />
+                    {(step.channel === "email" || step.channel.startsWith("social_")) && (
+                      <Input className="h-7 text-xs" value={step.subject || ""} onChange={(e) => updateSeqStep(idx, "subject", e.target.value)} placeholder={step.channel === "email" ? "Email subject" : "Post caption / headline"} />
                     )}
-                    <Textarea rows={2} className="text-xs" value={step.body} onChange={(e) => updateSeqStep(idx, "body", e.target.value)} placeholder={`${step.channel === "email" ? "Email" : step.channel === "sms" ? "SMS" : "LinkedIn"} message...`} />
+                    <Textarea rows={2} className="text-xs" value={step.body} onChange={(e) => updateSeqStep(idx, "body", e.target.value)} placeholder={
+                      step.channel.startsWith("call_") ? "Call script / talking points..." :
+                      step.channel === "direct_mail" ? "Mail content..." :
+                      step.channel === "event" ? "Event invitation..." :
+                      `${CHANNEL_CONFIG[step.channel]?.label || step.channel} message...`
+                    } />
                   </CardContent>
                 </Card>
               ))}
@@ -574,6 +591,103 @@ export default function Campaigns() {
         </DialogContent>
       </Dialog>
 
+      {/* ─── Campaign Detail Dialog ─── */}
+      <Dialog open={!!detailCampaign} onOpenChange={(open) => { if (!open) setDetailCampaign(null); }}>
+        <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          {detailCampaign && (() => {
+            const ch = CHANNEL_CONFIG[detailCampaign.channel] || CHANNEL_CONFIG.email;
+            const Icon = ch.icon;
+            let m: any = null;
+            try { m = detailCampaign.metrics ? (typeof detailCampaign.metrics === "string" ? JSON.parse(detailCampaign.metrics) : detailCampaign.metrics) : null; } catch { m = null; }
+            const sent = m?.sent || 0;
+            const failed = m?.failed || 0;
+            const opened = m?.opened || 0;
+            const clicked = m?.clicked || 0;
+            const replied = m?.replied || 0;
+            const conversions = m?.conversions || 0;
+            const openRate = sent > 0 ? Math.round((opened / sent) * 100) : 0;
+            const clickRate = sent > 0 ? Math.round((clicked / sent) * 100) : 0;
+            const replyRate = sent > 0 ? Math.round((replied / sent) * 100) : 0;
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Icon className={`h-5 w-5 ${ch.color}`} />
+                    {detailCampaign.name}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {ch.label} via {ch.platform} · Created {detailCampaign.createdAt ? formatDistanceToNow(new Date(detailCampaign.createdAt), { addSuffix: true }) : "—"}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Badge className={`${STATUS_COLORS[detailCampaign.status] || STATUS_COLORS.draft}`}>{detailCampaign.status}</Badge>
+                    <span className="text-xs text-muted-foreground">{detailCampaign.audienceCount || 0} recipients</span>
+                  </div>
+                  {/* Metrics Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="p-3 rounded-lg bg-muted/10 text-center">
+                      <p className="text-2xl font-semibold text-foreground tabular-nums">{sent}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Sent</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/10 text-center">
+                      <p className="text-2xl font-semibold text-foreground tabular-nums">{failed}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Failed</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/10 text-center">
+                      <p className="text-2xl font-semibold text-foreground tabular-nums">{opened}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Opened</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/10 text-center">
+                      <p className="text-2xl font-semibold text-primary tabular-nums">{openRate}%</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Open Rate</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/10 text-center">
+                      <p className="text-2xl font-semibold text-primary tabular-nums">{clickRate}%</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Click Rate</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-muted/10 text-center">
+                      <p className="text-2xl font-semibold text-primary tabular-nums">{conversions || replied}</p>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{detailCampaign.channel === "email" ? "Replied" : "Conversions"}</p>
+                    </div>
+                  </div>
+                  {/* Delivery breakdown */}
+                  {sent > 0 && (
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Delivery</p>
+                      <div className="h-2 rounded-full bg-muted/30 overflow-hidden flex">
+                        {sent - failed > 0 && <div className="bg-emerald-500 h-full" style={{ width: `${((sent - failed) / sent) * 100}%` }} />}
+                        {failed > 0 && <div className="bg-red-500 h-full" style={{ width: `${(failed / sent) * 100}%` }} />}
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <span className="text-[10px] text-emerald-400">{sent - failed} delivered</span>
+                        {failed > 0 && <span className="text-[10px] text-red-400">{failed} failed</span>}
+                      </div>
+                    </div>
+                  )}
+                  {/* No metrics state */}
+                  {!m && (
+                    <div className="text-center py-6">
+                      <BarChart3 className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                      <p className="text-sm text-muted-foreground">No metrics yet</p>
+                      <p className="text-xs text-muted-foreground/60 mt-1">Launch this campaign to start collecting performance data.</p>
+                    </div>
+                  )}
+                </div>
+                <DialogFooter className="gap-2 sm:gap-0">
+                  {detailCampaign.status === "draft" && (
+                    <Button size="sm" className="gap-1" onClick={() => { setDetailCampaign(null); openLaunch(detailCampaign); }}>
+                      <Send className="h-3.5 w-3.5" /> Launch
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={() => setDetailCampaign(null)}>Close</Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
+
       {/* ─── Template Dialog ─── */}
       <Dialog open={templateOpen} onOpenChange={setTemplateOpen}>
         <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-md">
@@ -591,7 +705,7 @@ export default function Campaigns() {
                 </SelectContent>
               </Select>
             </div>
-            {tplForm.channel === "email" && <div><Label>Subject</Label><Input value={tplForm.subject || ""} onChange={(e) => setTplForm({ ...tplForm, subject: e.target.value })} /></div>}
+            {(tplForm.channel === "email" || tplForm.channel.startsWith("social_")) && <div><Label>{tplForm.channel === "email" ? "Subject" : "Caption / Headline"}</Label><Input value={tplForm.subject || ""} onChange={(e) => setTplForm({ ...tplForm, subject: e.target.value })} placeholder={tplForm.channel === "email" ? "Subject line" : "Post caption"} /></div>}
             <div><Label>Body</Label><Textarea rows={4} value={tplForm.body || ""} onChange={(e) => setTplForm({ ...tplForm, body: e.target.value })} /></div>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
