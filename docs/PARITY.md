@@ -105,6 +105,7 @@
 | G93 | Documentation accuracy — tRPC count | Done | 2 | DOCUMENTATION.md tRPC procedure count corrected from 72 to 73 | Pass 34 |
 | G94 | QueryError on SyncEngine, ActivityFeed, Channels, Integrations | Done | 4 | 4 more pages now show retry-able error state when queries fail; total 9 pages with QueryError coverage | Pass 35 |
 | G95 | BulkImport CSV preview mobile scroll hint | Done | 2 | Mobile-only hint text "Scroll horizontally to see more columns →" for CSV preview table | Pass 35 |
+| G96 | Contact interaction logging | Done | 4 | "Log Interaction" button on contact timeline tab; inline form with channel selector (13 channels), direction toggle, body text; auto-maps channel to interaction type; creates via tRPC interactions.create | Pass 36 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -162,6 +163,7 @@
 - Contact detail channel reach grid: 2-col on mobile for 320px readability
 - No unused imports in page-level components (DialogTrigger, useEffect cleaned)
 - QueryError on 9 pages: Home, Analytics, Campaigns, Contacts, AIInsights, SyncEngine, ActivityFeed, Channels, Integrations
+- Contact timeline "Log Interaction" with channel selection, direction, and body
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -209,4 +211,5 @@
 - Pass 32 · correctness + build health · G86-G89 done; npm install fixed, 17 TS errors eliminated (zero errors), orchestrator/AI engine data access corrected, template+sequence channels expanded to 13, vite.config async · efe340f · 4 items completed · none deferred
 - Pass 33 · mobile responsive + touch targets · G90-G91 done; 6 buttons fixed to ≥44px across 4 pages, contact detail grid 2-col on mobile · a612b1c · 2 items completed · none deferred
 - Pass 34 · dead code + test coverage + unused imports · G92-G93 done; removed 3 unused imports, identified 3 orphaned dev components, verified 142/203 tests pass (25 live-only failures expected), docs updated · f6842e7 · 2 items completed · none deferred
-- Pass 35 · input validation + error states · G94-G95 done; QueryError added to 4 more pages (9 total), BulkImport CSV preview mobile scroll hint · PENDING · 2 items completed · none deferred
+- Pass 35 · input validation + error states · G94-G95 done; QueryError added to 4 more pages (9 total), BulkImport CSV preview mobile scroll hint · ce2805d · 2 items completed · none deferred
+- Pass 36 · contact interaction logging + unified timeline · G96 done; "Log Interaction" feature on contact detail timeline with 13-channel select, direction toggle, auto-typed mutations · PENDING · 1 item completed · none deferred

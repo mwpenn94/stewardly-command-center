@@ -20,6 +20,7 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 - Full CRUD with segment and tier assignment
 - **Unified contact detail** — 3-tab dialog: Info (fields/classification/tags), Timeline (cross-channel interaction history), Channels (platform connections + channel reach summary)
 - Cross-channel interaction timeline with 25 interaction types, direction indicators, and sentiment analysis
+- **Log Interaction** — manually record interactions from any of 13 channels with direction toggle and notes
 - Platform sync indicators (GHL, SMS-iT, LinkedIn) + 13-channel reach summary
 - Form validation: required fields, email format, phone format
 
