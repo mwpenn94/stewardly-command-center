@@ -165,12 +165,12 @@ export default function Campaigns() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="bg-muted/30">
-          <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
-          <TabsTrigger value="sequences" className="gap-1.5">
+        <TabsList className="bg-muted/30 w-full sm:w-auto">
+          <TabsTrigger value="campaigns" className="flex-1 sm:flex-initial">Campaigns</TabsTrigger>
+          <TabsTrigger value="sequences" className="gap-1.5 flex-1 sm:flex-initial">
             <Zap className="h-3 w-3" /> Sequences
           </TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
+          <TabsTrigger value="templates" className="flex-1 sm:flex-initial">Templates</TabsTrigger>
         </TabsList>
 
         {/* ─── Campaigns Tab ─── */}
@@ -383,7 +383,7 @@ export default function Campaigns() {
 
       {/* ─── New Sequence Dialog ─── */}
       <Dialog open={seqOpen} onOpenChange={setSeqOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto sm:max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>New Multi-Platform Sequence</DialogTitle>
             <DialogDescription>Build a multi-step outreach sequence across Email, SMS, and LinkedIn.</DialogDescription>

@@ -2,6 +2,16 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
+## [0.14.0] - 2026-04-13
+
+### Added
+- **Keyboard shortcuts** — `?` opens help dialog showing all shortcuts; `G` + letter navigates (H=home, C=contacts, M=campaigns, S=sync, A=analytics); `⌘K` opens search; `Esc` closes dialogs
+- **KeyboardShortcuts dialog** — Accessible reference panel for all keyboard shortcuts
+
+### Changed
+- Campaign Studio tabs now full-width on mobile for easier touch targets
+- Sequence builder dialog has better mobile max-height handling
+
 ## [0.13.0] - 2026-04-13
 
 ### Added

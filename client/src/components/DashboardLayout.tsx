@@ -33,6 +33,7 @@ import { DashboardLayoutSkeleton } from "./DashboardLayoutSkeleton";
 import { Button } from "./ui/button";
 import GlobalSearch from "./GlobalSearch";
 import NotificationCenter from "./NotificationCenter";
+import KeyboardShortcuts from "./KeyboardShortcuts";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/" },
@@ -141,6 +142,29 @@ function DashboardLayoutContent({
       setIsResizing(false);
     }
   }, [isCollapsed]);
+
+  // Keyboard navigation: G + letter to navigate
+  useEffect(() => {
+    let gPressed = false;
+    let gTimer: ReturnType<typeof setTimeout>;
+    const navMap: Record<string, string> = { h: "/", c: "/contacts", m: "/campaigns", s: "/sync", a: "/analytics", i: "/import", e: "/enrichment" };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) return;
+      if (e.key === "g" && !e.metaKey && !e.ctrlKey) {
+        gPressed = true;
+        clearTimeout(gTimer);
+        gTimer = setTimeout(() => { gPressed = false; }, 1000);
+        return;
+      }
+      if (gPressed && navMap[e.key]) {
+        e.preventDefault();
+        setLocation(navMap[e.key]);
+        gPressed = false;
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => { document.removeEventListener("keydown", handleKeyDown); clearTimeout(gTimer); };
+  }, [setLocation]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -292,6 +316,7 @@ function DashboardLayoutContent({
         )}
         <main id="main-content" className="flex-1 p-4 sm:p-6" tabIndex={-1}>{children}</main>
       </SidebarInset>
+      <KeyboardShortcuts />
     </>
   );
 }
