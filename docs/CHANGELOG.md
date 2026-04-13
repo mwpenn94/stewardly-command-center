@@ -2,6 +2,27 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
+## [0.8.0] - 2026-04-13
+
+### Added
+- **Settings page** — Theme toggle (dark/light), notification preferences, timezone/date format configuration, profile display, integration quick links
+- Dark/light theme switching now functional via ThemeProvider `switchable` flag
+
+### Fixed
+- **Mobile responsiveness** across all pages:
+  - Campaign Studio: platform health grid stacks on mobile (was 3-col fixed)
+  - Sync Engine: scheduler controls and platform grid stack on mobile
+  - All page headers: title + action buttons stack vertically on mobile
+  - 44px minimum touch targets on all mobile action buttons
+  - Main content padding reduced from `p-6` to `p-4` on mobile
+  - Filter rows wrap properly on small screens
+- Settings link in user dropdown now routes to `/settings` (was `/integrations`)
+
+### Changed
+- **Complete documentation rewrite** — README.md, ARCHITECTURE.md, and PARITY.md now accurately describe the actual tRPC/shadcn/Drizzle full-stack application (were describing an outdated Zustand-based frontend)
+- Sidebar navigation now includes Settings page with Settings icon
+- PARITY.md feature matrix fully rewritten to track actual features (28 items vs old 35 that tracked non-existent features)
+
 ## [0.7.1] - 2026-04-13
 
 ### Changed

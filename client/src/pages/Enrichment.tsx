@@ -30,12 +30,12 @@ export default function Enrichment() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl tracking-tight text-foreground">Contact Enrichment</h1>
           <p className="text-sm text-muted-foreground mt-1">Enrich contacts via People Data Labs waterfall with confidence scoring.</p>
         </div>
-        <Button size="sm" className="gap-2" onClick={handleEnrichAll}>
+        <Button size="sm" className="gap-2 min-h-[44px] sm:min-h-0 shrink-0" onClick={handleEnrichAll}>
           <Sparkles className="h-4 w-4" /> Enrich All
         </Button>
       </div>

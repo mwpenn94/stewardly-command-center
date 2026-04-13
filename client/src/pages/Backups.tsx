@@ -81,7 +81,7 @@ export default function Backups() {
                 </SelectContent>
               </Select>
             </div>
-            <Button onClick={handleCreateBackup} disabled={createBackup.isPending} className="gap-2">
+            <Button onClick={handleCreateBackup} disabled={createBackup.isPending} className="gap-2 min-h-[44px] sm:min-h-0">
               <Database className="h-4 w-4" />
               {createBackup.isPending ? "Creating..." : "Create Backup"}
             </Button>

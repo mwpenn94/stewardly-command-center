@@ -59,14 +59,14 @@ export default function SyncEngine() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl tracking-tight text-foreground">Sync Engine</h1>
           <p className="text-sm text-muted-foreground mt-1">Hybrid sync: polling + webhooks + event-driven across all platforms.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           {dlqCount > 0 && (
-            <Button size="sm" variant="outline" className="gap-2 text-amber-400 border-amber-500/30 hover:bg-amber-500/10" onClick={() => retryAllDlq.mutate()}>
+            <Button size="sm" variant="outline" className="gap-2 text-amber-400 border-amber-500/30 hover:bg-amber-500/10 min-h-[44px] sm:min-h-0" onClick={() => retryAllDlq.mutate()}>
               <RotateCcw className="h-4 w-4" /> Retry All DLQ ({dlqCount})
             </Button>
           )}
@@ -76,9 +76,9 @@ export default function SyncEngine() {
       {/* ─── Sync Scheduler Control Panel ─── */}
       <Card className="bg-card border-border/50">
         <CardContent className="p-5">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div className="flex items-center gap-3">
-              <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${schedulerStatus?.isRunning ? "bg-emerald-500/15" : "bg-muted/50"}`}>
+              <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${schedulerStatus?.isRunning ? "bg-emerald-500/15" : "bg-muted/50"}`}>
                 <RefreshCw className={`h-5 w-5 ${schedulerStatus?.isRunning ? "text-emerald-400 animate-spin" : "text-muted-foreground"}`} style={schedulerStatus?.isRunning ? { animationDuration: "3s" } : {}} />
               </div>
               <div>
@@ -91,13 +91,13 @@ export default function SyncEngine() {
                 </p>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 shrink-0">
               {schedulerStatus?.isRunning ? (
-                <Button size="sm" variant="outline" className="gap-1.5" onClick={() => stopScheduler.mutate()}>
+                <Button size="sm" variant="outline" className="gap-1.5 min-h-[44px] sm:min-h-0" onClick={() => stopScheduler.mutate()}>
                   <Square className="h-3 w-3" /> Stop
                 </Button>
               ) : (
-                <Button size="sm" className="gap-1.5" onClick={() => startScheduler.mutate({
+                <Button size="sm" className="gap-1.5 min-h-[44px] sm:min-h-0" onClick={() => startScheduler.mutate({
                   intervalMs: 60000,
                   platforms: {
                     ghl: { enabled: true, pullContacts: true, pushContacts: true },
@@ -108,14 +108,14 @@ export default function SyncEngine() {
                   <Play className="h-3 w-3" /> Start Scheduler
                 </Button>
               )}
-              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => forcePull.mutate()} disabled={forcePull.isPending}>
+              <Button size="sm" variant="outline" className="gap-1.5 min-h-[44px] sm:min-h-0" onClick={() => forcePull.mutate()} disabled={forcePull.isPending}>
                 <ArrowDownToLine className="h-3 w-3" /> Force Pull All
               </Button>
             </div>
           </div>
 
           {/* Platform sync status */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {(["ghl", "smsit", "dripify"] as const).map((platform) => {
               const Icon = PLATFORM_ICONS[platform] || RefreshCw;
               const pStatus = schedulerStatus?.platforms?.[platform];
@@ -160,7 +160,7 @@ export default function SyncEngine() {
       </div>
 
       {/* ─── Filters ─── */}
-      <div className="flex gap-3">
+      <div className="flex flex-wrap gap-3">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-36"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>

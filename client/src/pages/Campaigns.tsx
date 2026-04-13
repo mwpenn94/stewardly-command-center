@@ -122,23 +122,23 @@ export default function Campaigns() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl tracking-tight text-foreground">Campaign Studio</h1>
           <p className="text-sm text-muted-foreground mt-1">Build and launch multi-channel outreach campaigns.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => { setTplForm({ channel: "email" }); setTemplateOpen(true); }}>
+        <div className="flex gap-2 shrink-0">
+          <Button variant="outline" size="sm" className="min-h-[44px] sm:min-h-0" onClick={() => { setTplForm({ channel: "email" }); setTemplateOpen(true); }}>
             New Template
           </Button>
-          <Button size="sm" className="gap-2" onClick={() => { setForm({ channel: "email" }); setCreateOpen(true); }}>
+          <Button size="sm" className="gap-2 min-h-[44px] sm:min-h-0" onClick={() => { setForm({ channel: "email" }); setCreateOpen(true); }}>
             <Plus className="h-4 w-4" /> New Campaign
           </Button>
         </div>
       </div>
 
       {/* Platform Health Indicators */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {(platformHealth || [
           { platform: "ghl", connected: false, lastChecked: 0 },
           { platform: "smsit", connected: false, lastChecked: 0 },

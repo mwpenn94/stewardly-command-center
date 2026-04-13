@@ -126,7 +126,7 @@ export default function Analytics() {
       </div>
 
       {/* Top-level KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {topCards.map((m) => (
           <Card key={m.label} className="bg-card border-border/50">
             <CardContent className="p-4">
@@ -170,7 +170,7 @@ export default function Analytics() {
                   </div>
 
                   {chHasMetrics ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                       <div>
                         <p className="text-[10px] text-muted-foreground uppercase">Delivered</p>
                         <p className="text-sm font-medium text-foreground tabular-nums">{formatNum(data.delivered)}</p>

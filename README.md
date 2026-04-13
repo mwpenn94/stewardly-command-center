@@ -1,103 +1,137 @@
 # Stewardly Command Center
 
-A comprehensive property management platform with unified dashboard, CRM, marketing automation, maintenance tracking, and data pipeline integration — all in one responsive, mobile-first application with dark mode, AI insights, and zero-dependency charts.
+A full-stack marketing operations platform that unifies contact management, multi-platform campaign orchestration, and data synchronization across GoHighLevel (GHL), SMS-iT, and Dripify — all in one responsive, dark-themed application.
 
 ## Features
 
 ### Dashboard
-- 8 key metric cards with clickthrough navigation
-- Revenue bar chart, occupancy donut charts, 6-month trend sparkline (zero-dep SVG)
-- AI Insights panel with data-driven recommendations
-- Activity feed and property overview with clickable items
+- 4 KPI cards: Total Contacts, Active Campaigns, Sync Queue, Connected Platforms
+- Contact segment breakdown with distribution percentages
+- Recent activity feed with severity indicators
+- Live platform health monitoring (GHL, SMS-iT, Dripify)
 
-### Properties
-- Card grid with type/search filtering
-- Full CRUD with modal forms (create, edit, delete)
-- Detail view showing related tenants and open maintenance requests
+### Contacts
+- Searchable, filterable contact table with pagination
+- Full CRUD with segment and tier assignment
+- Platform sync indicators (GHL, SMS, LinkedIn)
+- GHL sync toggle on create/edit
 
-### Tenants
-- Data table with status filtering and search
-- Full CRUD with modal forms and detail view
-- Lease tracking, payment status, outstanding balance display
+### Campaign Studio
+- **Campaigns tab** — Create, launch, and track campaigns across Email (GHL), SMS (SMS-iT), and LinkedIn (Dripify)
+- **Sequences tab** — Multi-step, multi-platform outreach automation with delays and step progress
+- **Templates tab** — Reusable message templates per channel
+- Platform health indicators showing connection status
 
-### Maintenance
-- Priority-colored request cards (low/medium/high/urgent)
-- Status workflow (open → in progress → completed)
-- Full CRUD with property/tenant selectors
+### Bulk Import
+- CSV file upload with column mapping
+- Real-time import progress tracking
+- Worker count configuration (parallel workers)
+- Checkpoint-based resume capability
+- GHL credential validation before sync
 
-### CRM
-- **Table view** with contact info, tags, source, status columns
-- **Kanban board** with drag-and-drop between pipeline stages
-- Contact detail modal with activity timeline
-- Full CRUD with tag management
+### Sync Engine
+- Hybrid sync scheduler: polling + webhooks + event-driven
+- Start/stop/force-pull controls per platform
+- Queue visualization with status filtering
+- Dead Letter Queue (DLQ) with retry functionality
+- Platform-specific sync status and error tracking
 
-### Marketing
-- **Campaigns tab** — Card grid with budget progress bars, performance metrics
-- **Email Builder** — WYSIWYG template editor with live HTML preview
-- **Workflows tab** — Outreach automation builder with email/SMS/wait/condition steps
+### Integrations
+- GoHighLevel: API Key or JWT Token auth with connection testing
+- Dripify: API Key or Session Cookie auth with campaign listing
+- LinkedIn: Access Token or Session Cookie auth
+- SMS-iT: API Key with credit balance checking
+- Per-platform credential management with show/hide toggle
 
-### Data Pipelines
-- Integration status dashboard with record counts
-- Pause/resume controls for each pipeline
-- Full CRUD with source/destination/schedule configuration
+### Analytics
+- Unified campaign metrics: sent, open rate, click rate, conversions, cost per lead
+- Per-channel breakdown (Email, SMS, LinkedIn)
+- Conversion funnel visualization
+- Contact tier distribution
+
+### Contact Enrichment
+- People Data Labs waterfall pipeline (ready)
+- Confidence scoring and segment tagging
+- Propensity scoring with tier assignment (Gold/Silver/Bronze)
+- Segment distribution visualization
+
+### Backups
+- One-click backup creation (contacts, campaigns, full)
+- CSV and JSON export formats
+- Backup history with download and restore
+
+### Activity Feed
+- Chronological audit log of all system events
+- Type filtering: sync, import, campaign, webhook, enrichment, backup, system
+- Severity filtering: info, success, warning, error
 
 ### Settings
-- Notification preferences (email + push toggles)
-- Security (password management)
-- Integrations (connect QuickBooks, Zillow, Mailchimp, etc.)
-- Appearance (light/dark/system theme toggle)
-- General (timezone, date format, currency)
+- Dark/light theme toggle with localStorage persistence
+- Notification preferences (email, push, sync alerts, campaign alerts)
+- Timezone and date format configuration
+- Quick access to platform integrations
 
 ### Platform Features
-- Dark mode with light/dark/system toggle (persisted in localStorage)
-- Global search across all entity types with dropdown results
-- Toast notifications on all CRUD operations
-- Skip-to-content link and `:focus-visible` for keyboard accessibility
+- Dark theme with warm gold accent palette (OKLCH color space)
+- Plus Jakarta Sans + Instrument Serif typography
+- Mobile-first responsive layout with sidebar overlay on mobile
 - 44px minimum touch targets on mobile
-- 404 page and error boundary
-- Zero external chart dependencies (SVG-based)
+- Skeleton loading states
+- Toast notifications on all operations
+- Error boundary with recovery UI
+- 404 catch-all route
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
 | Framework | React 19 + TypeScript |
-| Build | Vite 8 |
-| Styling | Tailwind CSS 4 |
-| Routing | React Router 7 |
-| Client State | Zustand (UI + entity CRUD) |
-| Server State | TanStack React Query (future API) |
+| Routing | Wouter |
+| Styling | Tailwind CSS 4 + shadcn/ui (Radix) |
+| Server State | TanStack React Query + tRPC 11 |
+| Backend | Express 4 + tRPC |
+| Database | Drizzle ORM + MySQL (TiDB) |
 | Icons | Lucide React |
-| Charts | Custom SVG (BarChart, DonutChart, Sparkline) |
+| Animations | Framer Motion |
+| Build | Vite 7 |
 
 ## Getting Started
 
 ```bash
-npm install       # Install dependencies
-npm run dev       # Start dev server (http://localhost:5173)
-npm run build     # Production build
-npm run preview   # Preview production build
-npm run lint      # ESLint check
+pnpm install      # Install dependencies
+pnpm run dev      # Start dev server
+pnpm run build    # Production build
+pnpm run check    # TypeScript check
+pnpm run test     # Run tests
 ```
 
 ## Project Structure
 
 ```
-src/
+client/src/
   components/
-    layout/           # AppLayout, Sidebar, Header, SearchResults
-    ui/               # MetricCard, DataTable, StatusBadge, PageHeader, Modal, FormField, Toast, MiniChart, Skeleton
-    dashboard/        # AIInsights
-    properties/       # PropertyForm
-    tenants/          # TenantForm
-    maintenance/      # MaintenanceForm
-    crm/              # ContactForm, ContactDetail, KanbanBoard
-    marketing/        # CampaignForm, EmailTemplateBuilder, WorkflowBuilder
-    pipelines/        # PipelineForm
-  pages/              # Dashboard, Properties, Tenants, Maintenance, CRM, Marketing, Pipelines, Settings, NotFound
-  store/              # useStore (UI), useDataStore (entities)
-  types/              # TypeScript interfaces + workflow types
-  data/               # Mock data
+    ui/               # shadcn/ui components (50+ Radix-based)
+    DashboardLayout   # Sidebar + header + mobile drawer
+    ErrorBoundary     # App-level error catching
+  pages/              # Home, Contacts, BulkImport, Campaigns, SyncEngine,
+                      # Integrations, Enrichment, Analytics, Backups,
+                      # ActivityFeed, Settings, NotFound
+  contexts/           # ThemeContext
+  hooks/              # useMobile
+  lib/                # tRPC client setup
+
+server/
+  _core/              # Express server + tRPC adapter
+  routers.ts          # 55+ tRPC procedures
+  db.ts               # Database query helpers
+  services/           # GHL, SMS-iT, Dripify, Orchestrator,
+                      # SyncScheduler, SyncWorker, CampaignEngine,
+                      # Credentials
+
+drizzle/
+  schema.ts           # 8 database tables
+  migrations/         # SQL migrations
+
 docs/
   PARITY.md           # Feature parity tracking and gap matrix
   ARCHITECTURE.md     # System architecture documentation
@@ -107,9 +141,19 @@ docs/
 ## Responsive Design
 
 Mobile-first with breakpoints:
-- **Mobile** (<640px): Single column, hamburger sidebar, 44px touch targets
-- **Tablet** (640px–1024px): Two-column grids, expanded tables
-- **Desktop** (>1024px): Collapsible sidebar, multi-column layouts, full data views
+- **Mobile** (<768px): Single column, sidebar overlay, 44px touch targets, reduced padding
+- **Tablet** (768px-1024px): Two-column grids, inline filters
+- **Desktop** (>1024px): Collapsible resizable sidebar, multi-column layouts, full data views
+
+## Testing
+
+```bash
+# Non-live tests (144 tests)
+pnpm vitest run --exclude='**/live-*.test.ts'
+
+# All tests including live E2E (205 tests, requires real credentials)
+pnpm vitest run
+```
 
 ## License
 

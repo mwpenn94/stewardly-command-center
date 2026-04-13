@@ -15,6 +15,7 @@ import Enrichment from "./pages/Enrichment";
 import Analytics from "./pages/Analytics";
 import Backups from "./pages/Backups";
 import ActivityFeed from "./pages/ActivityFeed";
+import Settings from "./pages/Settings";
 
 function Router() {
   return (
@@ -30,6 +31,7 @@ function Router() {
         <Route path="/analytics" component={Analytics} />
         <Route path="/backups" component={Backups} />
         <Route path="/activity" component={ActivityFeed} />
+        <Route path="/settings" component={Settings} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>
@@ -40,7 +42,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark">
+      <ThemeProvider defaultTheme="dark" switchable>
         <TooltipProvider>
           <Toaster richColors position="top-right" />
           <Router />

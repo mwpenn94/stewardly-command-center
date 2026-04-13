@@ -43,6 +43,7 @@ const menuItems = [
   { icon: BarChart3, label: "Analytics", path: "/analytics" },
   { icon: HardDrive, label: "Backups", path: "/backups" },
   { icon: Activity, label: "Activity", path: "/activity" },
+  { icon: Settings, label: "Settings", path: "/settings" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -233,7 +234,7 @@ function DashboardLayoutContent({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem
-                  onClick={() => setLocation("/integrations")}
+                  onClick={() => setLocation("/settings")}
                   className="cursor-pointer"
                 >
                   <Settings className="mr-2 h-4 w-4" />
@@ -272,7 +273,7 @@ function DashboardLayoutContent({
             </div>
           </div>
         )}
-        <main className="flex-1 p-6">{children}</main>
+        <main className="flex-1 p-4 sm:p-6">{children}</main>
       </SidebarInset>
     </>
   );
