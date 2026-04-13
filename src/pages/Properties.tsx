@@ -9,7 +9,7 @@ import { useDataStore } from '../store/useDataStore';
 import type { Property } from '../types';
 
 export default function Properties() {
-  const { properties, addProperty, updateProperty, deleteProperty } = useDataStore();
+  const { properties, tenants, maintenanceRequests, addProperty, updateProperty, deleteProperty } = useDataStore();
   const { addToast } = useToast();
   const [filter, setFilter] = useState<string>('all');
   const [search, setSearch] = useState('');
@@ -182,6 +182,48 @@ export default function Properties() {
                 <p className="text-xs text-text-muted">Monthly Revenue</p>
               </div>
             </div>
+            {/* Related Tenants */}
+            {(() => {
+              const relatedTenants = tenants.filter((t) => t.propertyId === detailProperty.id);
+              return relatedTenants.length > 0 ? (
+                <div>
+                  <h3 className="text-sm font-semibold text-text-primary mb-2">Tenants ({relatedTenants.length})</h3>
+                  <div className="space-y-2">
+                    {relatedTenants.map((t) => (
+                      <div key={t.id} className="flex items-center justify-between py-1.5 text-sm">
+                        <div>
+                          <span className="font-medium">{t.firstName} {t.lastName}</span>
+                          <span className="text-text-muted ml-2">Unit {t.unitNumber}</span>
+                        </div>
+                        <StatusBadge status={t.status} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
+            {/* Related Maintenance */}
+            {(() => {
+              const relatedMaintenance = maintenanceRequests.filter((m) => m.propertyId === detailProperty.id && m.status !== 'completed');
+              return relatedMaintenance.length > 0 ? (
+                <div>
+                  <h3 className="text-sm font-semibold text-text-primary mb-2">Open Requests ({relatedMaintenance.length})</h3>
+                  <div className="space-y-2">
+                    {relatedMaintenance.map((m) => (
+                      <div key={m.id} className="flex items-center justify-between py-1.5 text-sm">
+                        <span className="font-medium truncate">{m.title}</span>
+                        <div className="flex gap-1">
+                          <StatusBadge status={m.priority} />
+                          <StatusBadge status={m.status} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
+
             <div className="flex gap-2 pt-2">
               <button
                 className="btn-primary flex items-center gap-2"

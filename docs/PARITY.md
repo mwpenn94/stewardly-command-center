@@ -28,7 +28,7 @@
 | G16 | Dark mode / theme switching | Done | 4 | Light/dark/system toggle in header + settings, localStorage persistence | Pass 3 |
 | G17 | AI/Agentic continuous improvement | Open | 0 | Architecture planned, not started | — |
 | G18 | Predictive analytics | Open | 0 | Requires AI engine + data pipeline | — |
-| G19 | Automated outreach workflows | Open | 0 | Marketing automation not started | — |
+| G19 | Automated outreach workflows | Done | 4 | Workflow builder with email/sms/wait/condition steps, trigger config | Pass 5 |
 | G20 | Multi-platform CRM sync | Open | 0 | Pipeline UI exists, sync logic needed | — |
 | G21 | 404 page & error boundary | Done | 4 | Error boundary wraps app, 404 catch-all route | Pass 3 |
 | G22 | Accessibility (skip-link, focus-visible, ARIA) | Done | 3 | Skip-to-content, focus-visible ring, ARIA labels, min touch targets | Pass 3 |
@@ -36,7 +36,9 @@
 | G24 | Global search across entities | Done | 4 | Searches properties, tenants, maintenance, contacts, campaigns with dropdown results | Pass 4 |
 | G25 | Toast notification system | Done | 4 | Success/error/info toasts on all CRUD operations with auto-dismiss | Pass 4 |
 | G26 | Dashboard clickthrough navigation | Done | 4 | All metric cards + activity items + property list navigates to relevant pages | Pass 4 |
-| G27 | Cross-entity navigation | Open | 0 | Property detail -> tenant list, found by build | — |
+| G27 | Cross-entity navigation | Done | 3 | Property detail shows related tenants + open maintenance | Pass 5 |
+| G28 | Email template builder | Done | 4 | WYSIWYG builder with edit/preview, subject, body, CTA, footer | Pass 5 |
+| G29 | Marketing tabs (Campaigns/Email/Workflows) | Done | 4 | Tabbed interface in Marketing page | Pass 5 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -64,4 +66,5 @@
 - Pass 1 · foundation & correctness · full scaffold (G1-G10 done) · e946974 · 10 features shipped · G11-G20 deferred
 - Pass 2 · CRUD forms & detail views · G13, G14 done + G2-G7 depth upgrade · 6fc6f0c · 8 items completed · G11,G12,G15-G20 deferred
 - Pass 3 · dark mode + accessibility + mobile · G16, G21-G23 done · e7e2161 · 4 items completed · G11,G12,G15,G17-G20 deferred
-- Pass 4 · cross-app navigation + search + toasts · G24-G26 done · PENDING · 3 items completed · G11,G12,G15,G17-G20,G27 deferred
+- Pass 4 · cross-app navigation + search + toasts · G24-G26 done · f827126 · 3 items completed · G11,G12,G15,G17-G20,G27 deferred
+- Pass 5 · marketing outreach + cross-entity nav · G19,G27-G29 done · PENDING · 4 items completed · G11,G12,G15,G17,G18,G20 deferred

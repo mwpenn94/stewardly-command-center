@@ -2,6 +2,23 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
+## [0.5.0] - 2026-04-13
+
+### Added
+- **Marketing** page now has three tabs: Campaigns, Email Builder, Workflows
+- Email Template Builder with edit/preview toggle, subject/preheader/heading/body/CTA/footer fields
+- HTML preview rendering of email templates with Copy HTML action
+- Outreach Workflow Builder with drag-and-drop-style step management
+- Workflow step types: Send Email, Send SMS, Wait (delay days), Condition
+- Two pre-built workflow templates: New Lead Welcome Sequence, Lease Expiration Reminder
+- Create/edit/save workflows with trigger configuration
+- Property detail modal now shows related tenants and open maintenance requests
+- Workflow type definitions
+
+### Changed
+- Marketing page restructured with tab navigation
+- Property detail view enhanced with cross-entity data (tenants + maintenance)
+
 ## [0.4.0] - 2026-04-13
 
 ### Added
