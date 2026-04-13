@@ -257,3 +257,8 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] Deduplicate across all files, merging data points from multiple segments into single records
 - [x] Produce clean master CSV in GHL-ready format for sync (561,806 unique records)
 - [x] Update standalone sync script to use new master CSV and resume from GHL's current 270K contacts
+
+## Test Isolation Fix
+- [x] Fix all non-live test files to use userId 9999 instead of userId 1 to prevent tests from overwriting real credentials
+- [x] Fix dashboard stats query to count integrations with non-empty credentials (not just status='connected') so test-triggered status changes don't break the counter
+- [x] Verified: 144 tests pass AND real userId 1 credentials survive test runs

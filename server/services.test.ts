@@ -300,7 +300,7 @@ describe("Router Integration - Imports", () => {
 
   function createAuthContext() {
     const user = {
-      id: 1,
+      id: 9999,
       openId: "owner-test-id",
       email: "owner@stewardly.com",
       name: "Test Owner",
@@ -385,7 +385,7 @@ describe("Router Integration - Campaign Launch", () => {
     return {
       ctx: {
         user: {
-          id: 1,
+          id: 9999,
           openId: "owner-test-id",
           email: "owner@stewardly.com",
           name: "Test Owner",

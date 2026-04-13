@@ -19,7 +19,7 @@ type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 function createAuthContext() {
   const clearedCookies: any[] = [];
   const user: AuthenticatedUser = {
-    id: 1,
+    id: 9999,
     openId: "e2e-test-owner",
     email: "e2e@stewardly.com",
     name: "E2E Test Owner",

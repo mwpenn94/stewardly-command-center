@@ -346,7 +346,13 @@ export async function getDashboardStats(userId: number) {
     db.select({ count: count() }).from(contacts).where(eq(contacts.userId, userId)),
     db.select({ count: count() }).from(campaigns).where(eq(campaigns.userId, userId)),
     db.select({ count: count() }).from(syncQueue).where(and(eq(syncQueue.userId, userId), inArray(syncQueue.status, ["pending", "processing"]))),
-    db.select({ count: count() }).from(integrations).where(and(eq(integrations.userId, userId), eq(integrations.status, "connected"))),
+    db.select({ count: count() }).from(integrations).where(
+      and(
+        eq(integrations.userId, userId),
+        sql`${integrations.credentials} IS NOT NULL AND ${integrations.credentials} != '' AND ${integrations.credentials} != '{}'`,
+        sql`${integrations.status} != 'disconnected'`
+      )
+    ),
     db.select().from(activityLog).where(eq(activityLog.userId, userId)).orderBy(desc(activityLog.createdAt)).limit(10),
   ]);
   return {

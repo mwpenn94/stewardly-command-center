@@ -7,7 +7,7 @@ type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 function createAuthContext() {
   const clearedCookies: any[] = [];
   const user: AuthenticatedUser = {
-    id: 1,
+    id: 9999,
     openId: "owner-test-id",
     email: "owner@stewardly.com",
     name: "Test Owner",

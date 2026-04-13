@@ -3,7 +3,7 @@ import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
 const mockCtx: TrpcContext = {
-  user: { id: 1, openId: "test-open-id", name: "Michael Penn", role: "admin" },
+  user: { id: 9999, openId: "test-open-id", name: "Michael Penn", role: "admin" },
 } as any;
 
 const caller = appRouter.createCaller(mockCtx);
