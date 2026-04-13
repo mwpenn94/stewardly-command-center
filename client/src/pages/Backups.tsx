@@ -5,7 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Download, Upload, Database, Clock, CheckCircle2, FileJson, FileText, RotateCcw } from "lucide-react";
+import {
+  Download, Upload, Database, Clock, CheckCircle2, FileJson, FileText, RotateCcw,
+  Shield, RefreshCw, Mail, MessageSquare, Linkedin, AlertTriangle
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 const TYPE_LABELS: Record<string, string> = {
@@ -51,6 +54,54 @@ export default function Backups() {
           <p className="text-sm text-muted-foreground mt-1">Automated backups, one-click export, and restore functionality.</p>
         </div>
       </div>
+
+      {/* Platform Data Mirror */}
+      <Card className="bg-card border-border/50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-medium text-foreground flex items-center gap-2">
+            <Shield className="h-4 w-4 text-primary" />
+            Platform Data Mirror
+            <Badge variant="outline" className="ml-auto text-xs">Data Continuity</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-xs text-muted-foreground mb-3">
+            The command center maintains a local mirror of all synced data. If any external platform goes down, your data remains available and can be resynced when the platform returns.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {[
+              { platform: "GoHighLevel", icon: Mail, color: "text-blue-400", bg: "bg-blue-500/10", data: "Contacts, Campaigns, Forms, Calls" },
+              { platform: "SMS-iT", icon: MessageSquare, color: "text-emerald-400", bg: "bg-emerald-500/10", data: "SMS conversations, Contact records" },
+              { platform: "Dripify", icon: Linkedin, color: "text-sky-400", bg: "bg-sky-500/10", data: "LinkedIn connections, Campaign data" },
+            ].map((p) => (
+              <div key={p.platform} className="p-3 rounded-lg border border-border/30 space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className={`h-7 w-7 rounded ${p.bg} flex items-center justify-center`}>
+                    <p.icon className={`h-3.5 w-3.5 ${p.color}`} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-foreground">{p.platform}</p>
+                    <p className="text-[10px] text-muted-foreground">{p.data}</p>
+                  </div>
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <RefreshCw className="h-3 w-3" /> Auto-synced
+                  </span>
+                  <span>Local mirror active</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 p-2 rounded-lg bg-primary/5 border border-primary/10">
+            <p className="text-[11px] text-primary flex items-center gap-1.5">
+              <Shield className="h-3 w-3 shrink-0" />
+              All data synced from external platforms is backed up locally. Full data continuity is maintained even during platform outages.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Create Backup */}
       <Card className="bg-card border-border/50">

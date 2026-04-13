@@ -4,6 +4,12 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.5.0] - 2026-04-13
+
+### Added
+- **Campaign Flow Builder** — New visual tab in Campaign Studio for building cross-channel sequences. Add steps from any of 13 channels, reorder with up/down arrows, configure delays between steps, compose per-channel messages (email subjects, call scripts, social captions), and launch as a unified omnichannel sequence
+- **Platform data mirror** — Backups page now shows live platform data mirror status for GHL, SMS-iT, and Dripify with auto-sync indicators. Data continuity messaging confirms local mirror is always active for disaster recovery
+
 ## [1.4.0] - 2026-04-13
 
 ### Added

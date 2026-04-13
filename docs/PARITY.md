@@ -73,6 +73,8 @@
 | G61 | AI Insights cross-channel UI | Done | 4 | New sections: Cross-Channel Patterns with visual flow sequences, Channel Synergies grid with pair scores; recommendation engine suggests multi-channel expansion | Pass 20 |
 | G62 | Drizzle migration for omnichannel tables | Done | 3 | SQL migration 0002 for contact_interactions + channel_configs tables with indexes; journal updated | Pass 21 |
 | G63 | Channel Management page | Done | 4 | New /channels route with all 13 channels grouped by category (Messaging/Social/Voice/Physical/Inbound/Events), per-channel enable/disable, provider selection, daily limits, monthly budgets | Pass 21 |
+| G64 | Campaign Flow Builder | Done | 4 | Visual cross-channel flow builder in Campaign Studio: add steps from any of 13 channels, reorder, set delays, compose per-channel messages; launches as unified sequence | Pass 22 |
+| G65 | Platform data mirror UI | Done | 3 | Backups page shows platform data mirror status for GHL, SMS-iT, Dripify with auto-sync indicators and data continuity messaging | Pass 22 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -109,6 +111,8 @@
 - AI engine recommends multi-channel expansion based on current usage
 - Channel Management page: /channels with full 13-channel config UI
 - Drizzle migration 0002 for contact_interactions + channel_configs tables
+- Campaign Flow Builder: visual cross-channel sequence creation with step reordering
+- Platform data mirror continuity in Backups page
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -142,4 +146,5 @@
 - Pass 18 · AI engine + mobile deep fix + build health · G24,G25,G49-G51 done; AI insights page, lead scoring engine, 15+ mobile fixes, build verified · PENDING · 5 items completed · G26 deferred
 - Pass 19 · omnichannel expansion + unified timeline · G52-G59 done; 13 channels in schema/campaigns/templates, contact_interactions table, channel_configs table, unified timeline in contact detail, omnichannel dashboard grid, analytics all-channel, 7 new tRPC procedures · 45716d9 · 8 items completed · G26 deferred
 - Pass 20 · cross-channel intelligence + AI patterns · G60-G61 done; 5 cross-channel patterns with conversion lifts, 6 channel synergies, AI recommendations for multi-channel expansion, visual sequence flows in AI Insights page · 3a89353 · 2 items completed · G26 deferred
-- Pass 21 · data pipeline + channel management · G62-G63 done; Drizzle migration 0002, Channel Management page with 13 channels grouped by category, provider selection, daily limits, monthly budgets · PENDING · 2 items completed · G26 deferred
+- Pass 21 · data pipeline + channel management · G62-G63 done; Drizzle migration 0002, Channel Management page with 13 channels grouped by category, provider selection, daily limits, monthly budgets · 9c052e9 · 2 items completed · G26 deferred
+- Pass 22 · campaign flow builder + data mirror · G64-G65 done; visual cross-channel flow builder with step reordering and per-channel messages, platform data mirror status in Backups page · PENDING · 2 items completed · G26 deferred
