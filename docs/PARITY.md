@@ -37,11 +37,14 @@
 | G25 | Predictive analytics | Open | 0 | Future: ML-based forecasting, propensity modeling | — |
 | G26 | OAuth2 standard auth flows | Open | 0 | Currently JWT/cookie extraction; needs standard OAuth2 | — |
 | G27 | Light mode theme polish | Done | 4 | Full OKLCH light theme with warm gold accents, card hover adjustments | Pass 10 |
-| G28 | Code splitting / lazy loading | Done | 4 | Lazy routes: main 527KB, pages 4-34KB each, Suspense fallback | Pass 10 |
+| G28 | Code splitting / lazy loading | Done | 5 | Lazy routes + vendor chunks: main 346KB, vendors 204KB, pages 3-34KB | Pass 12 |
 | G29 | Global search (header + mobile) | Done | 3 | ⌘K search across contacts + campaigns, dropdown results, mobile compact | Pass 10 |
 | G30 | Contact detail modal | Done | 4 | Full info, platform connections (GHL/SMS/LI), classification, tags, edit shortcut | Pass 11 |
 | G31 | Dashboard quick actions + clickable stats | Done | 3 | 4 quick action buttons, stat cards navigate to relevant pages, keyboard accessible | Pass 11 |
 | G32 | Accessibility (skip-link, focus-visible, ARIA) | Done | 3 | Skip-to-content link, global focus-visible ring, ARIA roles on interactive cards | Pass 11 |
+| G33 | Dashboard clickthrough navigation | Done | 4 | Activity items → source page, stat cards → entity pages, "View all" links | Pass 12 |
+| G34 | Actionable empty states | Done | 3 | CTAs with navigation links on empty contacts, platforms, campaigns, activity | Pass 12 |
+| G35 | Vendor chunk splitting | Done | 5 | React, Radix, Query separated; main bundle 725KB → 346KB (52% reduction) | Pass 12 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -82,4 +85,5 @@
 - Pass 8 · cleanup + docs refresh + merge · dead code removed, README/ARCH updated, package.json v0.7.0 · PENDING · docs refreshed · G11,G12,G15 deferred
 - Pass 9 · doc correctness + mobile responsiveness + functional gaps · G11,G12,G15,G27 done; README/ARCH/PARITY rewritten; Settings page added; mobile fixes shipped · e59e2eb · 4 items completed · G23,G24,G25,G26,G28 deferred
 - Pass 10 · light mode + code splitting + global search · G27,G28,G29 done; light OKLCH theme, lazy routes, ⌘K search · a682b56 · 3 items completed · G23,G24,G25,G26 deferred
-- Pass 11 · contact detail + dashboard actions + accessibility · G30,G31,G32 done; detail modal, quick actions, skip-link, focus-visible · PENDING · 3 items completed · G23,G24,G25,G26 deferred
+- Pass 11 · contact detail + dashboard actions + accessibility · G30,G31,G32 done; detail modal, quick actions, skip-link, focus-visible · 4ee0a18 · 3 items completed · G23,G24,G25,G26 deferred
+- Pass 12 · cross-nav + empty states + vendor chunks · G33,G34,G35 done; clickable activity, actionable CTAs, bundle 346KB · PENDING · 3 items completed · G23,G24,G25,G26 deferred

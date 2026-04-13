@@ -124,7 +124,15 @@ export default function Home() {
                 );
               })
             ) : (
-              <p className="text-sm text-muted-foreground">No contacts yet. Import or create contacts to see segment breakdown.</p>
+              <div className="text-center py-4">
+                <Users className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No contacts yet</p>
+                <div className="flex items-center justify-center gap-2 mt-3">
+                  <button onClick={() => setLocation("/import")} className="text-xs text-primary hover:text-primary/80 transition-colors underline underline-offset-2">Import contacts</button>
+                  <span className="text-xs text-muted-foreground/40">or</span>
+                  <button onClick={() => setLocation("/contacts")} className="text-xs text-primary hover:text-primary/80 transition-colors underline underline-offset-2">create one</button>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -139,21 +147,38 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             {stats?.recentActivity?.length ? (
-              <div className="space-y-3">
-                {stats.recentActivity.map((a: any) => (
-                  <div key={a.id} className="flex items-start gap-3 text-sm">
-                    <div className={`mt-1 h-1.5 w-1.5 rounded-full shrink-0 ${severityColors[a.severity] || "text-muted-foreground"}`} style={{ backgroundColor: "currentColor" }} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-foreground truncate">{a.description || a.action}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {formatDistanceToNow(new Date(a.createdAt), { addSuffix: true })}
-                      </p>
-                    </div>
-                    <Badge variant="outline" className="text-[10px] shrink-0 capitalize">
-                      {a.type}
-                    </Badge>
-                  </div>
-                ))}
+              <div className="space-y-1">
+                {stats.recentActivity.map((a: any) => {
+                  const typeRoutes: Record<string, string> = {
+                    sync: "/sync", import: "/import", campaign: "/campaigns",
+                    webhook: "/sync", enrichment: "/enrichment", backup: "/backups", system: "/activity",
+                  };
+                  const route = typeRoutes[a.type] || "/activity";
+                  return (
+                    <button
+                      key={a.id}
+                      className="flex items-start gap-3 text-sm w-full text-left p-2 rounded-lg hover:bg-muted/20 transition-colors min-h-[40px]"
+                      onClick={() => setLocation(route)}
+                    >
+                      <div className={`mt-1.5 h-1.5 w-1.5 rounded-full shrink-0 ${severityColors[a.severity] || "text-muted-foreground"}`} style={{ backgroundColor: "currentColor" }} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-foreground truncate">{a.description || a.action}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {formatDistanceToNow(new Date(a.createdAt), { addSuffix: true })}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] shrink-0 capitalize mt-0.5">
+                        {a.type}
+                      </Badge>
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => setLocation("/activity")}
+                  className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors p-2 w-full"
+                >
+                  <ArrowRight className="h-3 w-3" /> View all activity
+                </button>
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">No activity yet. Actions across the platform will appear here.</p>
@@ -212,7 +237,13 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No platforms configured. Go to Integrations to connect your platforms.</p>
+            <div className="text-center py-4">
+              <Plug className="h-6 w-6 text-muted-foreground/30 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">No platforms configured</p>
+              <button onClick={() => setLocation("/integrations")} className="text-xs text-primary hover:text-primary/80 transition-colors underline underline-offset-2 mt-2">
+                Connect platforms
+              </button>
+            </div>
           )}
         </CardContent>
       </Card>

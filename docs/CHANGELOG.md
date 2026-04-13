@@ -2,6 +2,16 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
+## [0.11.0] - 2026-04-13
+
+### Added
+- **Dashboard clickthrough navigation** — Activity feed items navigate to source pages (sync → /sync, campaign → /campaigns, etc.); "View all activity" link at bottom
+- **Actionable empty states** — Empty contacts section shows Import/Create links; empty platforms shows Connect link; all empty states have clear CTAs
+
+### Changed
+- **Vendor chunk splitting** — Main bundle reduced from 527KB to 346KB (52% total reduction from 725KB original); React, Radix UI, and Query libraries split into cacheable vendor chunks
+- Dashboard stat cards now show hover scale animation on icons
+
 ## [0.10.0] - 2026-04-13
 
 ### Added
