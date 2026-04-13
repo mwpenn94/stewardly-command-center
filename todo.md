@@ -295,3 +295,23 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] Optimize main sync to maximum safe throughput: v6 with 15 workers, channel headers, 0.02s delay → 1,722/min (13x faster than v5)
 - [x] Re-sync org/event records with POC data: 99 new, 1,887 updated, 39 errors, 288 skipped (no email/phone)
 - [x] Monitor main sync to completion — DONE April 13, 2026. All 561,806 rows processed.
+
+## GHL Contact Count Discrepancy Investigation
+- [x] Query GHL API to verify actual contact count — confirmed 394,921 in GHL; gap from GHL dedup + inflated restart counters
+- [x] Analyze sync checkpoint data and error logs — identified custom fields never sent, names lost in merge
+- [x] Check for duplicate upserts counted as "created" — confirmed ~2x inflation from checkpoint restarts
+- [x] Determine if remediation/re-sync is needed — YES, built and ran full remediation sync
+
+## GHL Data Quality Issues (User Reported)
+- [x] Investigate blank custom fields — FIXED: original sync never sent customFields array; remediation sync sends all 9 WB fields
+- [x] Investigate ~100K missing contacts — GHL dedup merged phone-only records; remediation created 27,057 new contacts
+- [x] Query GHL API to verify actual contact data — confirmed custom fields populated after remediation
+- [x] Build remediation sync — ghl_remediation_sync.py with 80 workers, customFields mapping, names from WB sources
+- [x] Verify fixes applied correctly — 27,057 new + 522,593 updated, 392 errors (0.07%), 0 CF blocks
+- [x] Investigate missing names — 89.1% blank in CSV; traced to WB Full_Name lost during dedup merge
+- [x] Build full remediation sync with ALL fields — DONE: names, custom fields, address, tags all sent
+
+## Remerge Master CSV to Recover Names
+- [x] Investigate original workbook files — WB files have Full_Name (residential) and FirstName/LastName (commercial)
+- [x] Remerge master CSV — 99.9% name coverage (560,964/561,806) via email/phone/address matching to WB sources
+- [x] Restart remediation sync with corrected CSV — DONE: 561,806/561,806 (100%), peak 10,126/min
