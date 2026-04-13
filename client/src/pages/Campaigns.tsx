@@ -65,6 +65,8 @@ interface LaunchForm {
   audienceMode: "all" | "segment" | "tier";
   audienceSegment: string;
   audienceTier: string;
+  sendMode: "now" | "schedule";
+  scheduledAt: string;
 }
 
 interface SeqStep {
@@ -141,7 +143,7 @@ export default function Campaigns() {
   const [launchCampaignData, setLaunchCampaignData] = useState<{ id: number; name: string; channel: string } | null>(null);
   const [form, setForm] = useState<CampaignForm>({ channel: "email" });
   const [tplForm, setTplForm] = useState<TemplateForm>({ channel: "email" });
-  const [launchForm, setLaunchForm] = useState<LaunchForm>({ body: "", subject: "", audienceMode: "all", audienceSegment: "all", audienceTier: "all" });
+  const [launchForm, setLaunchForm] = useState<LaunchForm>({ body: "", subject: "", audienceMode: "all", audienceSegment: "all", audienceTier: "all", sendMode: "now", scheduledAt: "" });
   const [seqForm, setSeqForm] = useState<SeqForm>({ name: "", steps: [{ channel: "email", body: "", subject: "", delayMs: 0 }], contactIds: [] });
   const [tab, setTab] = useState("campaigns");
 
@@ -149,7 +151,7 @@ export default function Campaigns() {
 
   const openLaunch = (campaign: { id: number; name: string; channel: string }) => {
     setLaunchCampaignData(campaign);
-    setLaunchForm({ body: "", subject: "", contactIds: [], audienceMode: "all", audienceSegment: "all", audienceTier: "all" });
+    setLaunchForm({ body: "", subject: "", contactIds: [], audienceMode: "all", audienceSegment: "all", audienceTier: "all", sendMode: "now", scheduledAt: "" });
     setLaunchOpen(true);
   };
 
@@ -560,15 +562,33 @@ export default function Campaigns() {
               launchCampaignData?.channel === "sms" ? "Hi [Name], ..." :
               "Your message..."
             } /></div>
+            {/* Send Mode */}
+            <div>
+              <Label>When</Label>
+              <div className="flex gap-2 mt-1.5">
+                <Button type="button" variant={launchForm.sendMode === "now" ? "default" : "outline"} size="sm" className="flex-1 text-xs h-8" onClick={() => setLaunchForm({ ...launchForm, sendMode: "now" })}>
+                  Send Now
+                </Button>
+                <Button type="button" variant={launchForm.sendMode === "schedule" ? "default" : "outline"} size="sm" className="flex-1 text-xs h-8 gap-1" onClick={() => setLaunchForm({ ...launchForm, sendMode: "schedule" })}>
+                  <Clock className="h-3 w-3" /> Schedule
+                </Button>
+              </div>
+              {launchForm.sendMode === "schedule" && (
+                <Input type="datetime-local" className="mt-2" value={launchForm.scheduledAt} onChange={(e) => setLaunchForm({ ...launchForm, scheduledAt: e.target.value })} min={new Date().toISOString().slice(0, 16)} />
+              )}
+            </div>
             <Alert><AlertDescription className="text-xs flex items-center gap-1.5">
               <Users className="h-3.5 w-3.5 shrink-0" />
+              {launchForm.sendMode === "schedule" && launchForm.scheduledAt
+                ? <>Scheduling for <strong>{new Date(launchForm.scheduledAt).toLocaleString()}</strong> · </>
+                : null}
               Sending to <strong>{filteredAudience.length}</strong> contacts via {(launchCampaignData?.channel && CHANNEL_CONFIG[launchCampaignData.channel]?.platform) || "platform"}.
             </AlertDescription></Alert>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setLaunchOpen(false)}>Cancel</Button>
-            <Button onClick={handleLaunch} disabled={launchCampaign.isPending}>
-              {launchCampaign.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4 mr-1" /> Send Now</>}
+            <Button onClick={handleLaunch} disabled={launchCampaign.isPending || (launchForm.sendMode === "schedule" && !launchForm.scheduledAt)}>
+              {launchCampaign.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : launchForm.sendMode === "schedule" ? <><Clock className="h-4 w-4 mr-1" /> Schedule</> : <><Send className="h-4 w-4 mr-1" /> Send Now</>}
             </Button>
           </DialogFooter>
         </DialogContent>

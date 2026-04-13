@@ -4,6 +4,12 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.3.0] - 2026-04-13
+
+### Added
+- **Contact CSV export** — Export button on Contacts page header downloads current page contacts as CSV with 9 columns (First Name, Last Name, Email, Phone, Company, Segment, Tier, City, State); client-side Blob download with date-stamped filename
+- **Campaign scheduling** — Launch dialog now has Send Now / Schedule toggle. Schedule mode shows a datetime-local picker for future scheduling. Summary updates to show scheduled date. Button disabled until date selected in schedule mode
+
 ## [2.2.0] - 2026-04-13
 
 ### Added
