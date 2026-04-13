@@ -4,6 +4,12 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.2.0] - 2026-04-13
+
+### Added
+- **Campaign audience selector** — Launch dialog now has audience targeting: choose "All" contacts, "By Segment" (Residential, Commercial, Agricultural, CPA/Tax, etc.), or "By Tier" (Gold, Silver, Bronze, Unscored). Live count updates as you select. Filtered contact IDs are sent to the launch API — no more blind launches
+- **Analytics interactive navigation** — Channel breakdown rows in Analytics are now clickable and navigate to Campaigns page. Tier distribution cards navigate to Contacts. Hover states added throughout for discoverability
+
 ## [2.1.0] - 2026-04-13
 
 ### Added

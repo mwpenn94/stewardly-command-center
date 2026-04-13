@@ -115,6 +115,8 @@
 | G103 | Dashboard omnichannel grid clickable | Done | 3 | Channel cards in omnichannel overview grid are now buttons that navigate to /channels; hover state highlights with primary border | Pass 37 |
 | G104 | Activity Feed entries clickable | Done | 3 | Activity log entries navigate to source page (sync→/sync, campaign→/campaigns, import→/import, etc.) on click; visual ExternalLink indicator on hover | Pass 37 |
 | G105 | Global Search expanded (templates + badges) | Done | 3 | Search now finds templates in addition to contacts + campaigns; contact results show tier badge, campaign results show status badge | Pass 37 |
+| G106 | Campaign audience selector | Done | 4 | Launch dialog: choose All, By Segment (9 segments), or By Tier (gold/silver/bronze/unscored); live contact count updates based on selection; filtered IDs sent to launch API | Pass 38 |
+| G107 | Analytics interactive navigation | Done | 3 | Channel breakdown rows link to /campaigns, tier distribution cards link to /contacts; hover states added throughout Analytics page | Pass 38 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -183,6 +185,8 @@
 - Dashboard omnichannel grid: channel cards clickable, navigate to /channels
 - Activity Feed entries: clickable with navigation to source page by type
 - Global Search: searches contacts + campaigns + templates with tier/status badges
+- Campaign audience selector: All / By Segment / By Tier with live count preview
+- Analytics: channel breakdown and tier distribution cards are interactive with navigation
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -232,4 +236,5 @@
 - Pass 34 · dead code + test coverage + unused imports · G92-G93 done; removed 3 unused imports, identified 3 orphaned dev components, verified 142/203 tests pass (25 live-only failures expected), docs updated · f6842e7 · 2 items completed · none deferred
 - Pass 35 · data integrity + functional correctness · G94-G98 done; AI segment engagement data-driven (no Math.random), cross-channel patterns/synergies scored from real data, enrichment count from DB, contacts search 320px fix · 697c5c4 · 5 items completed · none deferred
 - Pass 36 · campaign UX completeness + contact interaction UX · G99-G102 done; campaign detail view with metrics, add interaction form in contact timeline, timeline error handling, channel-specific form labels · 6469126 · 4 items completed · none deferred
-- Pass 37 · cross-entity navigation + omnichannel drilldown · G103-G105 done; omnichannel grid clickable, activity feed entries clickable, global search templates + badges · PENDING · 3 items completed · none deferred
+- Pass 37 · cross-entity navigation + omnichannel drilldown · G103-G105 done; omnichannel grid clickable, activity feed entries clickable, global search templates + badges · ed53d35 · 3 items completed · none deferred
+- Pass 38 · campaign audience selection + analytics interactivity · G106-G107 done; audience selector (All/Segment/Tier) with live count, analytics channel/tier navigation · PENDING · 2 items completed · none deferred

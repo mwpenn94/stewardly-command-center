@@ -62,6 +62,9 @@ interface LaunchForm {
   body: string;
   subject: string;
   contactIds?: number[];
+  audienceMode: "all" | "segment" | "tier";
+  audienceSegment: string;
+  audienceTier: string;
 }
 
 interface SeqStep {
@@ -138,7 +141,7 @@ export default function Campaigns() {
   const [launchCampaignData, setLaunchCampaignData] = useState<{ id: number; name: string; channel: string } | null>(null);
   const [form, setForm] = useState<CampaignForm>({ channel: "email" });
   const [tplForm, setTplForm] = useState<TemplateForm>({ channel: "email" });
-  const [launchForm, setLaunchForm] = useState<LaunchForm>({ body: "", subject: "" });
+  const [launchForm, setLaunchForm] = useState<LaunchForm>({ body: "", subject: "", audienceMode: "all", audienceSegment: "all", audienceTier: "all" });
   const [seqForm, setSeqForm] = useState<SeqForm>({ name: "", steps: [{ channel: "email", body: "", subject: "", delayMs: 0 }], contactIds: [] });
   const [tab, setTab] = useState("campaigns");
 
@@ -146,18 +149,31 @@ export default function Campaigns() {
 
   const openLaunch = (campaign: { id: number; name: string; channel: string }) => {
     setLaunchCampaignData(campaign);
-    setLaunchForm({ body: "", subject: "", contactIds: [] });
+    setLaunchForm({ body: "", subject: "", contactIds: [], audienceMode: "all", audienceSegment: "all", audienceTier: "all" });
     setLaunchOpen(true);
   };
+
+  // Compute filtered audience from selection
+  const filteredAudience = useMemo(() => {
+    if (launchForm.audienceMode === "all") return allContacts;
+    if (launchForm.audienceMode === "segment" && launchForm.audienceSegment !== "all") {
+      return allContacts.filter((c) => c.segment === launchForm.audienceSegment);
+    }
+    if (launchForm.audienceMode === "tier" && launchForm.audienceTier !== "all") {
+      return allContacts.filter((c) => c.tier === launchForm.audienceTier);
+    }
+    return allContacts;
+  }, [allContacts, launchForm.audienceMode, launchForm.audienceSegment, launchForm.audienceTier]);
 
   const handleLaunch = () => {
     if (!launchCampaignData) return;
     if (!launchForm.body.trim()) { toast.error("Message body is required"); return; }
+    const ids = launchForm.audienceMode !== "all" ? filteredAudience.map((c) => c.id) : undefined;
     launchCampaign.mutate({
       campaignId: launchCampaignData.id,
       body: launchForm.body,
       subject: launchForm.subject || undefined,
-      contactIds: (launchForm.contactIds?.length ?? 0) > 0 ? launchForm.contactIds : undefined,
+      contactIds: ids,
     });
   };
 
@@ -476,12 +492,59 @@ export default function Campaigns() {
 
       {/* ─── Launch Campaign Dialog ─── */}
       <Dialog open={launchOpen} onOpenChange={setLaunchOpen}>
-        <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-lg">
+        <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Launch: {launchCampaignData?.name}</DialogTitle>
             <DialogDescription>Compose and send to your audience.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
+            {/* Audience Selector */}
+            <div>
+              <Label>Audience</Label>
+              <div className="flex gap-2 mt-1.5">
+                {(["all", "segment", "tier"] as const).map((mode) => (
+                  <Button
+                    key={mode}
+                    type="button"
+                    variant={launchForm.audienceMode === mode ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1 text-xs h-8 capitalize"
+                    onClick={() => setLaunchForm({ ...launchForm, audienceMode: mode })}
+                  >
+                    {mode === "all" ? `All (${allContacts.length})` : mode === "segment" ? "By Segment" : "By Tier"}
+                  </Button>
+                ))}
+              </div>
+              {launchForm.audienceMode === "segment" && (
+                <Select value={launchForm.audienceSegment} onValueChange={(v) => setLaunchForm({ ...launchForm, audienceSegment: v })}>
+                  <SelectTrigger className="mt-2 w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Segments</SelectItem>
+                    <SelectItem value="residential">Residential</SelectItem>
+                    <SelectItem value="commercial">Commercial</SelectItem>
+                    <SelectItem value="agricultural">Agricultural</SelectItem>
+                    <SelectItem value="cpa_tax">CPA/Tax</SelectItem>
+                    <SelectItem value="estate_attorney">Estate Attorney</SelectItem>
+                    <SelectItem value="hr_benefits">HR/Benefits</SelectItem>
+                    <SelectItem value="insurance">Insurance</SelectItem>
+                    <SelectItem value="nonprofit">Nonprofit</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+              {launchForm.audienceMode === "tier" && (
+                <Select value={launchForm.audienceTier} onValueChange={(v) => setLaunchForm({ ...launchForm, audienceTier: v })}>
+                  <SelectTrigger className="mt-2 w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Tiers</SelectItem>
+                    <SelectItem value="gold">Gold</SelectItem>
+                    <SelectItem value="silver">Silver</SelectItem>
+                    <SelectItem value="bronze">Bronze</SelectItem>
+                    <SelectItem value="unscored">Unscored</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
             {(launchCampaignData?.channel === "email" || launchCampaignData?.channel?.startsWith("social_")) && (
               <div><Label>{launchCampaignData.channel === "email" ? "Subject" : "Caption / Headline"}</Label><Input value={launchForm.subject} onChange={(e) => setLaunchForm({ ...launchForm, subject: e.target.value })} placeholder={launchCampaignData.channel === "email" ? "Subject line" : "Post caption or headline"} /></div>
             )}
@@ -490,14 +553,17 @@ export default function Campaigns() {
               launchCampaignData?.channel === "direct_mail" ? "Mail Content" :
               launchCampaignData?.channel === "event" ? "Event Description / Invitation" :
               "Message Body"
-            }</Label><Textarea rows={5} value={launchForm.body} onChange={(e) => setLaunchForm({ ...launchForm, body: e.target.value })} placeholder={
+            }</Label><Textarea rows={4} value={launchForm.body} onChange={(e) => setLaunchForm({ ...launchForm, body: e.target.value })} placeholder={
               launchCampaignData?.channel?.startsWith("call_") ? "Hello [Name], I'm calling about..." :
               launchCampaignData?.channel === "direct_mail" ? "Dear [Name],\n\nYour personalized mail content..." :
               launchCampaignData?.channel === "event" ? "You're invited to..." :
               launchCampaignData?.channel === "sms" ? "Hi [Name], ..." :
               "Your message..."
             } /></div>
-            <Alert><AlertDescription className="text-xs">Sending to {launchForm.contactIds?.length || contactData?.total || 0} contacts via {(launchCampaignData?.channel && CHANNEL_CONFIG[launchCampaignData.channel]?.platform) || "platform"}.</AlertDescription></Alert>
+            <Alert><AlertDescription className="text-xs flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 shrink-0" />
+              Sending to <strong>{filteredAudience.length}</strong> contacts via {(launchCampaignData?.channel && CHANNEL_CONFIG[launchCampaignData.channel]?.platform) || "platform"}.
+            </AlertDescription></Alert>
           </div>
           <DialogFooter className="gap-2 sm:gap-0">
             <Button variant="outline" onClick={() => setLaunchOpen(false)}>Cancel</Button>
