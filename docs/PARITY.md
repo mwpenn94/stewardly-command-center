@@ -28,7 +28,7 @@
 | G16 | Toast notification system | Done | 4 | Sonner toasts on all CRUD operations | legacy |
 | G17 | Skeleton loading states | Done | 3 | Skeleton loaders on tables, cards, lists | legacy |
 | G18 | Authentication flow | Done | 3 | Cookie-based auth, login redirect, role-based access | legacy |
-| G19 | tRPC API layer (75 procedures) | Done | 5 | Full type-safe API: contacts, campaigns, sync, integrations, channels, interactions, AI (61 core + 6 AI + 8 omnichannel) | legacy + Pass 18 + 25 + 37 + 38 |
+| G19 | tRPC API layer (76 procedures) | Done | 5 | Full type-safe API: contacts, campaigns, sync, integrations, channels, interactions, AI (62 core + 6 AI + 8 omnichannel) | legacy + Pass 18 + 25 + 37-39 |
 | G20 | Database schema (9 tables + migrations) | Done | 4 | Drizzle ORM, MySQL/TiDB, migration-first workflow | legacy |
 | G21 | Multi-platform campaign orchestration | Done | 3 | Orchestrator: sequences, health checks, pause/resume/cancel | legacy |
 | G22 | Test suite (10 files, 3 tiers) | Done | 4 | Unit + integration + live E2E across 10 files | legacy |
@@ -114,6 +114,10 @@
 | G102 | Campaign lifecycle management | Done | 3 | Pause/resume/cancel buttons in campaign detail dialog; status updates via campaigns.update mutation with toast feedback and query invalidation | Pass 38 |
 | G103 | Contact campaign attribution | Done | 3 | Contact detail Info tab shows "Campaigns" section with all campaigns the contact has interacted with; new contacts.campaigns tRPC procedure + getCampaignsForContact DB function | Pass 38 |
 | G104 | Dashboard campaign lifecycle metrics | Done | 3 | Campaign status breakdown badges (draft/scheduled/running/paused/completed/failed) displayed below stat cards; click navigates to /campaigns | Pass 38 |
+| G105 | Data completeness analytics | Done | 4 | Enrichment page shows per-field data completeness bars (Email, Phone, Address, City, Company, GHL Synced, Tier Scored, Segmented) with color-coded thresholds; avg completeness score; new contacts.dataCompleteness tRPC + getDataCompletenessStats DB | Pass 39 |
+| G106 | Mobile touch targets — dashboard badges | Done | 2 | Campaign lifecycle badges on dashboard have 44px min-height on mobile, keyboard accessible with role="button" | Pass 39 |
+| G107 | Contact campaign attribution — mobile | Done | 2 | Campaign channel text hidden on mobile (sm:inline) to prevent text overflow on 375px screens | Pass 39 |
+| G108 | TIMELINE_CHANNEL_ICONS typed | Done | 2 | Changed from Record<string, any> to Record<string, LucideIcon> in Contacts.tsx — removes another any type | Pass 39 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -178,6 +182,8 @@
 - Campaign detail: pause/resume/cancel status management from detail dialog
 - Contact campaign attribution: Info tab shows campaigns the contact has interacted with
 - Dashboard campaign lifecycle: status breakdown badges with click-to-navigate
+- Data completeness analytics: per-field completeness bars on Enrichment page
+- TIMELINE_CHANNEL_ICONS typed as Record<string, LucideIcon> (no any)
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -228,4 +234,5 @@
 - Pass 35 · input validation + error states · G94-G95 done; QueryError added to 4 more pages (9 total), BulkImport CSV preview mobile scroll hint · ce2805d · 2 items completed · none deferred
 - Pass 36 · contact interaction logging + unified timeline · G96 done; "Log Interaction" feature on contact detail timeline with 13-channel select, direction toggle, auto-typed mutations · PENDING · 1 item completed · none deferred
 - Pass 37 · functional gaps + documentation accuracy + campaign detail · G97-G101 done; campaign detail dialog with overview+timeline, campaigns.get+interactions.byCampaign tRPC, dead code removed, metrics type fixed, all docs updated with accurate counts · 79b846b · 5 items completed · none deferred
-- Pass 38 · campaign lifecycle + contact attribution + dashboard metrics · G102-G104 done; pause/resume/cancel in campaign detail, contact campaign attribution section, dashboard campaign lifecycle badges, contacts.campaigns tRPC, getCampaignsForContact DB · PENDING · 3 items completed · none deferred
+- Pass 38 · campaign lifecycle + contact attribution + dashboard metrics · G102-G104 done; pause/resume/cancel in campaign detail, contact campaign attribution section, dashboard campaign lifecycle badges, contacts.campaigns tRPC, getCampaignsForContact DB · 46d24d9 · 3 items completed · none deferred
+- Pass 39 · mobile UX + data completeness + type safety · G105-G108 done; Enrichment page data completeness bars, dashboard badge 44px targets, contact campaign mobile fix, TIMELINE_CHANNEL_ICONS typed · PENDING · 4 items completed · none deferred

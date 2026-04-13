@@ -2,14 +2,17 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Users, Zap, Target } from "lucide-react";
+import { Sparkles, Users, Zap, Target, CheckCircle2, AlertTriangle } from "lucide-react";
 
 export default function Enrichment() {
   const { data: stats } = trpc.contacts.stats.useQuery();
+  const { data: completeness } = trpc.contacts.dataCompleteness.useQuery();
 
-  const enrichedCount = 0; // Would come from contacts with enrichedAt set
   const totalContacts = stats?.total || 0;
-  const enrichmentRate = totalContacts > 0 ? Math.round((enrichedCount / totalContacts) * 100) : 0;
+  const completenessFields = completeness?.fields || [];
+  const avgCompleteness = completenessFields.length > 0 && totalContacts > 0
+    ? Math.round(completenessFields.reduce((sum, f) => sum + (f.count / totalContacts) * 100, 0) / completenessFields.length)
+    : 0;
 
   const segments = [
     { label: "Residential", key: "residential", color: "bg-blue-500" },
@@ -52,12 +55,12 @@ export default function Enrichment() {
         <Card className="bg-card border-border/50">
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center text-emerald-400">
-                <Zap className="h-5 w-5" />
+              <div className={`h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center ${avgCompleteness >= 70 ? "text-emerald-400" : avgCompleteness >= 40 ? "text-amber-400" : "text-red-400"}`}>
+                <Target className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Enriched</p>
-                <p className="text-2xl font-semibold text-foreground tabular-nums">{enrichedCount.toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Data Completeness</p>
+                <p className="text-2xl font-semibold text-foreground tabular-nums">{avgCompleteness}%</p>
               </div>
             </div>
           </CardContent>
@@ -66,16 +69,46 @@ export default function Enrichment() {
           <CardContent className="p-5">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-lg bg-muted/50 flex items-center justify-center text-primary">
-                <Target className="h-5 w-5" />
+                <Zap className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground uppercase tracking-wider">Enrichment Rate</p>
-                <p className="text-2xl font-semibold text-foreground tabular-nums">{enrichmentRate}%</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Fields Tracked</p>
+                <p className="text-2xl font-semibold text-foreground tabular-nums">{completenessFields.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Data Completeness */}
+      {completenessFields.length > 0 && totalContacts > 0 && (
+        <Card className="bg-card border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium text-foreground">Data Completeness by Field</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {completenessFields.map((f) => {
+              const pct = Math.round((f.count / totalContacts) * 100);
+              const isGood = pct >= 70;
+              const isOk = pct >= 40;
+              return (
+                <div key={f.field} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      {isGood ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> : isOk ? <AlertTriangle className="h-3.5 w-3.5 text-amber-400" /> : <AlertTriangle className="h-3.5 w-3.5 text-red-400" />}
+                      {f.field}
+                    </span>
+                    <span className="text-foreground font-medium tabular-nums">{f.count.toLocaleString()} ({pct}%)</span>
+                  </div>
+                  <div className="h-1.5 bg-muted/30 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full transition-all ${isGood ? "bg-emerald-500" : isOk ? "bg-amber-500" : "bg-red-500"}`} style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Enrichment Pipeline */}
       <Card className="bg-card border-border/50">

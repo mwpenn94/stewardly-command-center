@@ -243,6 +243,9 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         return db.getCampaignsForContact(ctx.user.id, input.contactId);
       }),
+    dataCompleteness: protectedProcedure.query(async ({ ctx }) => {
+      return db.getDataCompletenessStats(ctx.user.id);
+    }),
     // Search GHL contacts directly (pull from GHL)
     searchGhl: protectedProcedure
       .input(z.object({ query: z.string(), limit: z.number().optional() }))

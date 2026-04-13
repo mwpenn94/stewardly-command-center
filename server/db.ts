@@ -135,6 +135,39 @@ export async function getContactStats(userId: number) {
   return { total: total[0]?.count || 0, bySegment, byTier, bySyncStatus };
 }
 
+export async function getDataCompletenessStats(userId: number) {
+  const db = await getDb();
+  if (!db) return { total: 0, fields: [] };
+  const totalResult = await db.select({ count: count() }).from(contacts).where(eq(contacts.userId, userId));
+  const total = totalResult[0]?.count || 0;
+  if (total === 0) return { total: 0, fields: [] };
+
+  const [hasEmail, hasPhone, hasAddress, hasCompany, hasGhl, hasTier, hasSegment, hasCity] = await Promise.all([
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.email} IS NOT NULL AND ${contacts.email} != ''`)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.phone} IS NOT NULL AND ${contacts.phone} != ''`)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.address} IS NOT NULL AND ${contacts.address} != ''`)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.companyName} IS NOT NULL AND ${contacts.companyName} != ''`)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.ghlContactId} IS NOT NULL AND ${contacts.ghlContactId} != ''`)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.tier} IS NOT NULL AND ${contacts.tier} != '' AND ${contacts.tier} != 'unscored'`)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.segment} IS NOT NULL AND ${contacts.segment} != '' AND ${contacts.segment} != 'other'`)),
+    db.select({ count: count() }).from(contacts).where(and(eq(contacts.userId, userId), sql`${contacts.city} IS NOT NULL AND ${contacts.city} != ''`)),
+  ]);
+
+  return {
+    total,
+    fields: [
+      { field: "Email", count: hasEmail[0]?.count || 0 },
+      { field: "Phone", count: hasPhone[0]?.count || 0 },
+      { field: "Address", count: hasAddress[0]?.count || 0 },
+      { field: "City", count: hasCity[0]?.count || 0 },
+      { field: "Company", count: hasCompany[0]?.count || 0 },
+      { field: "GHL Synced", count: hasGhl[0]?.count || 0 },
+      { field: "Tier Scored", count: hasTier[0]?.count || 0 },
+      { field: "Segmented", count: hasSegment[0]?.count || 0 },
+    ],
+  };
+}
+
 // ─── Integrations ────────────────────────────────────────────────────────────
 export async function getIntegrations(userId: number) {
   const db = await getDb();

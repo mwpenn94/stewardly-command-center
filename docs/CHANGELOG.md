@@ -4,6 +4,16 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.2.0] - 2026-04-13
+
+### Added
+- **Data completeness analytics** — Enrichment page now shows live per-field data completeness bars (Email, Phone, Address, City, Company, GHL Synced, Tier Scored, Segmented) with color-coded thresholds (green ≥70%, amber ≥40%, red <40%); average data completeness score; new `contacts.dataCompleteness` tRPC procedure and `getDataCompletenessStats` DB function
+
+### Fixed
+- **Mobile touch targets** — Dashboard campaign lifecycle badges now have 44px minimum height on mobile with keyboard accessibility (`role="button"`, `tabIndex`, `onKeyDown`)
+- **Contact campaigns mobile** — Campaign channel text hidden on mobile (`hidden sm:inline`) to prevent text overflow on 375px screens
+- **Type safety** — `TIMELINE_CHANNEL_ICONS` in Contacts.tsx changed from `Record<string, any>` to `Record<string, LucideIcon>`, removing another `any` type
+
 ## [2.1.0] - 2026-04-13
 
 ### Added

@@ -126,7 +126,7 @@ export default function Home() {
             const found = stats.campaignsByStatus.find((c: { status: string; count: number }) => c.status === s.status);
             if (!found) return null;
             return (
-              <Badge key={s.status} className={`text-xs px-3 py-1 ${s.color} cursor-pointer`} onClick={() => setLocation("/campaigns")}>
+              <Badge key={s.status} className={`text-xs px-3 py-1.5 min-h-[44px] sm:min-h-0 flex items-center ${s.color} cursor-pointer`} onClick={() => setLocation("/campaigns")} role="button" tabIndex={0} onKeyDown={(e) => e.key === "Enter" && setLocation("/campaigns")}>
                 {s.label}: {found.count}
               </Badge>
             );

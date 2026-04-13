@@ -130,7 +130,7 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 | Routing | Wouter |
 | Styling | Tailwind CSS 4 + shadcn/ui (53 Radix components) |
 | Server State | TanStack React Query + tRPC 11 |
-| Backend | Express 4 + tRPC (75 procedures: 61 core + 6 AI + 8 omnichannel) |
+| Backend | Express 4 + tRPC (76 procedures: 62 core + 6 AI + 8 omnichannel) |
 | Database | Drizzle ORM + MySQL (TiDB) — 11 tables |
 | Icons | Lucide React |
 | Animations | Framer Motion |
@@ -190,7 +190,7 @@ client/src/
     Campaigns.tsx         # Campaign Studio + Flow Builder + Detail (1,106 lines)
     SyncEngine.tsx        # Sync queue (240 lines)
     Integrations.tsx      # Platform connections (389 lines)
-    Enrichment.tsx        # Data enrichment (132 lines)
+    Enrichment.tsx        # Data enrichment + completeness (165 lines)
     Analytics.tsx         # Metrics dashboard (324 lines)
     Backups.tsx           # Export + data mirror (254 lines)
     ActivityFeed.tsx      # Audit log (126 lines)
@@ -205,8 +205,8 @@ client/src/
 
 server/
   _core/                  # Express server + tRPC adapter
-  routers.ts              # 75 tRPC procedures (1,268 lines)
-  db.ts                   # Database query helpers (504 lines)
+  routers.ts              # 76 tRPC procedures (1,271 lines)
+  db.ts                   # Database query helpers (537 lines)
   services/
     ghl.ts                # GoHighLevel API (600 lines)
     smsit.ts              # SMS-iT API (181 lines)

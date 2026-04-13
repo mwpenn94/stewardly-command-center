@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { useState, useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
 
-const TIMELINE_CHANNEL_ICONS: Record<string, any> = {
+const TIMELINE_CHANNEL_ICONS: Record<string, LucideIcon> = {
   email: Mail,
   sms: MessageSquare,
   linkedin: Linkedin,
@@ -47,7 +47,8 @@ import {
   Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Tag, X, Users, RefreshCw,
   ExternalLink, Mail, Phone, Building2, MapPin, Eye, MessageSquare, Linkedin, Clock,
   PhoneIncoming, PhoneOutgoing, Globe, MessageCircle, Calendar, Facebook, Instagram,
-  Twitter, Video, Send, ArrowDownLeft, ArrowUpRight, Loader2, Megaphone
+  Twitter, Video, Send, ArrowDownLeft, ArrowUpRight, Loader2, Megaphone,
+  type LucideIcon
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import QueryError from "@/components/QueryError";
@@ -747,9 +748,9 @@ function ContactCampaigns({ contactId }: { contactId: number }) {
           {campaigns.map((c) => (
             <div key={c.id} className="flex items-center gap-2 p-2 rounded bg-muted/10 border border-border/20">
               <Megaphone className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-              <span className="text-xs text-foreground truncate flex-1">{c.name}</span>
-              <Badge className={`text-[9px] ${STATUS_COLORS[c.status] || STATUS_COLORS.draft}`}>{c.status}</Badge>
-              <span className="text-[10px] text-muted-foreground capitalize">{c.channel}</span>
+              <span className="text-xs text-foreground truncate flex-1 min-w-0">{c.name}</span>
+              <Badge className={`text-[9px] shrink-0 ${STATUS_COLORS[c.status] || STATUS_COLORS.draft}`}>{c.status}</Badge>
+              <span className="text-[10px] text-muted-foreground capitalize shrink-0 hidden sm:inline">{c.channel}</span>
             </div>
           ))}
         </div>
