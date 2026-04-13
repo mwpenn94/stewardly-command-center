@@ -12,7 +12,9 @@ const TYPE_LABELS: Record<string, string> = {
   contacts: "Contacts", campaigns: "Campaigns", templates: "Templates", full: "Full Backup",
 };
 
-const FORMAT_CONFIG: Record<string, { icon: any; label: string }> = {
+import type { LucideIcon } from "lucide-react";
+
+const FORMAT_CONFIG: Record<string, { icon: LucideIcon; label: string }> = {
   csv: { icon: FileText, label: "CSV" },
   json: { icon: FileJson, label: "JSON" },
 };
@@ -31,7 +33,7 @@ export default function Backups() {
     createBackup.mutate({ type: backupType, format });
   };
 
-  const handleDownload = (backup: any) => {
+  const handleDownload = (backup: { fileUrl: string | null }) => {
     if (backup.fileUrl) {
       window.open(backup.fileUrl, "_blank");
     } else {
@@ -39,9 +41,7 @@ export default function Backups() {
     }
   };
 
-  const handleRestore = (backup: any) => {
-    toast.info("Restore from backup coming soon — will restore contacts and campaigns from this snapshot.");
-  };
+  // Restore from backup — not yet implemented
 
   return (
     <div className="space-y-6">
@@ -99,7 +99,7 @@ export default function Backups() {
             </Card>
           ))
         ) : backups?.length ? (
-          backups.map((b: any) => {
+          backups.map((b) => {
             const fmtCfg = FORMAT_CONFIG[b.format] || FORMAT_CONFIG.csv;
             const FmtIcon = fmtCfg.icon;
             return (
@@ -112,7 +112,7 @@ export default function Backups() {
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-foreground">{TYPE_LABELS[b.type] || b.type}</p>
                       <Badge variant="outline" className="text-[10px] uppercase">{fmtCfg.label}</Badge>
-                      <Badge className={`text-[10px] ${b.status === "completed" ? "bg-emerald-500/15 text-emerald-400" : b.status === "failed" ? "bg-red-500/15 text-red-400" : "bg-muted text-muted-foreground"}`}>
+                      <Badge className={`text-[10px] ${b.status === "ready" ? "bg-emerald-500/15 text-emerald-400" : b.status === "expired" ? "bg-red-500/15 text-red-400" : "bg-muted text-muted-foreground"}`}>
                         {b.status}
                       </Badge>
                     </div>
@@ -121,12 +121,12 @@ export default function Backups() {
                     </p>
                   </div>
                   <div className="flex gap-1.5 shrink-0">
-                    {b.status === "completed" && (
+                    {b.status === "ready" && (
                       <>
                         <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5" onClick={() => handleDownload(b)}>
                           <Download className="h-3 w-3" /> Download
                         </Button>
-                        <Button variant="ghost" size="sm" className="h-7 text-xs gap-1.5" onClick={() => handleRestore(b)}>
+                        <Button variant="ghost" size="sm" className="h-7 text-xs gap-1.5" disabled title="Coming soon">
                           <RotateCcw className="h-3 w-3" /> Restore
                         </Button>
                       </>

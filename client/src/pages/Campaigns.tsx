@@ -18,12 +18,49 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
-const CHANNEL_CONFIG: Record<string, { icon: any; label: string; color: string; platform: string }> = {
+import type { LucideIcon } from "lucide-react";
+
+type ChannelConfig = { icon: LucideIcon; label: string; color: string; platform: string };
+
+const CHANNEL_CONFIG: Record<string, ChannelConfig> = {
   email: { icon: Mail, label: "Email", color: "text-blue-400", platform: "GHL" },
   sms: { icon: MessageSquare, label: "SMS", color: "text-emerald-400", platform: "SMS-iT" },
   linkedin: { icon: Linkedin, label: "LinkedIn", color: "text-sky-400", platform: "Dripify" },
   multi: { icon: Layers, label: "Multi-Channel", color: "text-violet-400", platform: "All" },
 };
+
+type Channel = "email" | "linkedin" | "sms" | "multi";
+
+interface CampaignForm {
+  name?: string;
+  channel: Channel;
+}
+
+interface LaunchForm {
+  body: string;
+  subject: string;
+  contactIds?: number[];
+}
+
+interface SeqStep {
+  channel: "email" | "linkedin" | "sms";
+  body: string;
+  subject: string;
+  delayMs: number;
+}
+
+interface SeqForm {
+  name: string;
+  steps: SeqStep[];
+  contactIds: number[];
+}
+
+interface TemplateForm {
+  name?: string;
+  channel: "email" | "linkedin" | "sms";
+  subject?: string;
+  body?: string;
+}
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
@@ -44,15 +81,15 @@ export default function Campaigns() {
 
   const createCampaign = trpc.campaigns.create.useMutation({
     onSuccess: () => { refetch(); setCreateOpen(false); toast.success("Campaign created"); },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err) => toast.error(err.message),
   });
   const launchCampaign = trpc.campaigns.launch.useMutation({
-    onSuccess: (data: any) => {
+    onSuccess: (data) => {
       refetch(); setLaunchOpen(false);
       if (data.success) toast.success(`Campaign sent to ${data.sent} contacts!`);
       else toast.warning(`Sent: ${data.sent}, Failed: ${data.failed}`);
     },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err) => toast.error(err.message),
   });
   const deleteCampaign = trpc.campaigns.delete.useMutation({
     onSuccess: () => { refetch(); toast.success("Campaign deleted"); },
@@ -62,7 +99,7 @@ export default function Campaigns() {
   });
   const startSequence = trpc.orchestrator.startSequence.useMutation({
     onSuccess: () => { refetchSeq(); setSeqOpen(false); toast.success("Sequence started!"); },
-    onError: (err: any) => toast.error(err.message),
+    onError: (err) => toast.error(err.message),
   });
   const cancelSequence = trpc.orchestrator.cancelSequence.useMutation({
     onSuccess: () => { refetchSeq(); toast.success("Sequence cancelled"); },
@@ -72,16 +109,16 @@ export default function Campaigns() {
   const [templateOpen, setTemplateOpen] = useState(false);
   const [launchOpen, setLaunchOpen] = useState(false);
   const [seqOpen, setSeqOpen] = useState(false);
-  const [launchCampaignData, setLaunchCampaignData] = useState<any>(null);
-  const [form, setForm] = useState<any>({ channel: "email" });
-  const [tplForm, setTplForm] = useState<any>({ channel: "email" });
-  const [launchForm, setLaunchForm] = useState<any>({ body: "", subject: "" });
-  const [seqForm, setSeqForm] = useState<any>({ name: "", steps: [{ channel: "email", body: "", subject: "", delayMs: 0 }], contactIds: [] });
+  const [launchCampaignData, setLaunchCampaignData] = useState<{ id: number; name: string; channel: string } | null>(null);
+  const [form, setForm] = useState<CampaignForm>({ channel: "email" });
+  const [tplForm, setTplForm] = useState<TemplateForm>({ channel: "email" });
+  const [launchForm, setLaunchForm] = useState<LaunchForm>({ body: "", subject: "" });
+  const [seqForm, setSeqForm] = useState<SeqForm>({ name: "", steps: [{ channel: "email", body: "", subject: "", delayMs: 0 }], contactIds: [] });
   const [tab, setTab] = useState("campaigns");
 
   const allContacts = useMemo(() => contactData?.contacts || [], [contactData]);
 
-  const openLaunch = (campaign: any) => {
+  const openLaunch = (campaign: { id: number; name: string; channel: string }) => {
     setLaunchCampaignData(campaign);
     setLaunchForm({ body: "", subject: "", contactIds: [] });
     setLaunchOpen(true);
@@ -94,29 +131,29 @@ export default function Campaigns() {
       campaignId: launchCampaignData.id,
       body: launchForm.body,
       subject: launchForm.subject || undefined,
-      contactIds: launchForm.contactIds?.length > 0 ? launchForm.contactIds : undefined,
+      contactIds: (launchForm.contactIds?.length ?? 0) > 0 ? launchForm.contactIds : undefined,
     });
   };
 
   const addSeqStep = () => {
-    setSeqForm((f: any) => ({ ...f, steps: [...f.steps, { channel: "sms", body: "", subject: "", delayMs: 3600000 }] }));
+    setSeqForm((f) => ({ ...f, steps: [...f.steps, { channel: "sms", body: "", subject: "", delayMs: 3600000 }] }));
   };
 
   const removeSeqStep = (idx: number) => {
-    setSeqForm((f: any) => ({ ...f, steps: f.steps.filter((_: any, i: number) => i !== idx) }));
+    setSeqForm((f) => ({ ...f, steps: f.steps.filter((_, i) => i !== idx) }));
   };
 
-  const updateSeqStep = (idx: number, field: string, value: any) => {
-    setSeqForm((f: any) => ({
+  const updateSeqStep = (idx: number, field: keyof SeqStep, value: string | number) => {
+    setSeqForm((f) => ({
       ...f,
-      steps: f.steps.map((s: any, i: number) => i === idx ? { ...s, [field]: value } : s),
+      steps: f.steps.map((s, i) => i === idx ? { ...s, [field]: value } : s),
     }));
   };
 
   const handleStartSequence = () => {
     if (!seqForm.name.trim()) { toast.error("Sequence name is required"); return; }
-    if (seqForm.steps.some((s: any) => !s.body.trim())) { toast.error("All steps need a message body"); return; }
-    const contactIds = seqForm.contactIds.length > 0 ? seqForm.contactIds : allContacts.map((c: any) => c.id);
+    if (seqForm.steps.some((s) => !s.body.trim())) { toast.error("All steps need a message body"); return; }
+    const contactIds = seqForm.contactIds.length > 0 ? seqForm.contactIds : allContacts.map((c) => c.id);
     startSequence.mutate({ ...seqForm, contactIds });
   };
 
@@ -143,7 +180,7 @@ export default function Campaigns() {
           { platform: "ghl", connected: false, lastChecked: 0 },
           { platform: "smsit", connected: false, lastChecked: 0 },
           { platform: "dripify", connected: false, lastChecked: 0 },
-        ]).map((p: any) => {
+        ]).map((p) => {
           const cfg = p.platform === "ghl" ? { icon: Mail, label: "GoHighLevel", color: "text-blue-400", bg: "bg-blue-500/10" }
             : p.platform === "smsit" ? { icon: MessageSquare, label: "SMS-iT", color: "text-emerald-400", bg: "bg-emerald-500/10" }
             : { icon: Linkedin, label: "Dripify", color: "text-sky-400", bg: "bg-sky-500/10" };
@@ -180,7 +217,7 @@ export default function Campaigns() {
               <Card key={i} className="bg-card border-border/50"><CardContent className="p-5"><div className="h-16 bg-muted/30 rounded animate-pulse" /></CardContent></Card>
             ))
           ) : campaigns?.length ? (
-            campaigns.map((c: any) => {
+            campaigns.map((c) => {
               const ch = CHANNEL_CONFIG[c.channel] || CHANNEL_CONFIG.email;
               const Icon = ch.icon;
               const metrics = c.metrics ? (typeof c.metrics === "string" ? JSON.parse(c.metrics) : c.metrics) : null;
@@ -241,7 +278,7 @@ export default function Campaigns() {
           </div>
 
           {sequences?.length ? (
-            sequences.map((seq: any) => (
+            sequences.map((seq) => (
               <Card key={seq.id} className="bg-card border-border/50">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-3">
@@ -267,7 +304,7 @@ export default function Campaigns() {
                   </div>
                   {/* Step progress */}
                   <div className="flex items-center gap-1">
-                    {seq.stepResults?.map((r: any, i: number) => {
+                    {seq.stepResults?.map((r, i) => {
                       const ch = CHANNEL_CONFIG[r.channel] || CHANNEL_CONFIG.email;
                       return (
                         <div key={i} className="flex items-center gap-1">
@@ -304,7 +341,7 @@ export default function Campaigns() {
         {/* ─── Templates Tab ─── */}
         <TabsContent value="templates" className="mt-4 space-y-3">
           {templates?.length ? (
-            templates.map((t: any) => {
+            templates.map((t) => {
               const ch = CHANNEL_CONFIG[t.channel] || CHANNEL_CONFIG.email;
               return (
                 <Card key={t.id} className="bg-card border-border/50 card-hover">
@@ -341,7 +378,7 @@ export default function Campaigns() {
           <div className="space-y-3">
             <div><Label>Name</Label><Input value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Q2 Outreach" /></div>
             <div><Label>Channel</Label>
-              <Select value={form.channel} onValueChange={(v) => setForm({ ...form, channel: v })}>
+              <Select value={form.channel} onValueChange={(v) => setForm({ ...form, channel: v as Channel })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="email">Email (GHL)</SelectItem>
@@ -351,8 +388,9 @@ export default function Campaigns() {
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button onClick={() => createCampaign.mutate(form)} disabled={createCampaign.isPending}>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+            <Button onClick={() => createCampaign.mutate({ name: form.name || "", channel: form.channel })} disabled={createCampaign.isPending}>
               {createCampaign.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create"}
             </Button>
           </DialogFooter>
@@ -371,9 +409,10 @@ export default function Campaigns() {
               <div><Label>Subject</Label><Input value={launchForm.subject} onChange={(e) => setLaunchForm({ ...launchForm, subject: e.target.value })} placeholder="Subject line" /></div>
             )}
             <div><Label>Message Body</Label><Textarea rows={5} value={launchForm.body} onChange={(e) => setLaunchForm({ ...launchForm, body: e.target.value })} placeholder="Your message..." /></div>
-            <Alert><AlertDescription className="text-xs">Sending to {launchForm.contactIds?.length || contactData?.total || 0} contacts via {CHANNEL_CONFIG[launchCampaignData?.channel]?.platform || "platform"}.</AlertDescription></Alert>
+            <Alert><AlertDescription className="text-xs">Sending to {launchForm.contactIds?.length || contactData?.total || 0} contacts via {(launchCampaignData?.channel && CHANNEL_CONFIG[launchCampaignData.channel]?.platform) || "platform"}.</AlertDescription></Alert>
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setLaunchOpen(false)}>Cancel</Button>
             <Button onClick={handleLaunch} disabled={launchCampaign.isPending}>
               {launchCampaign.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4 mr-1" /> Send Now</>}
             </Button>
@@ -393,7 +432,7 @@ export default function Campaigns() {
 
             <div className="space-y-3">
               <Label>Steps</Label>
-              {seqForm.steps.map((step: any, idx: number) => (
+              {seqForm.steps.map((step, idx) => (
                 <Card key={idx} className="bg-muted/20 border-border/30">
                   <CardContent className="p-3 space-y-2">
                     <div className="flex items-center justify-between">
@@ -445,11 +484,12 @@ export default function Campaigns() {
 
             <Alert>
               <AlertDescription className="text-xs">
-                Sending to {seqForm.contactIds.length > 0 ? seqForm.contactIds.length : contactData?.total || 0} contacts across {new Set(seqForm.steps.map((s: any) => s.channel)).size} platform{new Set(seqForm.steps.map((s: any) => s.channel)).size > 1 ? "s" : ""}.
+                Sending to {seqForm.contactIds.length > 0 ? seqForm.contactIds.length : contactData?.total || 0} contacts across {new Set(seqForm.steps.map((s) => s.channel)).size} platform{new Set(seqForm.steps.map((s) => s.channel)).size > 1 ? "s" : ""}.
               </AlertDescription>
             </Alert>
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setSeqOpen(false)}>Cancel</Button>
             <Button onClick={handleStartSequence} disabled={startSequence.isPending}>
               {startSequence.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Zap className="h-4 w-4 mr-1" /> Start Sequence</>}
             </Button>
@@ -464,7 +504,7 @@ export default function Campaigns() {
           <div className="space-y-3">
             <div><Label>Name</Label><Input value={tplForm.name || ""} onChange={(e) => setTplForm({ ...tplForm, name: e.target.value })} /></div>
             <div><Label>Channel</Label>
-              <Select value={tplForm.channel} onValueChange={(v) => setTplForm({ ...tplForm, channel: v })}>
+              <Select value={tplForm.channel} onValueChange={(v) => setTplForm({ ...tplForm, channel: v as "email" | "linkedin" | "sms" })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="email">Email</SelectItem>
@@ -476,8 +516,9 @@ export default function Campaigns() {
             {tplForm.channel === "email" && <div><Label>Subject</Label><Input value={tplForm.subject || ""} onChange={(e) => setTplForm({ ...tplForm, subject: e.target.value })} /></div>}
             <div><Label>Body</Label><Textarea rows={4} value={tplForm.body || ""} onChange={(e) => setTplForm({ ...tplForm, body: e.target.value })} /></div>
           </div>
-          <DialogFooter>
-            <Button onClick={() => createTemplate.mutate(tplForm)} disabled={createTemplate.isPending}>Save Template</Button>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setTemplateOpen(false)}>Cancel</Button>
+            <Button onClick={() => createTemplate.mutate({ name: tplForm.name || "", channel: tplForm.channel, subject: tplForm.subject, body: tplForm.body })} disabled={createTemplate.isPending}>Save Template</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

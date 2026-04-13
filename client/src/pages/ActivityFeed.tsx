@@ -26,7 +26,7 @@ export default function ActivityFeed() {
     type: typeFilter !== "all" ? typeFilter : undefined,
     limit: 50,
   });
-  const activities = data?.entries?.filter((a: any) => severityFilter === "all" || a.severity === severityFilter) || [];
+  const activities = data?.entries?.filter((a) => severityFilter === "all" || a.severity === severityFilter) || [];
 
   return (
     <div className="space-y-6">
@@ -80,8 +80,10 @@ export default function ActivityFeed() {
               </div>
             ))
           ) : activities.length ? (
-            activities.map((a: any) => {
+            activities.map((a) => {
               const sev = SEVERITY_CONFIG[a.severity] || SEVERITY_CONFIG.info;
+              const meta = a.metadata as Record<string, unknown> | null;
+              const platform = meta && typeof meta === "object" && typeof meta.platform === "string" ? meta.platform : null;
               return (
                 <div key={a.id} className="relative flex items-start gap-4 pl-10 py-2.5 hover:bg-muted/5 rounded-lg transition-colors group">
                   {/* Timeline dot */}
@@ -96,10 +98,10 @@ export default function ActivityFeed() {
                       <span className="text-[11px] text-muted-foreground">
                         {a.createdAt ? format(new Date(a.createdAt), "MMM d, h:mm a") : "—"}
                       </span>
-                      {a.platform && (
+                      {platform && (
                         <>
                           <span className="text-muted-foreground/30">·</span>
-                          <span className="text-[11px] text-muted-foreground capitalize">{a.platform}</span>
+                          <span className="text-[11px] text-muted-foreground capitalize">{platform}</span>
                         </>
                       )}
                     </div>

@@ -2,9 +2,7 @@ import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
-import { Sparkles, Users, Zap, Target, TrendingUp } from "lucide-react";
+import { Sparkles, Users, Zap, Target } from "lucide-react";
 
 export default function Enrichment() {
   const { data: stats } = trpc.contacts.stats.useQuery();
@@ -24,10 +22,6 @@ export default function Enrichment() {
     { label: "Nonprofit", key: "nonprofit", color: "bg-pink-500" },
   ];
 
-  const handleEnrichAll = () => {
-    toast.info("Enrichment pipeline coming soon — connects to People Data Labs waterfall.");
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -35,7 +29,7 @@ export default function Enrichment() {
           <h1 className="text-3xl tracking-tight text-foreground">Contact Enrichment</h1>
           <p className="text-sm text-muted-foreground mt-1">Enrich contacts via People Data Labs waterfall with confidence scoring.</p>
         </div>
-        <Button size="sm" className="gap-2 min-h-[44px] sm:min-h-0 shrink-0" onClick={handleEnrichAll}>
+        <Button size="sm" className="gap-2 min-h-[44px] sm:min-h-0 shrink-0" disabled title="Coming soon — People Data Labs integration">
           <Sparkles className="h-4 w-4" /> Enrich All
         </Button>
       </div>
@@ -116,7 +110,7 @@ export default function Enrichment() {
         </CardHeader>
         <CardContent className="space-y-3">
           {segments.map((seg) => {
-            const segData = stats?.bySegment?.find((s: any) => s.segment === seg.key);
+            const segData = stats?.bySegment?.find((s) => s.segment === seg.key);
             const segCount = segData?.count || 0;
             const pct = totalContacts > 0 ? (segCount / totalContacts) * 100 : 0;
             return (

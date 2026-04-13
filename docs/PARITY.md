@@ -51,6 +51,11 @@
 | G39 | Graceful query error states | Done | 3 | QueryError component with retry button, used on dashboard health check | Pass 14 |
 | G40 | Keyboard shortcuts + navigation | Done | 4 | ? for help dialog, G+letter for nav, ⌘K for search, Esc to close | Pass 15 |
 | G41 | Campaign page mobile polish | Done | 3 | Full-width tabs, responsive sequence dialog, mobile touch targets | Pass 15 |
+| G42 | Campaign dialog Cancel buttons | Done | 3 | All 4 dialogs (Create, Launch, Sequence, Template) have explicit Cancel + primary action | Pass 16 |
+| G43 | Type safety — eliminate `any` from pages | Done | 4 | Proper interfaces for Campaigns, Analytics, ActivityFeed, Backups, BulkImport, Enrichment; 0 TS errors | Pass 16 |
+| G44 | Coming-soon UX — disabled buttons | Done | 2 | Enrichment "Enrich All" and Backup "Restore" disabled with tooltip instead of misleading toast | Pass 16 |
+| G45 | Security — mask JWT input | Done | 2 | BulkImport token input uses type=password to prevent shoulder-surfing | Pass 16 |
+| G46 | Backup status alignment | Done | 2 | Status badges use actual schema values (ready/expired) instead of wrong literals (completed/failed) | Pass 16 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -68,6 +73,8 @@
 - Contact detail modal with platform connection status
 - Dashboard quick actions and clickable stat cards
 - Skip-to-content link and global focus-visible ring
+- Zero `any` types in page-level components (tRPC inference + explicit interfaces)
+- All dialogs have explicit Cancel buttons for clear dismissal UX
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -95,4 +102,5 @@
 - Pass 12 · cross-nav + empty states + vendor chunks · G33,G34,G35 done; clickable activity, actionable CTAs, bundle 346KB · b62dfe0 · 3 items completed · G23,G24,G25,G26 deferred
 - Pass 13 · notifications + mobile contacts + campaign UX · G23,G36,G37 done; notification center, mobile cards, 30s auto-refresh · 45300c5 · 3 items completed · G24,G25,G26 deferred
 - Pass 14 · error handling + input validation + graceful degradation · G38,G39 done; form validation, QueryError component · 00b07a2 · 2 items completed · G24,G25,G26 deferred
-- Pass 15 · keyboard shortcuts + campaign mobile + dev ergonomics · G40,G41 done; ? help dialog, G+nav, campaign tabs responsive · PENDING · 2 items completed · G24,G25,G26 deferred
+- Pass 15 · keyboard shortcuts + campaign mobile + dev ergonomics · G40,G41 done; ? help dialog, G+nav, campaign tabs responsive · 4a20e16 · 2 items completed · G24,G25,G26 deferred
+- Pass 16 · dialog UX + type safety + security · G42-G46 done; Cancel buttons, 0 TS errors in pages, masked JWT, disabled coming-soon, backup status fix · PENDING · 5 items completed · G24,G25,G26 deferred

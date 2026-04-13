@@ -18,7 +18,7 @@ type CampaignMetrics = {
   conversions?: number;
 };
 
-function parseMetrics(raw: any): CampaignMetrics {
+function parseMetrics(raw: unknown): CampaignMetrics {
   if (!raw) return {};
   if (typeof raw === "string") { try { return JSON.parse(raw); } catch { return {}; } }
   return raw as CampaignMetrics;
@@ -54,7 +54,7 @@ export default function Analytics() {
       multi: { sent: 0, delivered: 0, opened: 0, clicked: 0, replied: 0, bounced: 0, cost: 0, conversions: 0, count: 0 },
     };
 
-    for (const c of campaigns as any[]) {
+    for (const c of campaigns) {
       const ch = c.channel || "email";
       if (byChannel[ch]) byChannel[ch].count++;
 
@@ -269,14 +269,15 @@ export default function Analytics() {
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {contactStats?.byTier?.length ? (
-              contactStats.byTier.map((t: any) => {
+              contactStats.byTier.map((t) => {
                 const tierColors: Record<string, string> = {
                   gold: "text-amber-400", silver: "text-slate-300", bronze: "text-orange-400", unscored: "text-muted-foreground",
                 };
+                const tier = t.tier || "unscored";
                 return (
-                  <div key={t.tier} className="text-center p-4 rounded-lg bg-muted/10">
-                    <p className={`text-2xl font-semibold tabular-nums ${tierColors[t.tier] || "text-foreground"}`}>{t.count.toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground mt-1 capitalize">{t.tier}</p>
+                  <div key={tier} className="text-center p-4 rounded-lg bg-muted/10">
+                    <p className={`text-2xl font-semibold tabular-nums ${tierColors[tier] || "text-foreground"}`}>{t.count.toLocaleString()}</p>
+                    <p className="text-xs text-muted-foreground mt-1 capitalize">{tier}</p>
                   </div>
                 );
               })

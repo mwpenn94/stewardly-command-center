@@ -16,7 +16,9 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
-const STATUS_CONFIG: Record<string, { icon: any; color: string; label: string }> = {
+import type { LucideIcon } from "lucide-react";
+
+const STATUS_CONFIG: Record<string, { icon: LucideIcon; color: string; label: string }> = {
   pending: { icon: Clock, color: "text-muted-foreground", label: "Pending" },
   running: { icon: Play, color: "text-blue-400", label: "Running" },
   paused: { icon: Pause, color: "text-amber-400", label: "Paused" },
@@ -161,8 +163,8 @@ export default function BulkImport() {
 
       setParsedData(null);
       setShowPreview(false);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to start import");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to start import");
     }
   };
 
@@ -337,7 +339,7 @@ export default function BulkImport() {
               <div className="mt-3 pt-3 border-t border-border/30">
                 <p className="text-xs text-muted-foreground mb-2">Recent errors ({syncProgress.errors.length})</p>
                 <div className="max-h-32 overflow-y-auto space-y-1">
-                  {syncProgress.errors.slice(-5).map((err: any, i: number) => (
+                  {syncProgress.errors.slice(-5).map((err: { row?: number; error?: string; email?: string }, i: number) => (
                     <div key={i} className="text-[10px] text-red-400/80 font-mono bg-red-400/5 rounded px-2 py-1">
                       Row {err.row}: {err.error} {err.email ? `(${err.email})` : ""}
                     </div>
@@ -458,6 +460,7 @@ export default function BulkImport() {
             <div className="space-y-2">
               <Label className="text-xs">JWT Token</Label>
               <Input
+                type="password"
                 value={jwtInput}
                 onChange={(e) => setJwtInput(e.target.value)}
                 placeholder="eyJhbGciOiJIUzI1NiIs..."
@@ -487,10 +490,12 @@ export default function BulkImport() {
             </Card>
           ))
         ) : imports?.length ? (
-          imports.map((imp: any) => {
+          imports.map((imp) => {
             const cfg = STATUS_CONFIG[imp.status] || STATUS_CONFIG.pending;
             const Icon = cfg.icon;
-            const pct = imp.totalRows > 0 ? Math.round((imp.processedRows / imp.totalRows) * 100) : 0;
+            const totalRows = imp.totalRows ?? 0;
+            const processedRows = imp.processedRows ?? 0;
+            const pct = totalRows > 0 ? Math.round((processedRows / totalRows) * 100) : 0;
             return (
               <Card key={imp.id} className="bg-card border-border/50 card-hover">
                 <CardContent className="p-5">
@@ -511,7 +516,7 @@ export default function BulkImport() {
 
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>{(imp.processedRows || 0).toLocaleString()} / {(imp.totalRows || 0).toLocaleString()} rows</span>
+                      <span>{processedRows.toLocaleString()} / {totalRows.toLocaleString()} rows</span>
                       <span className="tabular-nums font-medium text-foreground">{pct}%</span>
                     </div>
                     <Progress value={pct} className="h-1.5" />
