@@ -37,7 +37,7 @@ The platform was designed and built across multiple intensive sessions, progress
 |---|---|
 | Total Lines of Code (server + client) | ~20,000 |
 | Database Tables | 11 (9 original + contact_interactions + channel_configs) |
-| tRPC Procedures | 72 (59 core + 6 AI + 7 omnichannel) |
+| tRPC Procedures | 73 (60 core + 6 AI + 7 omnichannel) |
 | Backend Services | 9 modules |
 | Frontend Pages | 16 (15 routed + 1 internal showcase) |
 | Supported Channels | 13 (Email, SMS, LinkedIn, 4 Social, 2 Voice, Direct Mail, Webforms, Chat, Events) |

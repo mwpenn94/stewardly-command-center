@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Plug, CheckCircle2, XCircle, AlertTriangle, Settings, Zap, Shield, Eye, EyeOff, Loader2, Trash2, Info } from "lucide-react";
 
 const PLATFORMS = [

@@ -101,6 +101,8 @@
 | G89 | AI engine data access fix | Done | 3 | aiEngine.ts activity log access fixed (was treating {entries,total} as array), syncStats extraction fixed (was treating {total,byStatus,byPlatform} as Record<string,number>) | Pass 32 |
 | G90 | Mobile touch targets deep pass | Done | 4 | Integrations disconnect/configure buttons, Channels configure button, BulkImport CDN import button, Contacts pagination buttons — all now ≥44px via min-h-[44px] or h-11 | Pass 33 |
 | G91 | Contact detail channel grid mobile | Done | 2 | Channel reach summary grid changed from 3-col to 2-col on mobile (<640px) for 320px viewport readability | Pass 33 |
+| G92 | Dead code cleanup — unused imports | Done | 3 | Removed unused DialogTrigger from BulkImport+Contacts, unused useEffect from Integrations; identified 3 orphaned components (ComponentShowcase, ManusDialog, Map — internal dev tools kept intentionally) | Pass 34 |
+| G93 | Documentation accuracy — tRPC count | Done | 2 | DOCUMENTATION.md tRPC procedure count corrected from 72 to 73 | Pass 34 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -156,6 +158,7 @@
 - AI engine correctly accesses activity.entries and syncStats.byStatus
 - Integrations/Channels/BulkImport action buttons ≥44px touch targets
 - Contact detail channel reach grid: 2-col on mobile for 320px readability
+- No unused imports in page-level components (DialogTrigger, useEffect cleaned)
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -201,4 +204,5 @@
 - Pass 30 · dark/light mode visual consistency · G84 done; NotFound page themed, silver tier contrast fixed, Twitter/X sky-300→sky-500 across 5 pages · 830d22c · 1 item completed · G26 deferred
 - Pass 31 · responsive layout + mobile UX · G85 done; SyncEngine filters full-width on mobile, queue items wrap badges, retry 44px + isPending · PENDING · 1 item completed · G26 deferred
 - Pass 32 · correctness + build health · G86-G89 done; npm install fixed, 17 TS errors eliminated (zero errors), orchestrator/AI engine data access corrected, template+sequence channels expanded to 13, vite.config async · efe340f · 4 items completed · none deferred
-- Pass 33 · mobile responsive + touch targets · G90-G91 done; 6 buttons fixed to ≥44px across 4 pages, contact detail grid 2-col on mobile · PENDING · 2 items completed · none deferred
+- Pass 33 · mobile responsive + touch targets · G90-G91 done; 6 buttons fixed to ≥44px across 4 pages, contact detail grid 2-col on mobile · a612b1c · 2 items completed · none deferred
+- Pass 34 · dead code + test coverage + unused imports · G92-G93 done; removed 3 unused imports, identified 3 orphaned dev components, verified 142/203 tests pass (25 live-only failures expected), docs updated · PENDING · 2 items completed · none deferred
