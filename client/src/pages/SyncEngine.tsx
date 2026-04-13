@@ -163,7 +163,7 @@ export default function SyncEngine() {
       {/* ─── Filters ─── */}
       <div className="flex flex-wrap gap-3">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-36"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-36"><SelectValue placeholder="Status" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="pending">Pending</SelectItem>
@@ -174,7 +174,7 @@ export default function SyncEngine() {
           </SelectContent>
         </Select>
         <Select value={platformFilter} onValueChange={setPlatformFilter}>
-          <SelectTrigger className="w-36"><SelectValue placeholder="Platform" /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-36"><SelectValue placeholder="Platform" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Platforms</SelectItem>
             <SelectItem value="ghl">GoHighLevel</SelectItem>
@@ -199,13 +199,13 @@ export default function SyncEngine() {
             const StatusIcon = item.status === "completed" ? CheckCircle2 : item.status === "failed" ? XCircle : item.status === "dlq" ? AlertTriangle : Clock;
             return (
               <Card key={item.id} className="bg-card border-border/50">
-                <CardContent className="p-3 flex items-center gap-3">
-                  <StatusIcon className={`h-4 w-4 shrink-0 ${sc.color}`} />
+                <CardContent className="p-3 flex items-start sm:items-center gap-3">
+                  <StatusIcon className={`h-4 w-4 shrink-0 mt-0.5 sm:mt-0 ${sc.color}`} />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-foreground truncate">{item.action} — {item.contactName || item.contactId}</p>
-                      <Badge className={`text-[10px] ${sc.bg} ${sc.color}`}>{item.status}</Badge>
-                      <Badge variant="outline" className="text-[10px]">{PLATFORM_LABELS[item.platform] || item.platform}</Badge>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <p className="text-sm font-medium text-foreground truncate max-w-full">{item.action} — {item.contactName || item.contactId}</p>
+                      <Badge className={`text-[10px] shrink-0 ${sc.bg} ${sc.color}`}>{item.status}</Badge>
+                      <Badge variant="outline" className="text-[10px] shrink-0">{PLATFORM_LABELS[item.platform] || item.platform}</Badge>
                     </div>
                     <p className="text-[10px] text-muted-foreground mt-0.5">
                       {item.errorMessage ? `Error: ${item.errorMessage} · ` : ""}
@@ -214,8 +214,8 @@ export default function SyncEngine() {
                     </p>
                   </div>
                   {(item.status === "failed" || item.status === "dlq") && (
-                    <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => retryMut.mutate({ id: item.id })}>
-                      <RotateCcw className="h-3 w-3" /> Retry
+                    <Button variant="ghost" size="sm" className="h-9 min-h-[44px] text-xs gap-1" disabled={retryMut.isPending} onClick={() => retryMut.mutate({ id: item.id })}>
+                      <RotateCcw className="h-3.5 w-3.5" /> Retry
                     </Button>
                   )}
                 </CardContent>
