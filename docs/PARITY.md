@@ -28,7 +28,7 @@
 | G16 | Toast notification system | Done | 4 | Sonner toasts on all CRUD operations | legacy |
 | G17 | Skeleton loading states | Done | 3 | Skeleton loaders on tables, cards, lists | legacy |
 | G18 | Authentication flow | Done | 3 | Cookie-based auth, login redirect, role-based access | legacy |
-| G19 | tRPC API layer (65 procedures) | Done | 5 | Full type-safe API: contacts, campaigns, sync, integrations, AI (59 core + 6 AI) | legacy + Pass 18 |
+| G19 | tRPC API layer (73 procedures) | Done | 5 | Full type-safe API: contacts, campaigns, sync, integrations, channels, interactions, AI (67 core + 6 AI) | legacy + Pass 18 + 25 |
 | G20 | Database schema (9 tables + migrations) | Done | 4 | Drizzle ORM, MySQL/TiDB, migration-first workflow | legacy |
 | G21 | Multi-platform campaign orchestration | Done | 3 | Orchestrator: sequences, health checks, pause/resume/cancel | legacy |
 | G22 | Test suite (10 files, 3 tiers) | Done | 4 | Unit + integration + live E2E across 10 files | legacy |
@@ -84,6 +84,10 @@
 | G72 | Dashboard omnichannel grid xs breakpoint | Done | 3 | 2-column layout for screens <400px, 3-col for 400px+, progressive up to 7-col on lg | Pass 25 |
 | G73 | Campaign backend all 13 channels | Done | 4 | CampaignEngine expanded: social channels route through GHL Social, call channels queue call tasks, direct mail/webform/chat/event queue for fulfillment; router enum expanded | Pass 25 |
 | G74 | Backups Platform Data Mirror wired to real data | Done | 3 | Platform health status, connected/disconnected indicators, contact mirror counts, last-checked timestamps — all from tRPC platformHealth + contacts.stats | Pass 25 |
+| G75 | Mutation error handlers on all pages | Done | 4 | All mutations across Contacts, Campaigns, SyncEngine, BulkImport now have onError toast handlers; previously 8 mutations silently failed | Pass 26 |
+| G76 | Double-click protection on destructive actions | Done | 3 | Delete contact, delete campaign, retry all DLQ buttons disabled during pending + show spinner; prevents duplicate mutations | Pass 26 |
+| G77 | Safe JSON.parse on user data | Done | 3 | Contacts tags and Campaign metrics JSON.parse wrapped in try/catch; prevents component crash on malformed stored data | Pass 26 |
+| G78 | Documentation accuracy (counts) | Done | 4 | README, ARCHITECTURE, DOCUMENTATION.md updated: 73 procedures, 11 tables, accurate line counts for all files | Pass 26 |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -125,6 +129,9 @@
 - Campaign backend supports all 13 channels: email/sms/linkedin natively, social/call/mail/web/chat/event queued
 - All dialogs responsive on mobile with calc(100%-2rem) max-width
 - Flow Builder touch targets ≥44px for reorder, remove, and channel buttons
+- All mutations have onError toast handlers — no silent failures
+- Destructive action buttons disabled during pending mutation (double-click safe)
+- JSON.parse wrapped in try/catch for user-stored data (tags, metrics)
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -162,4 +169,5 @@
 - Pass 22 · campaign flow builder + data mirror · G64-G65 done; visual cross-channel flow builder with step reordering and per-channel messages, platform data mirror status in Backups page · 53bc996 · 2 items completed · G26 deferred
 - Pass 23 · data integration + documentation · G66-G67 done; quick import from CDN data sources, DOCUMENTATION.md and ARCHITECTURE.md aligned with omnichannel features · 3d648cd · 2 items completed · G26 deferred
 - Pass 24 · accessibility + keyboard nav · G68-G69 done; ARIA labels on new pages, 5 new G+ shortcuts, expanded KeyboardShortcuts dialog · 30ed0b8 · 2 items completed · G26 deferred
-- Pass 25 · mobile responsiveness + backend channel gap · G70-G74 done; 44px touch targets across 4 pages, responsive dialogs, xs grid breakpoint, campaign engine expanded to 13 channels, backups mirror wired to real data · PENDING · 5 items completed · G26 deferred
+- Pass 25 · mobile responsiveness + backend channel gap · G70-G74 done; 44px touch targets across 4 pages, responsive dialogs, xs grid breakpoint, campaign engine expanded to 13 channels, backups mirror wired to real data · 84501a4 · 5 items completed · G26 deferred
+- Pass 26 · error handling + input validation + race conditions + doc accuracy · G75-G78 done; onError on all mutations, double-click protection, safe JSON.parse, doc counts updated (73 procedures, 11 tables) · PENDING · 4 items completed · G26 deferred

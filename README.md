@@ -128,8 +128,8 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 | Routing | Wouter |
 | Styling | Tailwind CSS 4 + shadcn/ui (53 Radix components) |
 | Server State | TanStack React Query + tRPC 11 |
-| Backend | Express 4 + tRPC (65 procedures: 59 core + 6 AI) |
-| Database | Drizzle ORM + MySQL (TiDB) — 9 tables |
+| Backend | Express 4 + tRPC (73 procedures: 67 core + 6 AI) |
+| Database | Drizzle ORM + MySQL (TiDB) — 11 tables |
 | Icons | Lucide React |
 | Animations | Framer Motion |
 | Build | Vite 7 |
@@ -181,19 +181,20 @@ client/src/
     KeyboardShortcuts.tsx # Shortcut help dialog
     NotificationCenter.tsx # Bell icon + activity popover
     QueryError.tsx        # Reusable error state with retry
-  pages/                  # 14 page files (Home eager, 12 lazy-loaded, 1 internal showcase)
-    Home.tsx              # Dashboard (255 lines)
-    Contacts.tsx          # Contact CRUD (494 lines)
-    BulkImport.tsx        # CSV import (558 lines)
-    Campaigns.tsx         # Campaign Studio (527 lines)
+  pages/                  # 15 page files (Home eager, 13 lazy-loaded, 1 internal showcase)
+    Home.tsx              # Dashboard (329 lines)
+    Contacts.tsx          # Contact CRUD (639 lines)
+    BulkImport.tsx        # CSV import (607 lines)
+    Campaigns.tsx         # Campaign Studio + Flow Builder (872 lines)
     SyncEngine.tsx        # Sync queue (236 lines)
     Integrations.tsx      # Platform connections (384 lines)
     Enrichment.tsx        # Data enrichment (132 lines)
-    Analytics.tsx         # Metrics dashboard (294 lines)
-    Backups.tsx           # Export management (151 lines)
+    Analytics.tsx         # Metrics dashboard (311 lines)
+    Backups.tsx           # Export + data mirror (254 lines)
     ActivityFeed.tsx      # Audit log (123 lines)
     Settings.tsx          # Preferences (226 lines)
-    AIInsights.tsx        # AI continuous improvement engine (461 lines)
+    AIInsights.tsx        # AI continuous improvement engine (592 lines)
+    Channels.tsx          # Channel management (291 lines)
     NotFound.tsx          # 404 page (52 lines)
   contexts/
     ThemeContext.tsx       # Light/dark theme with localStorage
@@ -202,8 +203,8 @@ client/src/
 
 server/
   _core/                  # Express server + tRPC adapter
-  routers.ts              # 65 tRPC procedures (1,130 lines)
-  db.ts                   # Database query helpers (373 lines)
+  routers.ts              # 73 tRPC procedures (1,228 lines)
+  db.ts                   # Database query helpers (457 lines)
   services/
     ghl.ts                # GoHighLevel API (600 lines)
     smsit.ts              # SMS-iT API (181 lines)
@@ -211,12 +212,12 @@ server/
     orchestrator.ts       # Multi-platform coordination (310 lines)
     syncScheduler.ts      # Periodic sync scheduling (205 lines)
     syncWorker.ts         # Sync queue processing (465 lines)
-    campaignEngine.ts     # Campaign lifecycle (266 lines)
+    campaignEngine.ts     # Campaign lifecycle, 13-channel routing (405 lines)
     credentials.ts        # Credential normalization (124 lines)
-    aiEngine.ts           # AI/agentic engine: health, predictions, scoring (584 lines)
+    aiEngine.ts           # AI/agentic engine: health, predictions, scoring (735 lines)
 
 drizzle/
-  schema.ts               # 9 database tables (205 lines)
+  schema.ts               # 11 database tables (280 lines)
   migrations/             # SQL migrations
 
 docs/

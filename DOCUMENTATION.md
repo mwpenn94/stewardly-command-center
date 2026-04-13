@@ -67,7 +67,7 @@ The application follows a layered architecture with clear separation of concerns
 │  └─ tRPC hooks (useQuery / useMutation)             │
 ├─────────────────────────────────────────────────────┤
 │  API Layer (tRPC Router — server/routers.ts)         │
-│  └─ 65 procedures (public + protected)              │
+│  └─ 73 procedures (public + protected)              │
 ├─────────────────────────────────────────────────────┤
 │  Service Layer (server/services/*.ts)                │
 │  └─ GHL, SMS-iT, Dripify, Orchestrator,            │
@@ -75,7 +75,7 @@ The application follows a layered architecture with clear separation of concerns
 │     Credentials                                      │
 ├─────────────────────────────────────────────────────┤
 │  Data Layer (Drizzle ORM → MySQL/TiDB)              │
-│  └─ 9 tables, 2 migrations, server/db.ts helpers    │
+│  └─ 11 tables, 2 migrations, server/db.ts helpers   │
 ├─────────────────────────────────────────────────────┤
 │  External APIs                                       │
 │  └─ GHL v2 API, SMS-iT API, Dripify/Firebase API   │
@@ -98,7 +98,7 @@ The UI uses an elegant dark theme with a deep navy background and warm gold acce
 
 ## 3. Database Schema Design
 
-The database consists of 9 tables managed through Drizzle ORM with MySQL (TiDB) as the backing store. Schema changes follow a migration-first workflow: edit `drizzle/schema.ts`, generate SQL with `pnpm drizzle-kit generate`, then apply via `webdev_execute_sql`.
+The database consists of 11 tables managed through Drizzle ORM with MySQL (TiDB) as the backing store. Schema changes follow a migration-first workflow: edit `drizzle/schema.ts`, generate SQL with `pnpm drizzle-kit generate`, then apply via `webdev_execute_sql`.
 
 ### Table Overview
 
@@ -435,7 +435,7 @@ A Python script that processes all source CSV files, deduplicates by email, merg
 
 ### 10.1 tRPC Over REST
 
-The decision to use tRPC instead of traditional REST endpoints was driven by the need for end-to-end type safety. With 65 procedures and complex data shapes (contacts with 20+ fields, campaigns with nested templates), tRPC eliminates an entire class of serialization bugs and provides autocomplete in the frontend.
+The decision to use tRPC instead of traditional REST endpoints was driven by the need for end-to-end type safety. With 73 procedures and complex data shapes (contacts with 20+ fields, campaigns with nested templates across 13 channels), tRPC eliminates an entire class of serialization bugs and provides autocomplete in the frontend.
 
 ### 10.2 JWT Extraction via CDP
 
@@ -518,8 +518,9 @@ Several UI pages contain structural placeholders for features that are not yet f
 | `server/services/dripify.ts` | 215 | Dripify/LinkedIn automation integration |
 | `server/services/smsit.ts` | 181 | SMS-iT API integration |
 | `server/services/credentials.ts` | 124 | Credential loading and normalization |
-| `server/services/aiEngine.ts` | 584 | AI/agentic engine: health scores, predictions, recommendations, lead scoring |
-| `drizzle/schema.ts` | 205 | Database schema (9 tables) |
+| `server/services/aiEngine.ts` | 735 | AI/agentic engine: health scores, predictions, recommendations, lead scoring |
+| `server/services/campaignEngine.ts` | 405 | Campaign lifecycle: 13-channel routing, social/call/mail queues |
+| `drizzle/schema.ts` | 280 | Database schema (11 tables) |
 
 ### 12.2 Client Files
 

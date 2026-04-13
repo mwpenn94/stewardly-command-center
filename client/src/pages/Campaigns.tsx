@@ -113,9 +113,11 @@ export default function Campaigns() {
   });
   const deleteCampaign = trpc.campaigns.delete.useMutation({
     onSuccess: () => { refetch(); toast.success("Campaign deleted"); },
+    onError: (err) => toast.error(err.message),
   });
   const createTemplate = trpc.templates.create.useMutation({
     onSuccess: () => { toast.success("Template saved"); },
+    onError: (err) => toast.error(err.message),
   });
   const startSequence = trpc.orchestrator.startSequence.useMutation({
     onSuccess: () => { refetchSeq(); setSeqOpen(false); toast.success("Sequence started!"); },
@@ -123,6 +125,7 @@ export default function Campaigns() {
   });
   const cancelSequence = trpc.orchestrator.cancelSequence.useMutation({
     onSuccess: () => { refetchSeq(); toast.success("Sequence cancelled"); },
+    onError: (err) => toast.error(err.message),
   });
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -268,7 +271,8 @@ export default function Campaigns() {
             campaigns.map((c) => {
               const ch = CHANNEL_CONFIG[c.channel] || CHANNEL_CONFIG.email;
               const Icon = ch.icon;
-              const metrics = c.metrics ? (typeof c.metrics === "string" ? JSON.parse(c.metrics) : c.metrics) : null;
+              let metrics: any = null;
+              try { metrics = c.metrics ? (typeof c.metrics === "string" ? JSON.parse(c.metrics) : c.metrics) : null; } catch { metrics = null; }
               return (
                 <Card key={c.id} className="bg-card border-border/50 card-hover">
                   <CardContent className="p-4 flex items-center gap-4">
@@ -294,8 +298,8 @@ export default function Campaigns() {
                           <Send className="h-3.5 w-3.5" /> Launch
                         </Button>
                       )}
-                      <Button variant="ghost" size="icon" className="h-9 w-9 min-h-[44px] min-w-[44px] text-destructive hover:text-destructive" onClick={() => { if (confirm("Delete campaign?")) deleteCampaign.mutate({ id: c.id }); }}>
-                        <Trash2 className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="h-9 w-9 min-h-[44px] min-w-[44px] text-destructive hover:text-destructive" disabled={deleteCampaign.isPending} onClick={() => { if (confirm("Delete campaign?")) deleteCampaign.mutate({ id: c.id }); }}>
+                        {deleteCampaign.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                       </Button>
                     </div>
                   </CardContent>

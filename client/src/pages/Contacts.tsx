@@ -46,7 +46,7 @@ import {
   Search, Plus, Pencil, Trash2, ChevronLeft, ChevronRight, Tag, X, Users, RefreshCw,
   ExternalLink, Mail, Phone, Building2, MapPin, Eye, MessageSquare, Linkedin, Clock,
   PhoneIncoming, PhoneOutgoing, Globe, MessageCircle, Calendar, Facebook, Instagram,
-  Twitter, Video, Send, ArrowDownLeft, ArrowUpRight
+  Twitter, Video, Send, ArrowDownLeft, ArrowUpRight, Loader2
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 
@@ -84,16 +84,20 @@ export default function Contacts() {
   }), [search, segment, tier, page]);
 
   const { data, isLoading, refetch } = trpc.contacts.list.useQuery(queryInput);
-  const createMut = trpc.contacts.create.useMutation({ onSuccess: () => { refetch(); setCreateOpen(false); toast.success("Contact created"); } });
-  const updateMut = trpc.contacts.update.useMutation({ onSuccess: () => { refetch(); setEditOpen(false); toast.success("Contact updated"); } });
-  const deleteMut = trpc.contacts.delete.useMutation({ onSuccess: () => { refetch(); toast.success("Contact deleted"); } });
+  const createMut = trpc.contacts.create.useMutation({ onSuccess: () => { refetch(); setCreateOpen(false); toast.success("Contact created"); }, onError: (err) => toast.error(err.message) });
+  const updateMut = trpc.contacts.update.useMutation({ onSuccess: () => { refetch(); setEditOpen(false); toast.success("Contact updated"); }, onError: (err) => toast.error(err.message) });
+  const deleteMut = trpc.contacts.delete.useMutation({ onSuccess: () => { refetch(); toast.success("Contact deleted"); }, onError: (err) => toast.error(err.message) });
 
   const totalPages = Math.ceil((data?.total || 0) / limit);
 
   const [form, setForm] = useState<any>({});
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const openCreate = () => { setForm({}); setFormErrors({}); setCreateOpen(true); };
-  const openEdit = (c: any) => { setForm({ ...c, tags: c.tags ? (typeof c.tags === "string" ? JSON.parse(c.tags) : c.tags) : [] }); setFormErrors({}); setEditContact(c); setEditOpen(true); };
+  const openEdit = (c: any) => {
+    let tags: string[] = [];
+    try { tags = c.tags ? (typeof c.tags === "string" ? JSON.parse(c.tags) : c.tags) : []; } catch { tags = []; }
+    setForm({ ...c, tags }); setFormErrors({}); setEditContact(c); setEditOpen(true);
+  };
 
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
@@ -275,8 +279,8 @@ export default function Contacts() {
                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(c)} title="Edit">
                           <Pencil className="h-3.5 w-3.5" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => { if (confirm("Delete this contact?")) deleteMut.mutate({ id: c.id }); }} title="Delete">
-                          <Trash2 className="h-3.5 w-3.5" />
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" disabled={deleteMut.isPending} onClick={() => { if (confirm("Delete this contact?")) deleteMut.mutate({ id: c.id }); }} title="Delete">
+                          {deleteMut.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
                         </Button>
                       </div>
                     </td>
@@ -484,7 +488,7 @@ export default function Contacts() {
                   <div>
                     <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Tags</p>
                     <div className="flex flex-wrap gap-1.5">
-                      {(typeof detailContact.tags === "string" ? JSON.parse(detailContact.tags) : detailContact.tags).map((tag: string) => (
+                      {((() => { try { return typeof detailContact.tags === "string" ? JSON.parse(detailContact.tags) : detailContact.tags; } catch { return []; } })()).map((tag: string) => (
                         <Badge key={tag} variant="outline" className="text-[10px]">{tag}</Badge>
                       ))}
                     </div>

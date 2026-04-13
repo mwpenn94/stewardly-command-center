@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import {
   RefreshCw, AlertTriangle, CheckCircle2, Clock, XCircle, RotateCcw,
-  Inbox, Play, Square, Zap, ArrowDownToLine, Mail, MessageSquare, Linkedin
+  Inbox, Play, Square, Zap, ArrowDownToLine, Mail, MessageSquare, Linkedin, Loader2
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -38,14 +38,15 @@ export default function SyncEngine() {
   const { data: stats } = trpc.sync.stats.useQuery();
   const { data: schedulerStatus, refetch: refetchScheduler } = trpc.syncScheduler.status.useQuery(undefined, { refetchInterval: 5000 });
 
-  const retryMut = trpc.sync.retry.useMutation({ onSuccess: () => { refetch(); toast.success("Item queued for retry"); } });
-  const retryAllDlq = trpc.sync.retryAllDlq.useMutation({ onSuccess: () => { refetch(); toast.success("All DLQ items queued for retry"); } });
+  const retryMut = trpc.sync.retry.useMutation({ onSuccess: () => { refetch(); toast.success("Item queued for retry"); }, onError: (err: any) => toast.error(err.message) });
+  const retryAllDlq = trpc.sync.retryAllDlq.useMutation({ onSuccess: () => { refetch(); toast.success("All DLQ items queued for retry"); }, onError: (err: any) => toast.error(err.message) });
   const startScheduler = trpc.syncScheduler.start.useMutation({
     onSuccess: () => { refetchScheduler(); toast.success("Sync scheduler started"); },
     onError: (err: any) => toast.error(err.message),
   });
   const stopScheduler = trpc.syncScheduler.stop.useMutation({
     onSuccess: () => { refetchScheduler(); toast.success("Sync scheduler stopped"); },
+    onError: (err: any) => toast.error(err.message),
   });
   const forcePull = trpc.syncScheduler.forcePull.useMutation({
     onSuccess: (data: any) => { refetch(); refetchScheduler(); toast.success(`Pulled ${data.events?.length || 0} events`); },
@@ -66,8 +67,8 @@ export default function SyncEngine() {
         </div>
         <div className="flex gap-2 shrink-0">
           {dlqCount > 0 && (
-            <Button size="sm" variant="outline" className="gap-2 text-amber-400 border-amber-500/30 hover:bg-amber-500/10 min-h-[44px] sm:min-h-0" onClick={() => retryAllDlq.mutate()}>
-              <RotateCcw className="h-4 w-4" /> Retry All DLQ ({dlqCount})
+            <Button size="sm" variant="outline" className="gap-2 text-amber-400 border-amber-500/30 hover:bg-amber-500/10 min-h-[44px] sm:min-h-0" disabled={retryAllDlq.isPending} onClick={() => retryAllDlq.mutate()}>
+              {retryAllDlq.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />} Retry All DLQ ({dlqCount})
             </Button>
           )}
         </div>

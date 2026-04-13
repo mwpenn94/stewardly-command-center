@@ -75,6 +75,7 @@ export default function BulkImport() {
   });
   const createMut = trpc.imports.create.useMutation({
     onSuccess: () => { refetch(); toast.success("Import job created"); },
+    onError: (err) => toast.error(err.message),
   });
   const startSyncMut = trpc.imports.startSync.useMutation({
     onSuccess: () => { toast.success("Sync started — monitoring progress..."); },

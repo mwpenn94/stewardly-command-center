@@ -19,7 +19,7 @@ Stewardly Command Center is a unified omnichannel marketing command center built
 │  └─ tRPC hooks (useQuery / useMutation)             │
 ├─────────────────────────────────────────────────────┤
 │  API Layer (tRPC Router — server/routers.ts)         │
-│  └─ 72 procedures (public + protected)              │
+│  └─ 73 procedures (public + protected)              │
 ├─────────────────────────────────────────────────────┤
 │  Service Layer (server/services/*.ts)                │
 │  └─ GHL, SMS-iT, Dripify, Orchestrator,            │
@@ -79,7 +79,7 @@ Components: shadcn/ui (53 Radix-based primitives) with consistent design tokens
 
 Mobile-first breakpoints: `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1280px)
 
-## Database Schema (9 tables)
+## Database Schema (11 tables)
 
 | Table | Purpose |
 |-------|---------|
@@ -87,11 +87,13 @@ Mobile-first breakpoints: `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1
 | `integrations` | Platform credentials and connection state |
 | `contacts` | Unified contacts with segment, tier, platform IDs |
 | `bulk_imports` | CSV/JSON import job tracking |
-| `campaigns` | Multi-channel campaign definitions |
+| `campaigns` | Multi-channel campaign definitions (13 channels) |
 | `campaign_templates` | Reusable message templates per channel |
 | `sync_queue` | Bidirectional sync jobs with DLQ |
 | `activity_log` | Audit trail for all system events |
 | `backups` | Contact/campaign export tracking |
+| `contact_interactions` | Cross-channel interaction tracking (25 types, direction, sentiment) |
+| `channel_configs` | Per-channel enable/disable, provider, limits, budgets |
 
 ## Service Modules
 
@@ -100,7 +102,7 @@ Mobile-first breakpoints: `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1
 | `ghl.ts` | 600 | GoHighLevel API: CRUD, JWT auth, batch ops |
 | `syncWorker.ts` | 465 | Sync queue processing with retry + DLQ |
 | `orchestrator.ts` | 310 | Multi-platform sequence coordination |
-| `campaignEngine.ts` | 266 | Campaign lifecycle: create → execute → track |
+| `campaignEngine.ts` | 405 | Campaign lifecycle: 13-channel routing, social/call/mail queues |
 | `dripify.ts` | 215 | Dripify/Firebase: campaigns, leads, tokens |
 | `syncScheduler.ts` | 205 | Periodic cross-platform sync scheduling |
 | `smsit.ts` | 181 | SMS-iT: send, balance, contacts, templates |
