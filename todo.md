@@ -327,18 +327,18 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] Write tests for import pipeline — 15 tests passing (ghlImport.test.ts)
 
 ## Bidirectional CRUD Sync Between App and GHL
-- [ ] Review current contact CRUD routers and GHL service methods
-- [ ] Enhance contact create to push new contacts to GHL and store ghlContactId
-- [ ] Enhance contact update to push changes to GHL (name, email, phone, address, tags, custom fields)
-- [ ] Enhance contact delete to remove from GHL
-- [ ] Add pull-single-contact from GHL to refresh local data
-- [ ] Add bulk pull (import) from GHL into local DB with full field mapping
-- [ ] Build scheduled auto-sync service with configurable interval
+- [x] Review current contact CRUD routers and GHL service methods
+- [x] Enhance contact create to push new contacts to GHL and store ghlContactId
+- [x] Enhance contact update to push changes to GHL (name, email, phone, address, tags, custom fields)
+- [x] Enhance contact delete to remove from GHL
+- [x] Add pull-single-contact from GHL to refresh local data (pullFromGhl + refreshFromGhl procedures)
+- [x] Add bulk pull (import) from GHL into local DB with full field mapping (pullBatch + ghlImport with mapGhlContactToLocal)
+- [x] Build scheduled auto-sync service with configurable interval (syncScheduler with bidirectional reconciliation)
 - [x] Auto-sync: detect local changes since last sync and push to GHL
 - [x] Auto-sync: detect GHL changes since last sync and pull to local DB
 - [x] Auto-sync: bidirectional reconciliation with conflict resolution
 - [x] Update Contacts UI with push/pull buttons and sync status indicators
-- [ ] Update GHL Import page to trigger and monitor the initial full import
-- [ ] Add sync settings page for configuring auto-sync interval and direction
+- [x] Update GHL Import page to trigger and monitor the initial full import (fixed render-phase state update, page fully functional)
+- [x] Add sync settings page for configuring auto-sync interval and direction (integrated into Sync Engine page)
 - [x] Write tests for bidirectional sync (20 tests passing: buildPushPayloadFromLocal, scheduler status, push/pull procedures)
 - [ ] Run initial import to pull all ~420K contacts from GHL

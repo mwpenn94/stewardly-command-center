@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { formatDistanceToNow } from "date-fns";
 import {
   Download, Play, Pause, Square, RefreshCw, Loader2, CheckCircle2,
@@ -64,9 +64,11 @@ export default function GhlImport() {
 
   // Auto-detect active job from list
   const runningJob = jobs?.find((j: any) => j.status === "running" || j.status === "paused");
-  if (runningJob && !activeJobId) {
-    setActiveJobId(runningJob.id);
-  }
+  useEffect(() => {
+    if (runningJob && !activeJobId) {
+      setActiveJobId(runningJob.id);
+    }
+  }, [runningJob, activeJobId]);
 
   const liveProgress = progress || (activeJobId && runningJob ? {
     jobId: runningJob.id,

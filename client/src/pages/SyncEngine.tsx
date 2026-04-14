@@ -5,10 +5,13 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useState } from "react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import {
   RefreshCw, AlertTriangle, CheckCircle2, Clock, XCircle, RotateCcw,
   Inbox, Play, Square, ArrowDownToLine, ArrowUpFromLine, Mail, MessageSquare, Linkedin, Loader2,
-  Activity, Upload, Download, Zap
+  Activity, Upload, Download, Zap, Settings2
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import QueryError from "@/components/QueryError";
@@ -40,6 +43,51 @@ export default function SyncEngine() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [platformFilter, setPlatformFilter] = useState("all");
   const [showEvents, setShowEvents] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Sync settings state (persisted in localStorage)
+  const [syncInterval, setSyncInterval] = useState(() =>
+    localStorage.getItem("sync-interval") || "60000"
+  );
+  const [ghlPull, setGhlPull] = useState(() =>
+    localStorage.getItem("sync-ghl-pull") !== "false"
+  );
+  const [ghlPush, setGhlPush] = useState(() =>
+    localStorage.getItem("sync-ghl-push") !== "false"
+  );
+  const [smsitEnabled, setSmsitEnabled] = useState(() =>
+    localStorage.getItem("sync-smsit-enabled") !== "false"
+  );
+  const [dripifyEnabled, setDripifyEnabled] = useState(() =>
+    localStorage.getItem("sync-dripify-enabled") !== "false"
+  );
+  const [autoStart, setAutoStart] = useState(() =>
+    localStorage.getItem("sync-auto-start") === "true"
+  );
+
+  const saveSyncPref = (key: string, value: string) => {
+    localStorage.setItem(key, value);
+  };
+
+  const applySettings = () => {
+    const config = {
+      intervalMs: parseInt(syncInterval),
+      platforms: {
+        ghl: { enabled: ghlPull || ghlPush, pullContacts: ghlPull, pushContacts: ghlPush },
+        smsit: { enabled: smsitEnabled, pullContacts: smsitEnabled },
+        dripify: { enabled: dripifyEnabled, pullLeads: dripifyEnabled },
+      },
+    };
+    if (schedulerStatus?.isRunning) {
+      stopScheduler.mutate(undefined, {
+        onSuccess: () => {
+          startScheduler.mutate(config);
+        },
+      });
+    } else {
+      startScheduler.mutate(config);
+    }
+  };
 
   const { data: queue, isLoading, isError, refetch } = trpc.sync.queue.useQuery({
     status: statusFilter !== "all" ? statusFilter : undefined,
@@ -120,14 +168,7 @@ export default function SyncEngine() {
                     <Square className="h-3 w-3" /> Stop
                   </Button>
                 ) : (
-                  <Button size="sm" className="gap-1.5 min-h-[44px] sm:min-h-0" onClick={() => startScheduler.mutate({
-                    intervalMs: 60000,
-                    platforms: {
-                      ghl: { enabled: true, pullContacts: true, pushContacts: true },
-                      smsit: { enabled: true, pullContacts: true },
-                      dripify: { enabled: true, pullLeads: true },
-                    },
-                  })}>
+                  <Button size="sm" className="gap-1.5 min-h-[44px] sm:min-h-0" onClick={applySettings}>
                     <Play className="h-3 w-3" /> Start Scheduler
                   </Button>
                 )}
@@ -173,6 +214,92 @@ export default function SyncEngine() {
                 );
               })}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Sync Settings Card */}
+        <Card className="bg-card border-border/50 lg:col-span-3">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Settings2 className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground">Sync Configuration</p>
+              </div>
+              <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => setShowSettings(!showSettings)}>
+                {showSettings ? "Hide" : "Configure"}
+              </Button>
+            </div>
+            {showSettings && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Sync Interval */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Sync Interval</Label>
+                    <Select value={syncInterval} onValueChange={(v) => { setSyncInterval(v); saveSyncPref("sync-interval", v); }}>
+                      <SelectTrigger className="bg-muted/30 border-border/50">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="30000">30 seconds</SelectItem>
+                        <SelectItem value="60000">1 minute</SelectItem>
+                        <SelectItem value="300000">5 minutes</SelectItem>
+                        <SelectItem value="600000">10 minutes</SelectItem>
+                        <SelectItem value="900000">15 minutes</SelectItem>
+                        <SelectItem value="1800000">30 minutes</SelectItem>
+                        <SelectItem value="3600000">1 hour</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* GHL Direction */}
+                  <div className="space-y-3">
+                    <Label className="text-xs text-muted-foreground">GoHighLevel</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-foreground">Pull from GHL</span>
+                        <Switch checked={ghlPull} onCheckedChange={(v) => { setGhlPull(v); saveSyncPref("sync-ghl-pull", String(v)); }} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-foreground">Push to GHL</span>
+                        <Switch checked={ghlPush} onCheckedChange={(v) => { setGhlPush(v); saveSyncPref("sync-ghl-push", String(v)); }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* SMS-iT */}
+                  <div className="space-y-3">
+                    <Label className="text-xs text-muted-foreground">SMS-iT</Label>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-foreground">Pull contacts</span>
+                      <Switch checked={smsitEnabled} onCheckedChange={(v) => { setSmsitEnabled(v); saveSyncPref("sync-smsit-enabled", String(v)); }} />
+                    </div>
+                  </div>
+
+                  {/* Dripify */}
+                  <div className="space-y-3">
+                    <Label className="text-xs text-muted-foreground">Dripify</Label>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-foreground">Pull leads</span>
+                      <Switch checked={dripifyEnabled} onCheckedChange={(v) => { setDripifyEnabled(v); saveSyncPref("sync-dripify-enabled", String(v)); }} />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator className="border-border/30" />
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <Switch checked={autoStart} onCheckedChange={(v) => { setAutoStart(v); saveSyncPref("sync-auto-start", String(v)); }} />
+                      <span className="text-xs text-foreground">Auto-start on page load</span>
+                    </div>
+                  </div>
+                  <Button size="sm" className="gap-1.5" onClick={applySettings}>
+                    {schedulerStatus?.isRunning ? "Restart with Settings" : "Start with Settings"}
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
