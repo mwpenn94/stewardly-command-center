@@ -47,7 +47,7 @@ const activeJobs = new Map<number, {
 /**
  * Map a GHL contact object to our local contacts table insert format.
  */
-function mapGhlContactToLocal(ghlContact: any, userId: number): InsertContact {
+export function mapGhlContactToLocal(ghlContact: any, userId: number): InsertContact {
   // Parse tags
   let tags: string | null = null;
   if (ghlContact.tags && Array.isArray(ghlContact.tags)) {
@@ -170,7 +170,7 @@ function mapGhlContactToLocal(ghlContact: any, userId: number): InsertContact {
 /**
  * Extract all custom fields from a GHL contact for the contact_custom_fields table.
  */
-function extractCustomFields(ghlContact: any, contactId: number): InsertContactCustomField[] {
+export function extractCustomFields(ghlContact: any, contactId: number): InsertContactCustomField[] {
   if (!ghlContact.customFields || !Array.isArray(ghlContact.customFields)) return [];
 
   const fields: InsertContactCustomField[] = [];

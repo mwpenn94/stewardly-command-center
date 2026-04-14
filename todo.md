@@ -325,3 +325,20 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] Update frontend — GHL Import page, Custom Fields tab in detail dialog, expanded edit form
 - [x] Run import pipeline — ready to execute from GHL Import page
 - [x] Write tests for import pipeline — 15 tests passing (ghlImport.test.ts)
+
+## Bidirectional CRUD Sync Between App and GHL
+- [ ] Review current contact CRUD routers and GHL service methods
+- [ ] Enhance contact create to push new contacts to GHL and store ghlContactId
+- [ ] Enhance contact update to push changes to GHL (name, email, phone, address, tags, custom fields)
+- [ ] Enhance contact delete to remove from GHL
+- [ ] Add pull-single-contact from GHL to refresh local data
+- [ ] Add bulk pull (import) from GHL into local DB with full field mapping
+- [ ] Build scheduled auto-sync service with configurable interval
+- [x] Auto-sync: detect local changes since last sync and push to GHL
+- [x] Auto-sync: detect GHL changes since last sync and pull to local DB
+- [x] Auto-sync: bidirectional reconciliation with conflict resolution
+- [x] Update Contacts UI with push/pull buttons and sync status indicators
+- [ ] Update GHL Import page to trigger and monitor the initial full import
+- [ ] Add sync settings page for configuring auto-sync interval and direction
+- [x] Write tests for bidirectional sync (20 tests passing: buildPushPayloadFromLocal, scheduler status, push/pull procedures)
+- [ ] Run initial import to pull all ~420K contacts from GHL

@@ -7,7 +7,8 @@ import { toast } from "sonner";
 import { useState } from "react";
 import {
   RefreshCw, AlertTriangle, CheckCircle2, Clock, XCircle, RotateCcw,
-  Inbox, Play, Square, Zap, ArrowDownToLine, Mail, MessageSquare, Linkedin, Loader2
+  Inbox, Play, Square, ArrowDownToLine, ArrowUpFromLine, Mail, MessageSquare, Linkedin, Loader2,
+  Activity, Upload, Download, Zap
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import QueryError from "@/components/QueryError";
@@ -28,9 +29,17 @@ const PLATFORM_ICONS: Record<string, any> = {
   ghl: Mail, smsit: MessageSquare, dripify: Linkedin,
 };
 
+const EVENT_TYPE_ICON: Record<string, { icon: any; color: string }> = {
+  pull: { icon: Download, color: "text-blue-400" },
+  push: { icon: Upload, color: "text-emerald-400" },
+  webhook: { icon: Zap, color: "text-purple-400" },
+  error: { icon: AlertTriangle, color: "text-red-400" },
+};
+
 export default function SyncEngine() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [platformFilter, setPlatformFilter] = useState("all");
+  const [showEvents, setShowEvents] = useState(true);
 
   const { data: queue, isLoading, isError, refetch } = trpc.sync.queue.useQuery({
     status: statusFilter !== "all" ? statusFilter : undefined,
@@ -38,6 +47,7 @@ export default function SyncEngine() {
   });
   const { data: stats } = trpc.sync.stats.useQuery();
   const { data: schedulerStatus, refetch: refetchScheduler } = trpc.syncScheduler.status.useQuery(undefined, { refetchInterval: 5000 });
+  const { data: pendingData } = trpc.contacts.pendingCount.useQuery(undefined, { refetchInterval: 10000 });
 
   const retryMut = trpc.sync.retry.useMutation({ onSuccess: () => { refetch(); toast.success("Item queued for retry"); }, onError: (err: any) => toast.error(err.message) });
   const retryAllDlq = trpc.sync.retryAllDlq.useMutation({ onSuccess: () => { refetch(); toast.success("All DLQ items queued for retry"); }, onError: (err: any) => toast.error(err.message) });
@@ -53,18 +63,27 @@ export default function SyncEngine() {
     onSuccess: (data: any) => { refetch(); refetchScheduler(); toast.success(`Pulled ${data.events?.length || 0} events`); },
     onError: (err: any) => toast.error(err.message),
   });
+  const forcePush = trpc.syncScheduler.forcePush.useMutation({
+    onSuccess: (data: any) => { refetchScheduler(); toast.success(`Push complete: ${data.events?.length || 0} events`); },
+    onError: (err: any) => toast.error(err.message),
+  });
+  const pushDirtyBatch = trpc.contacts.pushDirtyBatch.useMutation({
+    onSuccess: (data: any) => { refetchScheduler(); toast.success(`Pushed ${data.pushed} contacts (${data.failed} failed)`); },
+    onError: (err: any) => toast.error(err.message),
+  });
 
   const dlqCount = stats?.byStatus?.find((s: any) => s.status === "dlq")?.count || 0;
-  const pendingCount = stats?.byStatus?.find((s: any) => s.status === "pending")?.count || 0;
+  const queuePendingCount = stats?.byStatus?.find((s: any) => s.status === "pending")?.count || 0;
   const failedCount = stats?.byStatus?.find((s: any) => s.status === "failed")?.count || 0;
   const completedCount = stats?.byStatus?.find((s: any) => s.status === "completed")?.count || 0;
+  const dirtyCount = pendingData?.count || schedulerStatus?.pendingPushCount || 0;
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl tracking-tight text-foreground">Sync Engine</h1>
-          <p className="text-sm text-muted-foreground mt-1">Hybrid sync: polling + webhooks + event-driven across all platforms.</p>
+          <p className="text-sm text-muted-foreground mt-1">Bidirectional sync: push local changes &amp; pull platform updates across all integrations.</p>
         </div>
         <div className="flex gap-2 shrink-0">
           {dlqCount > 0 && (
@@ -75,79 +94,169 @@ export default function SyncEngine() {
         </div>
       </div>
 
-      {/* ─── Sync Scheduler Control Panel ─── */}
-      <Card className="bg-card border-border/50">
-        <CardContent className="p-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-3">
-              <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${schedulerStatus?.isRunning ? "bg-emerald-500/15" : "bg-muted/50"}`}>
-                <RefreshCw className={`h-5 w-5 ${schedulerStatus?.isRunning ? "text-emerald-400 animate-spin" : "text-muted-foreground"}`} style={schedulerStatus?.isRunning ? { animationDuration: "3s" } : {}} />
+      {/* ─── Bidirectional Sync Dashboard ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Scheduler Control */}
+        <Card className="bg-card border-border/50 lg:col-span-2">
+          <CardContent className="p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+              <div className="flex items-center gap-3">
+                <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${schedulerStatus?.isRunning ? "bg-emerald-500/15" : "bg-muted/50"}`}>
+                  <RefreshCw className={`h-5 w-5 ${schedulerStatus?.isRunning ? "text-emerald-400 animate-spin" : "text-muted-foreground"}`} style={schedulerStatus?.isRunning ? { animationDuration: "3s" } : {}} />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground text-sm">Bidirectional Sync Scheduler</p>
+                  <p className="text-xs text-muted-foreground">
+                    {schedulerStatus?.isRunning
+                      ? `Running · Interval: ${Math.round((schedulerStatus.intervalMs || 60000) / 60000)}min`
+                      : "Stopped"}
+                    {schedulerStatus?.lastPollAt ? ` · Last poll: ${formatDistanceToNow(new Date(schedulerStatus.lastPollAt), { addSuffix: true })}` : ""}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2 shrink-0 flex-wrap">
+                {schedulerStatus?.isRunning ? (
+                  <Button size="sm" variant="outline" className="gap-1.5 min-h-[44px] sm:min-h-0" onClick={() => stopScheduler.mutate()}>
+                    <Square className="h-3 w-3" /> Stop
+                  </Button>
+                ) : (
+                  <Button size="sm" className="gap-1.5 min-h-[44px] sm:min-h-0" onClick={() => startScheduler.mutate({
+                    intervalMs: 60000,
+                    platforms: {
+                      ghl: { enabled: true, pullContacts: true, pushContacts: true },
+                      smsit: { enabled: true, pullContacts: true },
+                      dripify: { enabled: true, pullLeads: true },
+                    },
+                  })}>
+                    <Play className="h-3 w-3" /> Start Scheduler
+                  </Button>
+                )}
+                <Button size="sm" variant="outline" className="gap-1.5 min-h-[44px] sm:min-h-0" onClick={() => forcePull.mutate()} disabled={forcePull.isPending}>
+                  {forcePull.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ArrowDownToLine className="h-3 w-3" />} Pull All
+                </Button>
+                <Button size="sm" variant="outline" className="gap-1.5 min-h-[44px] sm:min-h-0 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10" onClick={() => forcePush.mutate()} disabled={forcePush.isPending}>
+                  {forcePush.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ArrowUpFromLine className="h-3 w-3" />} Push All
+                </Button>
+              </div>
+            </div>
+
+            {/* Platform sync status */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {(["ghl", "smsit", "dripify"] as const).map((platform) => {
+                const Icon = PLATFORM_ICONS[platform] || RefreshCw;
+                const pStatus = schedulerStatus?.platforms?.[platform];
+                const isEnabled = pStatus?.enabled !== false;
+                const lastSync = pStatus?.lastSyncAt;
+                return (
+                  <div key={platform} className={`p-3 rounded-lg border ${isEnabled ? "border-border/50 bg-card/50" : "border-border/20 bg-muted/10 opacity-50"}`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Icon className={`h-3.5 w-3.5 ${platform === "ghl" ? "text-blue-400" : platform === "smsit" ? "text-emerald-400" : "text-sky-400"}`} />
+                      <span className="text-xs font-medium text-foreground">{PLATFORM_LABELS[platform]}</span>
+                      <div className={`ml-auto h-1.5 w-1.5 rounded-full ${isEnabled ? "bg-emerald-400" : "bg-muted-foreground"}`} />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      {lastSync ? `Last: ${formatDistanceToNow(new Date(lastSync), { addSuffix: true })}` : "No sync yet"}
+                      {pStatus?.syncCount ? ` · ${pStatus.syncCount} cycles` : ""}
+                      {pStatus?.lastError ? ` · Error: ${pStatus.lastError}` : ""}
+                    </p>
+                    <div className="flex gap-1 mt-1.5">
+                      <Button size="sm" variant="ghost" className="h-6 text-[10px] flex-1 gap-1" onClick={() => forcePull.mutate({ platform })} disabled={forcePull.isPending}>
+                        <ArrowDownToLine className="h-2.5 w-2.5" /> Pull
+                      </Button>
+                      {platform === "ghl" && (
+                        <Button size="sm" variant="ghost" className="h-6 text-[10px] flex-1 gap-1 text-emerald-400" onClick={() => forcePush.mutate()} disabled={forcePush.isPending}>
+                          <ArrowUpFromLine className="h-2.5 w-2.5" /> Push
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Pending Push Card */}
+        <Card className="bg-card border-border/50">
+          <CardContent className="p-5 flex flex-col h-full">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-8 w-8 rounded-lg bg-amber-500/15 flex items-center justify-center">
+                <Upload className="h-4 w-4 text-amber-400" />
               </div>
               <div>
-                <p className="font-medium text-foreground text-sm">Hybrid Sync Scheduler</p>
-                <p className="text-xs text-muted-foreground">
-                  {schedulerStatus?.isRunning
-                    ? `Running · Interval: ${Math.round((schedulerStatus.intervalMs || 60000) / 60000)}min`
-                    : "Stopped"}
-                  {schedulerStatus?.lastPollAt ? ` · Last pull: ${formatDistanceToNow(new Date(schedulerStatus.lastPollAt), { addSuffix: true })}` : ""}
-                </p>
+                <p className="text-xs font-medium text-foreground">Pending Push</p>
+                <p className="text-[10px] text-muted-foreground">Local changes awaiting sync</p>
               </div>
             </div>
-            <div className="flex gap-2 shrink-0">
-              {schedulerStatus?.isRunning ? (
-                <Button size="sm" variant="outline" className="gap-1.5 min-h-[44px] sm:min-h-0" onClick={() => stopScheduler.mutate()}>
-                  <Square className="h-3 w-3" /> Stop
-                </Button>
-              ) : (
-                <Button size="sm" className="gap-1.5 min-h-[44px] sm:min-h-0" onClick={() => startScheduler.mutate({
-                  intervalMs: 60000,
-                  platforms: {
-                    ghl: { enabled: true, pullContacts: true, pushContacts: true },
-                    smsit: { enabled: true, pullContacts: true },
-                    dripify: { enabled: true, pullLeads: true },
-                  },
-                })}>
-                  <Play className="h-3 w-3" /> Start Scheduler
-                </Button>
-              )}
-              <Button size="sm" variant="outline" className="gap-1.5 min-h-[44px] sm:min-h-0" onClick={() => forcePull.mutate()} disabled={forcePull.isPending}>
-                <ArrowDownToLine className="h-3 w-3" /> Force Pull All
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <p className={`text-4xl font-bold ${dirtyCount > 0 ? "text-amber-400" : "text-emerald-400"}`}>{dirtyCount}</p>
+              <p className="text-xs text-muted-foreground mt-1">{dirtyCount > 0 ? "contacts need push" : "all synced"}</p>
+            </div>
+            {dirtyCount > 0 && (
+              <Button size="sm" className="mt-3 gap-1.5 w-full" onClick={() => pushDirtyBatch.mutate({ limit: 100 })} disabled={pushDirtyBatch.isPending}>
+                {pushDirtyBatch.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ArrowUpFromLine className="h-3 w-3" />}
+                Push {Math.min(dirtyCount, 100)} to GHL
+              </Button>
+            )}
+            {/* Sync totals */}
+            <div className="mt-3 pt-3 border-t border-border/30 grid grid-cols-2 gap-2 text-center">
+              <div>
+                <p className="text-lg font-semibold text-blue-400">{schedulerStatus?.totalPulled || 0}</p>
+                <p className="text-[10px] text-muted-foreground">Total Pulled</p>
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-emerald-400">{schedulerStatus?.totalPushed || 0}</p>
+                <p className="text-[10px] text-muted-foreground">Total Pushed</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ─── Recent Sync Events Timeline ─── */}
+      {schedulerStatus?.recentEvents && schedulerStatus.recentEvents.length > 0 && (
+        <Card className="bg-card border-border/50">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground">Recent Sync Events</p>
+                <Badge variant="outline" className="text-[10px]">{schedulerStatus.recentEvents.length}</Badge>
+              </div>
+              <Button variant="ghost" size="sm" className="h-6 text-[10px]" onClick={() => setShowEvents(!showEvents)}>
+                {showEvents ? "Hide" : "Show"}
               </Button>
             </div>
-          </div>
-
-          {/* Platform sync status */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {(["ghl", "smsit", "dripify"] as const).map((platform) => {
-              const Icon = PLATFORM_ICONS[platform] || RefreshCw;
-              const pStatus = schedulerStatus?.platforms?.[platform];
-              const isEnabled = pStatus?.enabled !== false;
-              const lastSync = pStatus?.lastSyncAt;
-              return (
-                <div key={platform} className={`p-3 rounded-lg border ${isEnabled ? "border-border/50 bg-card/50" : "border-border/20 bg-muted/10 opacity-50"}`}>
-                  <div className="flex items-center gap-2 mb-1">
-                    <Icon className={`h-3.5 w-3.5 ${platform === "ghl" ? "text-blue-400" : platform === "smsit" ? "text-emerald-400" : "text-sky-400"}`} />
-                    <span className="text-xs font-medium text-foreground">{PLATFORM_LABELS[platform]}</span>
-                    <div className={`ml-auto h-1.5 w-1.5 rounded-full ${isEnabled ? "bg-emerald-400" : "bg-muted-foreground"}`} />
-                  </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    {lastSync ? `Last: ${formatDistanceToNow(new Date(lastSync), { addSuffix: true })}` : "No sync yet"}
-                    {pStatus?.lastError ? ` · Error: ${pStatus.lastError}` : ""}
-                  </p>
-                  <Button size="sm" variant="ghost" className="h-6 text-[10px] mt-1 w-full" onClick={() => forcePull.mutate({ platform })} disabled={forcePull.isPending}>
-                    Pull Now
-                  </Button>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+            {showEvents && (
+              <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                {schedulerStatus.recentEvents.slice(0, 20).map((event: any, idx: number) => {
+                  const evConfig = EVENT_TYPE_ICON[event.type] || EVENT_TYPE_ICON.pull;
+                  const EvIcon = evConfig.icon;
+                  return (
+                    <div key={idx} className="flex items-start gap-2 py-1 px-2 rounded hover:bg-muted/20 transition-colors">
+                      <EvIcon className={`h-3 w-3 mt-0.5 shrink-0 ${evConfig.color}`} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] text-foreground truncate">{event.message}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Badge variant="outline" className="text-[9px] h-4">{PLATFORM_LABELS[event.platform] || event.platform}</Badge>
+                          <Badge className={`text-[9px] h-4 ${event.type === "push" ? "bg-emerald-500/15 text-emerald-400" : event.type === "error" ? "bg-red-500/15 text-red-400" : "bg-blue-500/15 text-blue-400"}`}>{event.type}</Badge>
+                          {event.count !== undefined && <span className="text-[9px] text-muted-foreground">{event.count} items</span>}
+                          <span className="text-[9px] text-muted-foreground ml-auto">{formatDistanceToNow(new Date(event.timestamp), { addSuffix: true })}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* ─── Queue Stats ─── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Pending", value: pendingCount, color: "text-muted-foreground" },
+          { label: "Queue Pending", value: queuePendingCount, color: "text-muted-foreground" },
           { label: "Completed", value: completedCount, color: "text-emerald-400" },
           { label: "Failed", value: failedCount, color: "text-red-400" },
           { label: "Dead Letter Queue", value: dlqCount, color: "text-amber-400" },

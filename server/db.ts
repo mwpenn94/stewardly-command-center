@@ -172,6 +172,42 @@ export async function getDataCompletenessStats(userId: number) {
   };
 }
 
+// ─── Contact Sync Helpers ───────────────────────────────────────────────────
+export async function getContactByGhlId(userId: number, ghlContactId: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(contacts)
+    .where(and(eq(contacts.userId, userId), eq(contacts.ghlContactId, ghlContactId)))
+    .limit(1);
+  return result[0] || null;
+}
+
+export async function getDirtyContacts(userId: number, limit = 100) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(contacts)
+    .where(and(eq(contacts.userId, userId), eq(contacts.syncStatus, "pending" as any)))
+    .orderBy(asc(contacts.updatedAt))
+    .limit(limit);
+}
+
+export async function markContactSynced(id: number, userId: number, ghlContactId?: string) {
+  const db = await getDb();
+  if (!db) return;
+  const data: Record<string, any> = {
+    syncStatus: "synced",
+    lastSyncedAt: new Date(),
+  };
+  if (ghlContactId) data.ghlContactId = ghlContactId;
+  await db.update(contacts).set(data).where(and(eq(contacts.id, id), eq(contacts.userId, userId)));
+}
+
+export async function markContactDirty(id: number, userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(contacts).set({ syncStatus: "pending" as any }).where(and(eq(contacts.id, id), eq(contacts.userId, userId)));
+}
+
 // ─── Integrations ────────────────────────────────────────────────────────────
 export async function getIntegrations(userId: number) {
   const db = await getDb();

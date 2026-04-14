@@ -49,8 +49,68 @@ export interface GhlContactPayload {
   state?: string;
   postalCode?: string;
   companyName?: string;
+  // Extended standard fields
+  country?: string;
+  website?: string;
+  source?: string;
+  type?: string; // contactType in GHL
+  dateOfBirth?: string;
+  timezone?: string;
+  dnd?: boolean;
+  dndSettings?: any;
+  assignedTo?: string;
+  gender?: string;
+  // Tags & custom fields
   tags?: string[];
   customFields?: Array<{ key: string; field_value: string }>;
+}
+
+/**
+ * Build a GHL push payload from a local contact record + custom fields.
+ * Used by contact create/update to push all fields to GHL.
+ */
+export function buildPushPayloadFromLocal(
+  contact: Record<string, any>,
+  customFields?: Array<{ ghlFieldId: string; value: string }>,
+): GhlContactPayload {
+  const payload: GhlContactPayload = {};
+
+  // Standard fields mapping (local → GHL)
+  if (contact.firstName) payload.firstName = contact.firstName;
+  if (contact.lastName) payload.lastName = contact.lastName;
+  if (contact.email) payload.email = contact.email;
+  if (contact.phone) payload.phone = formatPhone(contact.phone);
+  if (contact.address) payload.address1 = contact.address;
+  if (contact.city) payload.city = contact.city;
+  if (contact.state) payload.state = contact.state;
+  if (contact.postalCode) payload.postalCode = contact.postalCode;
+  if (contact.companyName) payload.companyName = contact.companyName;
+  if (contact.country) payload.country = contact.country;
+  if (contact.website) payload.website = contact.website;
+  if (contact.source) payload.source = contact.source;
+  if (contact.contactType) payload.type = contact.contactType;
+  if (contact.dateOfBirth) payload.dateOfBirth = contact.dateOfBirth;
+  if (contact.timezone) payload.timezone = contact.timezone;
+  if (contact.dnd !== undefined && contact.dnd !== null) payload.dnd = !!contact.dnd;
+  if (contact.assignedTo) payload.assignedTo = contact.assignedTo;
+
+  // Tags
+  if (contact.tags) {
+    try {
+      const parsed = typeof contact.tags === "string" ? JSON.parse(contact.tags) : contact.tags;
+      if (Array.isArray(parsed)) payload.tags = parsed;
+    } catch { /* ignore */ }
+  }
+
+  // Custom fields
+  if (customFields && customFields.length > 0) {
+    payload.customFields = customFields.map(cf => ({
+      key: cf.ghlFieldId,
+      field_value: cf.value,
+    }));
+  }
+
+  return payload;
 }
 
 export interface GhlApiResult {

@@ -73,13 +73,23 @@ export const appRouter = router({
         state: z.string().optional(),
         postalCode: z.string().optional(),
         companyName: z.string().optional(),
+        country: z.string().optional(),
+        website: z.string().optional(),
+        source: z.string().optional(),
+        contactType: z.string().optional(),
+        dateOfBirth: z.string().optional(),
+        timezone: z.string().optional(),
+        dnd: z.boolean().optional(),
+        assignedTo: z.string().optional(),
         segment: z.string().optional(),
         tier: z.string().optional(),
         tags: z.array(z.string()).optional(),
+        notes: z.string().optional(),
+        customFields: z.array(z.object({ ghlFieldId: z.string(), value: z.string() })).optional(),
         syncToGhl: z.boolean().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const { syncToGhl, ...contactData } = input;
+        const { syncToGhl, customFields: inputCustomFields, ...contactData } = input;
 
         // Create in local DB first
         const id = await db.createContact({
@@ -89,41 +99,32 @@ export const appRouter = router({
           syncStatus: "local_only",
         } as any);
 
-        // If syncToGhl is true, also push to GHL
+        // Save custom fields to contact_custom_fields table
+        if (inputCustomFields && inputCustomFields.length > 0 && id) {
+          for (const cf of inputCustomFields) {
+            try {
+              await db.upsertContactCustomField({
+                contactId: id,
+                ghlFieldId: cf.ghlFieldId,
+                fieldName: cf.ghlFieldId,
+                value: cf.value,
+              } as any);
+            } catch { /* ignore individual custom field errors */ }
+          }
+        }
+
+        // If syncToGhl is true, push to GHL with ALL fields
         let ghlContactId: string | undefined;
         if (syncToGhl !== false) {
           const ghlCreds = await credentialHelper.getGhlCredentials(ctx.user.id);
           if (ghlCreds && (ghlCreds.apiKey || ghlCreds.jwt)) {
             try {
-              const payload: ghlService.GhlContactPayload = {
-                locationId: ghlCreds.locationId,
-                firstName: contactData.firstName,
-                lastName: contactData.lastName,
-                email: contactData.email,
-                phone: contactData.phone ? ghlService.formatPhone(contactData.phone) : undefined,
-                address1: contactData.address,
-                city: contactData.city,
-                state: contactData.state,
-                postalCode: contactData.postalCode,
-                companyName: contactData.companyName,
-                tags: contactData.tags,
-              };
+              const payload = ghlService.buildPushPayloadFromLocal(contactData, inputCustomFields);
+              payload.locationId = ghlCreds.locationId;
               const result = await ghlService.upsertContact(ghlCreds, payload);
-              if (result.success && result.contactId) {
+              if (result.contactId) {
                 ghlContactId = result.contactId;
-                await db.updateContact(id!, ctx.user.id, {
-                  ghlContactId: result.contactId,
-                  syncStatus: "synced",
-                  lastSyncedAt: new Date(),
-                } as any);
-              } else if (result.contactId) {
-                // Duplicate — still link the GHL ID
-                ghlContactId = result.contactId;
-                await db.updateContact(id!, ctx.user.id, {
-                  ghlContactId: result.contactId,
-                  syncStatus: "synced",
-                  lastSyncedAt: new Date(),
-                } as any);
+                await db.markContactSynced(id!, ctx.user.id, result.contactId);
               }
             } catch (err: any) {
               console.error("[Contacts] GHL sync failed:", err.message);
@@ -154,19 +155,43 @@ export const appRouter = router({
         state: z.string().optional(),
         postalCode: z.string().optional(),
         companyName: z.string().optional(),
+        country: z.string().optional(),
+        website: z.string().optional(),
+        source: z.string().optional(),
+        contactType: z.string().optional(),
+        dateOfBirth: z.string().optional(),
+        timezone: z.string().optional(),
+        dnd: z.boolean().optional(),
+        assignedTo: z.string().optional(),
         segment: z.string().optional(),
         tier: z.string().optional(),
         tags: z.array(z.string()).optional(),
+        notes: z.string().optional(),
+        customFields: z.array(z.object({ ghlFieldId: z.string(), value: z.string() })).optional(),
         syncToGhl: z.boolean().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        const { id, syncToGhl, ...data } = input;
+        const { id, syncToGhl, customFields: inputCustomFields, ...data } = input;
 
         // Update local DB
         await db.updateContact(id, ctx.user.id, {
           ...data,
           tags: data.tags ? JSON.stringify(data.tags) : undefined,
         } as any);
+
+        // Update custom fields in contact_custom_fields table
+        if (inputCustomFields && inputCustomFields.length > 0) {
+          for (const cf of inputCustomFields) {
+            try {
+              await db.upsertContactCustomField({
+                contactId: id,
+                ghlFieldId: cf.ghlFieldId,
+                fieldName: cf.ghlFieldId,
+                value: cf.value,
+              } as any);
+            } catch { /* ignore individual custom field errors */ }
+          }
+        }
 
         // Sync to GHL if requested and contact has a GHL ID
         if (syncToGhl !== false) {
@@ -175,24 +200,19 @@ export const appRouter = router({
             const ghlCreds = await credentialHelper.getGhlCredentials(ctx.user.id);
             if (ghlCreds && (ghlCreds.apiKey || ghlCreds.jwt)) {
               try {
-                const payload: ghlService.GhlContactPayload = {
-                  firstName: data.firstName,
-                  lastName: data.lastName,
-                  email: data.email,
-                  phone: data.phone ? ghlService.formatPhone(data.phone) : undefined,
-                  address1: data.address,
-                  city: data.city,
-                  state: data.state,
-                  postalCode: data.postalCode,
-                  companyName: data.companyName,
-                  tags: data.tags,
-                };
+                // Fetch all custom fields for this contact to include in push
+                const allCustomFields = await db.getContactCustomFields(id);
+                const cfPayload = allCustomFields.map(cf => ({
+                  ghlFieldId: cf.ghlFieldId,
+                  value: cf.value || "",
+                }));
+                const payload = ghlService.buildPushPayloadFromLocal(
+                  { ...contact, ...data },
+                  cfPayload,
+                );
                 const result = await ghlService.updateContact(ghlCreds, contact.ghlContactId, payload);
                 if (result.success) {
-                  await db.updateContact(id, ctx.user.id, {
-                    syncStatus: "synced",
-                    lastSyncedAt: new Date(),
-                  } as any);
+                  await db.markContactSynced(id, ctx.user.id);
                 }
               } catch (err: any) {
                 console.error("[Contacts] GHL update failed:", err.message);
@@ -313,7 +333,7 @@ export const appRouter = router({
 
         return { synced, skipped, total: result.total, hasMore: (result.contacts?.length || 0) >= (input.limit || 20) };
       }),
-    // Pull a single contact from GHL into local DB
+    // Pull a single contact from GHL into local DB (full field mapping)
     pullFromGhl: protectedProcedure
       .input(z.object({ ghlContactId: z.string() }))
       .mutation(async ({ ctx, input }) => {
@@ -322,25 +342,144 @@ export const appRouter = router({
         const result = await ghlService.getContact(ghlCreds, input.ghlContactId);
         if (!result.success || !result.contact) throw new Error(result.error || "Contact not found in GHL");
 
-        const c = result.contact;
-        const id = await db.createContact({
-          userId: ctx.user.id,
-          ghlContactId: input.ghlContactId,
-          firstName: c.firstName,
-          lastName: c.lastName,
-          email: c.email,
-          phone: c.phone,
-          address: c.address1,
-          city: c.city,
-          state: c.state,
-          postalCode: c.postalCode,
-          companyName: c.companyName,
-          tags: c.tags ? JSON.stringify(c.tags) : null,
-          syncStatus: "synced",
-          lastSyncedAt: new Date(),
-        } as any);
+        const ghlContact = result.contact;
+        const localData = ghlImport.mapGhlContactToLocal(ghlContact, ctx.user.id);
 
-        return { id, contact: c };
+        // Check if contact already exists locally by ghlContactId
+        const existing = await db.getContactByGhlId(ctx.user.id, input.ghlContactId);
+        let localId: number;
+
+        if (existing) {
+          // Update existing
+          const { userId: _u, ...updateData } = localData;
+          await db.updateContact(existing.id, ctx.user.id, updateData as any);
+          localId = existing.id;
+        } else {
+          // Insert new
+          localId = (await db.createContact(localData))!;
+        }
+
+        // Upsert custom fields
+        const customFields = ghlImport.extractCustomFields(ghlContact, localId);
+        for (const cf of customFields) {
+          try {
+            await db.upsertContactCustomField(cf);
+          } catch { /* ignore individual custom field errors */ }
+        }
+
+        return { id: localId, contact: ghlContact, action: existing ? "updated" : "created" };
+      }),
+    // Push a single local contact to GHL (full field push)
+    pushToGhl: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const contact = await db.getContactById(input.id, ctx.user.id);
+        if (!contact) throw new Error("Contact not found");
+        const ghlCreds = await credentialHelper.getGhlCredentials(ctx.user.id);
+        if (!ghlCreds || (!ghlCreds.apiKey && !ghlCreds.jwt)) throw new Error("GHL not configured");
+
+        // Fetch custom fields for this contact
+        const customFields = await db.getContactCustomFields(input.id);
+        const cfPayload = customFields.map(cf => ({ ghlFieldId: cf.ghlFieldId, value: cf.value || "" }));
+        const payload = ghlService.buildPushPayloadFromLocal(contact, cfPayload);
+        payload.locationId = ghlCreds.locationId;
+
+        let result;
+        if (contact.ghlContactId) {
+          // Update existing GHL contact
+          result = await ghlService.updateContact(ghlCreds, contact.ghlContactId, payload);
+        } else {
+          // Create new GHL contact
+          result = await ghlService.upsertContact(ghlCreds, payload);
+        }
+
+        if (result.success || result.contactId) {
+          await db.markContactSynced(input.id, ctx.user.id, result.contactId || contact.ghlContactId || undefined);
+          return { success: true, ghlContactId: result.contactId || contact.ghlContactId, action: contact.ghlContactId ? "updated" : "created" };
+        }
+        throw new Error("GHL push failed");
+      }),
+    // Refresh a local contact from GHL (pull latest data)
+    refreshFromGhl: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const contact = await db.getContactById(input.id, ctx.user.id);
+        if (!contact?.ghlContactId) throw new Error("Contact has no GHL ID");
+        const ghlCreds = await credentialHelper.getGhlCredentials(ctx.user.id);
+        if (!ghlCreds) throw new Error("GHL not configured");
+
+        const result = await ghlService.getContact(ghlCreds, contact.ghlContactId);
+        if (!result.success || !result.contact) throw new Error(result.error || "Contact not found in GHL");
+
+        const ghlContact = result.contact;
+        const localData = ghlImport.mapGhlContactToLocal(ghlContact, ctx.user.id);
+        const { userId: _u, ...updateData } = localData;
+        await db.updateContact(input.id, ctx.user.id, updateData as any);
+
+        // Upsert custom fields
+        const customFields = ghlImport.extractCustomFields(ghlContact, input.id);
+        for (const cf of customFields) {
+          try {
+            await db.upsertContactCustomField(cf);
+          } catch { /* ignore */ }
+        }
+
+        return { success: true, contact: ghlContact };
+      }),
+    // Get dirty (pending sync) contacts count
+    pendingCount: protectedProcedure.query(async ({ ctx }) => {
+      const dirty = await db.getDirtyContacts(ctx.user.id, 1);
+      const dbInstance = await db.getDb();
+      if (!dbInstance) return { count: 0 };
+      const { contacts: contactsTable } = await import("../drizzle/schema");
+      const { count, eq, and } = await import("drizzle-orm");
+      const result = await dbInstance.select({ count: count() }).from(contactsTable)
+        .where(and(eq(contactsTable.userId, ctx.user.id), eq(contactsTable.syncStatus, "pending" as any)));
+      return { count: result[0]?.count || 0 };
+    }),
+    // Push all dirty contacts to GHL in batch
+    pushDirtyBatch: protectedProcedure
+      .input(z.object({ limit: z.number().min(1).max(200).optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const ghlCreds = await credentialHelper.getGhlCredentials(ctx.user.id);
+        if (!ghlCreds || (!ghlCreds.apiKey && !ghlCreds.jwt)) throw new Error("GHL not configured");
+
+        const dirtyContacts = await db.getDirtyContacts(ctx.user.id, input.limit || 50);
+        let pushed = 0, failed = 0;
+
+        for (const contact of dirtyContacts) {
+          try {
+            const customFields = await db.getContactCustomFields(contact.id);
+            const cfPayload = customFields.map(cf => ({ ghlFieldId: cf.ghlFieldId, value: cf.value || "" }));
+            const payload = ghlService.buildPushPayloadFromLocal(contact, cfPayload);
+            payload.locationId = ghlCreds.locationId;
+
+            let result;
+            if (contact.ghlContactId) {
+              result = await ghlService.updateContact(ghlCreds, contact.ghlContactId, payload);
+            } else {
+              result = await ghlService.upsertContact(ghlCreds, payload);
+            }
+            if (result.success || result.contactId) {
+              await db.markContactSynced(contact.id, ctx.user.id, result.contactId || contact.ghlContactId || undefined);
+              pushed++;
+            } else {
+              failed++;
+            }
+          } catch {
+            failed++;
+          }
+        }
+
+        await db.logActivity({
+          userId: ctx.user.id,
+          type: "sync",
+          action: "push_dirty_batch",
+          description: `Pushed ${pushed} dirty contacts to GHL (${failed} failed)`,
+          severity: pushed > 0 ? "success" : "warning",
+        });
+
+        return { pushed, failed, remaining: Math.max(0, dirtyContacts.length - pushed - failed) };
       }),
   }),
 
@@ -1284,6 +1423,12 @@ export const appRouter = router({
       .input(z.object({ platform: z.string().optional() }).optional())
       .mutation(async ({ input }) => {
         const events = await syncScheduler.forcePull(input?.platform);
+        return { events };
+      }),
+
+    forcePush: protectedProcedure
+      .mutation(async () => {
+        const events = await syncScheduler.forcePush();
         return { events };
       }),
 
