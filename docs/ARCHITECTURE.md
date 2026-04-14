@@ -19,7 +19,7 @@ Stewardly Command Center is a unified omnichannel marketing command center built
 │  └─ tRPC hooks (useQuery / useMutation)             │
 ├─────────────────────────────────────────────────────┤
 │  API Layer (tRPC Router — server/routers.ts)         │
-│  └─ 76 procedures (public + protected)              │
+│  └─ ~100 procedures across 12 routers               │
 ├─────────────────────────────────────────────────────┤
 │  Service Layer (server/services/*.ts)                │
 │  └─ GHL, SMS-iT, Dripify, Orchestrator,            │
@@ -27,7 +27,7 @@ Stewardly Command Center is a unified omnichannel marketing command center built
 │     Credentials, AIEngine                            │
 ├─────────────────────────────────────────────────────┤
 │  Data Layer (Drizzle ORM → MySQL/TiDB)              │
-│  └─ 11 tables, schema-driven migrations (3 files)   │
+│  └─ 14 tables, 6 migration files, server/db.ts      │
 ├─────────────────────────────────────────────────────┤
 │  External APIs                                       │
 │  └─ GHL v2 API, SMS-iT API, Dripify/Firebase API   │
@@ -43,14 +43,15 @@ Wouter lightweight client-side routing with a single layout wrapping all pages. 
 | `/` | Home | Dashboard: KPIs, segment breakdown, activity feed, platform health, quick actions |
 | `/contacts` | Contacts | Contact CRUD with search, filter, pagination, detail modal, mobile cards |
 | `/import` | BulkImport | CSV upload, column mapping, sync progress tracking |
-| `/campaigns` | Campaigns | Campaign Studio: campaigns, sequences, templates |
+| `/campaigns` | Campaigns | Campaign Studio: campaigns, sequences, flow builder, templates |
 | `/sync` | SyncEngine | Sync scheduler, queue visualization, DLQ management |
 | `/integrations` | Integrations | Platform credential management and connection testing |
 | `/enrichment` | Enrichment | Contact enrichment pipeline with segment distribution |
 | `/analytics` | Analytics | Campaign metrics, funnel viz, tier distribution |
 | `/backups` | Backups | Data export and backup management |
 | `/activity` | ActivityFeed | System audit log with filtering |
-| `/settings` | Settings | Theme, notifications, timezone, integrations links |
+| `/ghl-import` | GhlImport | Pull contacts from GHL with JWT auth and progress tracking |
+| `/settings` | Settings | Theme, notifications, timezone, Danger Zone |
 | `/ai-insights` | AIInsights | AI engine: health scores, recommendations, predictions, lead scoring, cross-channel patterns, channel synergies |
 | `/channels` | Channels | Channel management: 13 channels in 6 categories, provider selection, limits, budgets |
 | `/404` | NotFound | 404 page (also used as catch-all) |
@@ -79,7 +80,7 @@ Components: shadcn/ui (53 Radix-based primitives) with consistent design tokens
 
 Mobile-first breakpoints: `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1280px)
 
-## Database Schema (11 tables)
+## Database Schema (14 tables)
 
 | Table | Purpose |
 |-------|---------|
@@ -94,20 +95,25 @@ Mobile-first breakpoints: `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1
 | `backups` | Contact/campaign export tracking |
 | `contact_interactions` | Cross-channel interaction tracking (25 types, direction, sentiment) |
 | `channel_configs` | Per-channel enable/disable, provider, limits, budgets |
+| `contact_custom_fields` | Custom field values per contact |
+| `custom_field_definitions` | Custom field schema definitions |
+| `ghl_import_jobs` | GHL import job tracking |
 
 ## Service Modules
 
 | Service | Lines | Purpose |
 |---------|-------|---------|
-| `ghl.ts` | 600 | GoHighLevel API: CRUD, JWT auth, batch ops |
+| `ghl.ts` | 725 | GoHighLevel API: CRUD, JWT auth, batch ops |
+| `ghlImport.ts` | 508 | GHL contact import service |
 | `syncWorker.ts` | 465 | Sync queue processing with retry + DLQ |
+| `webhooks.ts` | 469 | Webhook processing |
 | `orchestrator.ts` | 310 | Multi-platform sequence coordination |
 | `campaignEngine.ts` | 405 | Campaign lifecycle: 13-channel routing, social/call/mail queues |
-| `dripify.ts` | 215 | Dripify/Firebase: campaigns, leads, tokens |
-| `syncScheduler.ts` | 205 | Periodic cross-platform sync scheduling |
-| `smsit.ts` | 181 | SMS-iT: send, balance, contacts, templates |
+| `dripify.ts` | 304 | Dripify/Firebase: campaigns, leads, tokens |
+| `syncScheduler.ts` | 401 | Periodic cross-platform sync scheduling |
+| `smsit.ts` | 260 | SMS-iT: send, balance, contacts, templates |
 | `credentials.ts` | 124 | DB credential loading + format normalization |
-| `aiEngine.ts` | 737 | AI/agentic engine: health scores, predictions, recommendations, lead scoring |
+| `aiEngine.ts` | 750 | AI/agentic engine: health scores, predictions, recommendations, lead scoring |
 
 ## Custom Components
 
@@ -115,7 +121,7 @@ Mobile-first breakpoints: `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1
 |-----------|-------|---------|
 | `DashboardLayout.tsx` | 324 | Responsive sidebar + header + mobile drawer |
 | `AIChatBox.tsx` | 335 | AI chat interface component |
-| `GlobalSearch.tsx` | 160 | Cmd+K search overlay across entities |
+| `GlobalSearch.tsx` | 216 | Cmd+K search overlay across entities |
 | `Map.tsx` | 155 | Google Maps integration |
 | `NotificationCenter.tsx` | 130 | Bell icon popover with recent activities |
 | `ManusDialog.tsx` | 89 | Dialog wrapper component |
@@ -154,13 +160,13 @@ Mobile-first breakpoints: `sm:` (640px), `md:` (768px), `lg:` (1024px), `xl:` (1
 
 ## Testing Architecture
 
-10 test files across 3 tiers:
+15 test files (4,502 lines, 256 non-live tests passing) across 3 tiers:
 
-1. **Unit tests** — Service functions, credential normalization, orchestrator logic
-2. **Integration tests** — Full CRUD user journeys through tRPC procedures
-3. **Live E2E tests** — Real API calls to GHL, SMS-iT, Dripify with live credentials
+1. **Unit tests** (5 files) — Service functions, credential normalization, orchestrator logic, webhook processing
+2. **Integration tests** (6 files) — Full CRUD journeys, bidirectional sync, GHL import, multi-platform push, admin features
+3. **Live E2E tests** (4 files) — Real API calls to GHL, SMS-iT, Dripify with live credentials
 
-Test isolation: non-live tests use `userId: 9999` to avoid overwriting production credentials.
+Test isolation: non-live tests use `userId: 9999` to avoid overwriting production credentials. Parallel test interference handled via `beforeEach` re-upsert patterns.
 
 ## Security
 

@@ -169,6 +169,13 @@ describe("Integrations CRUD", () => {
   it("retrieves a specific integration by platform", async () => {
     const { ctx } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
+    // Re-upsert because parallel test files may disconnect GHL for userId 9999
+    await caller.integrations.upsert({
+      platform: "ghl",
+      label: "GoHighLevel",
+      credentials: JSON.stringify({ "API Key": "test-key-123", "Location ID": "loc-456", "Company ID": "comp-789" }),
+      status: "connected",
+    });
     const result = await caller.integrations.get({ platform: "ghl" });
     expect(result).toBeDefined();
     expect(result?.platform).toBe("ghl");
@@ -178,6 +185,14 @@ describe("Integrations CRUD", () => {
   it("retrieves parsed credentials for a platform", async () => {
     const { ctx } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
+    // Re-upsert credentials immediately before reading, because parallel test files
+    // (e.g. bidirectional-sync.test.ts beforeEach) may disconnect GHL for userId 9999
+    await caller.integrations.upsert({
+      platform: "ghl",
+      label: "GoHighLevel",
+      credentials: JSON.stringify({ "API Key": "test-key-123", "Location ID": "loc-456", "Company ID": "comp-789" }),
+      status: "connected",
+    });
     const creds = await caller.integrations.credentials({ platform: "ghl" });
     expect(creds).toBeDefined();
     expect(creds?.["API Key"]).toBe("test-key-123");

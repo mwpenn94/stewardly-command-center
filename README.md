@@ -22,7 +22,7 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 - Cross-channel interaction timeline with 25 interaction types, direction indicators, and sentiment analysis
 - **Log Interaction** — record interactions from any of 13 channels with per-channel type selector (email→sent/opened/clicked, call→made/missed, LinkedIn→connection/profile view), direction, subject, and notes
 - Platform sync indicators (GHL, SMS-iT, LinkedIn) + 13-channel reach summary
-- **CSV Export** — download current contacts as CSV with name, email, phone, company, segment, tier, location
+- **Export All** — server-side CSV export respecting current search/segment/tier filters, downloads all matching contacts (not just current page)
 - Form validation: required fields, email format, phone format
 
 ### Campaign Studio
@@ -43,6 +43,7 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 - Checkpoint-based resume capability
 - GHL credential validation before sync
 - JWT input masked for security
+- **Paginated import history** — 10 items per page with page controls and total count header
 
 ### Sync Engine
 - Hybrid sync scheduler: polling + webhooks + event-driven
@@ -57,6 +58,8 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 - LinkedIn: Access Token or Session Cookie auth
 - SMS-iT: API Key with credit balance checking
 - Per-platform credential management with show/hide toggle
+- **Quick Setup Guides** — SMS-iT (5-step) and Dripify (4-step) guided credential wizards with per-field hints
+- **Reset button** — Clear stale error status to "Not Connected" without losing configuration
 
 ### Analytics
 - Unified campaign metrics: sent, open rate, click rate, conversions, cost per lead, bounce rate
@@ -87,6 +90,7 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 - Notification preferences (email, push, sync alerts, campaign alerts)
 - Timezone and date format configuration
 - Quick access to platform integrations
+- **Danger Zone** — Admin purge test data: removes E2E test contacts, campaigns, imports, and activity with confirmation dialog and result counts
 
 ### Notification Center
 - Bell icon in desktop header and mobile top bar
@@ -114,6 +118,11 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 - Daily send limits and monthly budget caps per channel
 - Channel status monitoring (active, inactive, error)
 
+### GHL Import
+- Dedicated GoHighLevel contact import with JWT authentication
+- Batch import with progress tracking
+- Field mapping from GHL contact schema to local schema
+
 ### Platform Features
 - Dark/light theme with warm gold accent palette (OKLCH color space)
 - Plus Jakarta Sans + Instrument Serif typography
@@ -136,12 +145,12 @@ A unified omnichannel marketing command center that orchestrates campaigns, cont
 | Routing | Wouter |
 | Styling | Tailwind CSS 4 + shadcn/ui (53 Radix components) |
 | Server State | TanStack React Query + tRPC 11 |
-| Backend | Express 4 + tRPC (76 procedures: 62 core + 6 AI + 8 omnichannel) |
-| Database | Drizzle ORM + MySQL (TiDB) — 11 tables |
+| Backend | Express 4 + tRPC (100 procedures across 12 routers) |
+| Database | Drizzle ORM + MySQL (TiDB) — 14 tables |
 | Icons | Lucide React |
 | Animations | Framer Motion |
 | Build | Vite 7 |
-| Testing | Vitest |
+| Testing | Vitest (15 test files, 256 non-live tests passing) |
 
 ## Getting Started
 
@@ -183,26 +192,31 @@ client/src/
   index.css               # OKLCH theme tokens (dark + light)
   components/
     ui/                   # shadcn/ui components (53 Radix-based)
-    DashboardLayout.tsx   # Sidebar + header + mobile drawer
+    DashboardLayout.tsx   # Sidebar + header + mobile drawer (325 lines)
     ErrorBoundary.tsx     # App-level error catching
-    GlobalSearch.tsx      # Cmd+K search overlay
+    GlobalSearch.tsx      # Cmd+K search overlay (216 lines)
     KeyboardShortcuts.tsx # Shortcut help dialog
-    NotificationCenter.tsx # Bell icon + activity popover
+    NotificationCenter.tsx # Bell icon + activity popover (130 lines)
+    ManusDialog.tsx       # Dialog wrapper with accessibility
     QueryError.tsx        # Reusable error state with retry
-  pages/                  # 15 page files (Home eager, 13 lazy-loaded, 1 internal showcase)
-    Home.tsx              # Dashboard (413 lines)
-    Contacts.tsx          # Contact CRUD + campaign attribution (759 lines)
-    BulkImport.tsx        # CSV import (609 lines)
-    Campaigns.tsx         # Campaign Studio + Flow Builder + Detail (1,106 lines)
-    SyncEngine.tsx        # Sync queue (240 lines)
-    Integrations.tsx      # Platform connections (389 lines)
-    Enrichment.tsx        # Data enrichment + completeness (165 lines)
-    Analytics.tsx         # Metrics dashboard (324 lines)
+    AIChatBox.tsx         # Chat interface with streaming (335 lines)
+    Map.tsx               # Google Maps integration (155 lines)
+  pages/                  # 16 page files (Home eager, 14 lazy-loaded, 1 internal showcase)
+    Home.tsx              # Dashboard (414 lines)
+    Contacts.tsx          # Contact CRUD + export + interactions (1,227 lines)
+    BulkImport.tsx        # CSV import + paginated history (681 lines)
+    Campaigns.tsx         # Campaign Studio + Flow Builder + Detail (1,252 lines)
+    SyncEngine.tsx        # Sync queue (492 lines)
+    Integrations.tsx      # Platform connections + setup guides (481 lines)
+    Enrichment.tsx        # Data enrichment + completeness (197 lines)
+    Analytics.tsx         # Metrics dashboard (372 lines)
     Backups.tsx           # Export + data mirror (254 lines)
-    ActivityFeed.tsx      # Audit log (126 lines)
-    Settings.tsx          # Preferences (226 lines)
+    ActivityFeed.tsx      # Audit log (138 lines)
+    Settings.tsx          # Preferences + Danger Zone (364 lines)
     AIInsights.tsx        # AI continuous improvement engine (607 lines)
     Channels.tsx          # Channel management (296 lines)
+    GhlImport.tsx         # GHL-specific import (404 lines)
+    ComponentShowcase.tsx # Internal component showcase (1,437 lines)
     NotFound.tsx          # 404 page (46 lines)
   contexts/
     ThemeContext.tsx       # Light/dark theme with localStorage
@@ -211,33 +225,37 @@ client/src/
 
 server/
   _core/                  # Express server + tRPC adapter
-  routers.ts              # 76 tRPC procedures (1,271 lines)
-  db.ts                   # Database query helpers (537 lines)
+  routers.ts              # 100 tRPC procedures across 12 routers (1,882 lines)
+  db.ts                   # Database query helpers (768 lines)
   services/
-    ghl.ts                # GoHighLevel API (600 lines)
-    smsit.ts              # SMS-iT API (181 lines)
-    dripify.ts            # Dripify/LinkedIn API (215 lines)
+    ghl.ts                # GoHighLevel API (725 lines)
+    smsit.ts              # SMS-iT API (260 lines)
+    dripify.ts            # Dripify/LinkedIn API (304 lines)
     orchestrator.ts       # Multi-platform coordination (310 lines)
-    syncScheduler.ts      # Periodic sync scheduling (205 lines)
+    syncScheduler.ts      # Periodic sync scheduling (401 lines)
     syncWorker.ts         # Sync queue processing (465 lines)
     campaignEngine.ts     # Campaign lifecycle, 13-channel routing (405 lines)
     credentials.ts        # Credential normalization (124 lines)
-    aiEngine.ts           # AI/agentic engine: health, predictions, scoring (737 lines)
+    aiEngine.ts           # AI/agentic engine: health, predictions, scoring (750 lines)
+    ghlImport.ts          # GHL contact import service (508 lines)
+    webhooks.ts           # Webhook processing (469 lines)
 
 drizzle/
-  schema.ts               # 11 database tables (280 lines)
-  migrations/             # SQL migrations
+  schema.ts               # 14 database tables (369 lines)
+  migrations/             # SQL migrations (6 migration files)
 
 docs/
   PARITY.md               # Feature parity tracking and gap matrix
   ARCHITECTURE.md         # System architecture documentation
   CHANGELOG.md            # Version changelog
+  PLATFORM_INTEGRATIONS.md # Platform integration documentation
+  CURRENT_BEST.md         # Current best practices and known issues
 ```
 
 ## Responsive Design
 
 Mobile-first with breakpoints:
-- **Mobile** (<768px): Single column, sidebar overlay, 44px touch targets, card layouts for contacts
+- **Mobile** (<768px): Single column, sidebar overlay (Sheet), 44px touch targets, card layouts for contacts
 - **Tablet** (768px-1024px): Two-column grids, inline filters
 - **Desktop** (>1024px): Collapsible resizable sidebar, multi-column layouts, full data tables
 
@@ -251,12 +269,12 @@ pnpm vitest run --exclude='**/live-*.test.ts'
 pnpm vitest run
 ```
 
-10 test files across 3 tiers:
-- **Unit tests** — Service functions, credential normalization, orchestrator logic
-- **Integration tests** — Full CRUD journeys through tRPC procedures
-- **Live E2E tests** — Real API calls to GHL, SMS-iT, Dripify (requires credentials)
+15 test files (4,500 lines) across 3 tiers:
+- **Unit tests** (5 files) — Service functions, credential normalization, orchestrator logic, webhook processing
+- **Integration tests** (6 files) — Full CRUD journeys through tRPC procedures, bidirectional sync, GHL import, admin features
+- **Live E2E tests** (4 files) — Real API calls to GHL, SMS-iT, Dripify (requires credentials, skipped without them)
 
-Test isolation: non-live tests use `userId: 9999` to avoid overwriting production credentials.
+Test isolation: non-live tests use `userId: 9999` to avoid overwriting production credentials. Test interference between parallel files is handled via `beforeEach` cleanup hooks.
 
 ## License
 

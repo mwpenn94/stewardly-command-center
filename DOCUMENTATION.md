@@ -4,7 +4,7 @@
 **Domain**: stewardcc-a4cm9uy3.manus.space
 **Stack**: React 19 + Tailwind CSS 4 + Express 4 + tRPC 11 + Drizzle ORM + MySQL (TiDB)
 **Author**: Manus AI, in collaboration with Michael Penn
-**Last Updated**: April 13, 2026 (revised for accuracy)
+**Last Updated**: April 14, 2026 (v2.4.0)
 
 ---
 
@@ -29,21 +29,21 @@
 
 The Stewardly Command Center is a unified omnichannel marketing command center that orchestrates campaigns, contacts, and data across 13 channels (Email, SMS, LinkedIn, Facebook, Instagram, Twitter/X, TikTok, Inbound/Outbound Calls, Direct Mail, Webforms, Chat/Webchat, Events/Webinars) and 5+ platform providers (GoHighLevel, SMS-iT, Dripify, Twilio, Lob, and more). The system serves as a centralized command hub for Stewardly's business operations, enabling bulk contact import, cross-platform sync, omnichannel campaign orchestration, AI-powered cross-channel intelligence, and real-time analytics.
 
-The platform was designed and built across multiple intensive sessions, progressing from initial scaffolding through database schema design, service layer implementation, multi-platform API integration, a comprehensive test suite (205 tests across 10 files), a data deduplication pipeline processing 668,883 source records into 561,806 unique contacts, and a standalone parallel sync engine that uploaded all 561,806 contacts to GHL at a peak speed of 1,812 records per minute using 80 parallel workers with curl-impersonate Cloudflare bypass. The sync completed on April 13, 2026 with a 99.22% success rate (0.78% error rate) and zero Cloudflare blocks or rate limits.
+The platform was designed and built across multiple intensive sessions, progressing from initial scaffolding through database schema design, service layer implementation, multi-platform API integration, a comprehensive test suite (256 tests across 15 files), a data deduplication pipeline processing 668,883 source records into 561,806 unique contacts, and a standalone parallel sync engine that uploaded all 561,806 contacts to GHL at a peak speed of 1,812 records per minute using 80 parallel workers with curl-impersonate Cloudflare bypass. The sync completed on April 13, 2026 with a 99.22% success rate (0.78% error rate) and zero Cloudflare blocks or rate limits.
 
 ### Key Metrics
 
 | Metric | Value |
 |---|---|
 | Total Lines of Code (server + client) | ~20,000 |
-| Database Tables | 11 (9 original + contact_interactions + channel_configs) |
-| tRPC Procedures | 73 (60 core + 6 AI + 7 omnichannel) |
+| Database Tables | 14 (9 original + contact_interactions + channel_configs + contact_custom_fields + custom_field_definitions + ghl_import_jobs) |
+| tRPC Procedures | ~100 across 12 routers |
 | Backend Services | 9 modules |
 | Frontend Pages | 16 (15 routed + 1 internal showcase) |
 | Supported Channels | 13 (Email, SMS, LinkedIn, 4 Social, 2 Voice, Direct Mail, Webforms, Chat, Events) |
 | shadcn/ui Components | 53 |
 | Custom Components | 10 |
-| Test Files | 10 |
+| Test Files | 15 (11 non-live + 4 live) |
 | Dependencies | 67 production + 23 dev |
 | Contacts Deduplicated | 561,806 unique from 668,883 source rows |
 | GHL Contacts Synced (CSV) | 495,527 created + 615,731 updated (561,806 rows, 100% complete) |
@@ -67,7 +67,7 @@ The application follows a layered architecture with clear separation of concerns
 │  └─ tRPC hooks (useQuery / useMutation)             │
 ├─────────────────────────────────────────────────────┤
 │  API Layer (tRPC Router — server/routers.ts)         │
-│  └─ 76 procedures (public + protected)              │
+│  └─ ~100 procedures across 12 routers               │
 ├─────────────────────────────────────────────────────┤
 │  Service Layer (server/services/*.ts)                │
 │  └─ GHL, SMS-iT, Dripify, Orchestrator,            │
@@ -75,7 +75,7 @@ The application follows a layered architecture with clear separation of concerns
 │     Credentials                                      │
 ├─────────────────────────────────────────────────────┤
 │  Data Layer (Drizzle ORM → MySQL/TiDB)              │
-│  └─ 11 tables, 2 migrations, server/db.ts helpers   │
+│  └─ 14 tables, 6 migrations, server/db.ts helpers   │
 ├─────────────────────────────────────────────────────┤
 │  External APIs                                       │
 │  └─ GHL v2 API, SMS-iT API, Dripify/Firebase API   │
@@ -98,7 +98,7 @@ The UI uses an elegant dark theme with a deep navy background and warm gold acce
 
 ## 3. Database Schema Design
 
-The database consists of 11 tables managed through Drizzle ORM with MySQL (TiDB) as the backing store. Schema changes follow a migration-first workflow: edit `drizzle/schema.ts`, generate SQL with `pnpm drizzle-kit generate`, then apply via `webdev_execute_sql`.
+The database consists of 14 tables managed through Drizzle ORM with MySQL (TiDB) as the backing store. Schema changes follow a migration-first workflow: edit `drizzle/schema.ts`, generate SQL with `pnpm drizzle-kit generate`, then apply via `webdev_execute_sql`.
 
 ### Table Overview
 
@@ -140,7 +140,7 @@ Each contact carries a `tier` field (gold, silver, bronze, unscored) and an `ove
 
 The backend is organized into 9 service modules under `server/services/`, each encapsulating a specific domain. All services are consumed by tRPC procedures in `server/routers.ts` and tested through both unit and live E2E tests.
 
-### 4.1 GHL Service (`ghl.ts` — 600 lines)
+### 4.1 GHL Service (`ghl.ts` — 725 lines)
 
 The GoHighLevel integration is the largest service module, providing full CRUD operations against the GHL v2 API. It handles JWT-based authentication with automatic token refresh, contact upsert with field mapping, and batch operations.
 
@@ -150,13 +150,13 @@ The GoHighLevel integration is the largest service module, providing full CRUD o
 
 **Field mapping**: Transforms Stewardly's unified contact schema into GHL's custom field format, mapping `segment`, `tier`, `overallScore`, `county`, and `propertyType` to GHL custom fields.
 
-### 4.2 SMS-iT Service (`smsit.ts` — 181 lines)
+### 4.2 SMS-iT Service (`smsit.ts` — 260 lines)
 
 Integrates with the SMS-iT API for SMS campaign delivery and contact management. Uses API key authentication with a minimum key length of 20 characters.
 
 **Key functions**: `testConnection`, `checkCreditBalance`, `listContacts`, `getTemplates`, `sendSms`
 
-### 4.3 Dripify Service (`dripify.ts` — 215 lines)
+### 4.3 Dripify Service (`dripify.ts` — 304 lines)
 
 Integrates with Dripify's LinkedIn automation platform via Firebase authentication. Includes a failover mechanism for token validation that checks token length (>50 chars) and format before making live API calls.
 
@@ -181,7 +181,7 @@ The orchestrator coordinates multi-platform operations through a sequence-based 
 
 **Health checks**: The orchestrator calls each platform's `testConnection` function and updates the integration status in the database, keeping the dashboard's "Connected Platforms" counter accurate.
 
-### 4.6 Sync Scheduler (`syncScheduler.ts` — 205 lines)
+### 4.6 Sync Scheduler (`syncScheduler.ts` — 401 lines)
 
 Manages periodic synchronization between Stewardly and external platforms. Supports configurable intervals, force-pull operations for individual platforms or all platforms simultaneously, and webhook event processing.
 
@@ -191,11 +191,11 @@ Manages periodic synchronization between Stewardly and external platforms. Suppo
 
 The sync worker processes individual sync queue items, handling retries with exponential backoff, dead-letter queue (DLQ) management, and batch processing. It supports both push (Stewardly → external) and pull (external → Stewardly) directions.
 
-### 4.8 Campaign Engine (`campaignEngine.ts` — 266 lines)
+### 4.8 Campaign Engine (`campaignEngine.ts` — 405 lines)
 
 Manages campaign lifecycle from creation through execution. Supports multi-channel campaigns (email, SMS, LinkedIn, multi-channel), audience filtering based on contact segments and tiers, template variable interpolation, and scheduled execution.
 
-### 4.9 AI Engine (`aiEngine.ts` — 584 lines)
+### 4.9 AI Engine (`aiEngine.ts` — 750 lines)
 
 The AI/agentic continuous improvement engine provides three analytical layers: retrospective (historical trend analysis), real-time (live health scoring across 5 categories), and predictive (trend-based forecasting). Key capabilities include system health scoring (0–100 per category with weighted composite), prioritized recommendations with actionable CTAs, lead scoring based on data completeness and engagement metrics, segment analysis with tier distribution, and campaign performance analysis by channel.
 
@@ -213,20 +213,22 @@ The frontend is a single-page application built with React 19, using wouter for 
 
 | Page | Route | Purpose | Lines |
 |---|---|---|---|
-| Home | `/` | Dashboard overview with KPI cards, segment breakdown, platform health, recent activity, quick actions | 255 |
-| Contacts | `/contacts` | Contact list with search, filter, pagination, CRUD, detail modal, mobile cards | 494 |
-| Bulk Import | `/import` | CSV upload, column mapping, import progress tracking | 558 |
-| Campaigns | `/campaigns` | Campaign creation, template management, sequence builder, execution monitoring | 527 |
-| Sync Engine | `/sync` | Sync queue visualization, worker status, DLQ management | 236 |
-| Integrations | `/integrations` | Platform connection management, credential entry, health testing | 384 |
-| Enrichment | `/enrichment` | Contact data enrichment workflows | 132 |
-| Analytics | `/analytics` | Campaign performance metrics and funnel visualization | 294 |
-| Backups | `/backups` | Contact/campaign export and backup management | 151 |
-| Activity Feed | `/activity` | Chronological audit log of all system events | 123 |
-| Settings | `/settings` | Theme toggle, notification preferences, timezone/date format | 226 |
-| AI Insights | `/ai-insights` | AI engine: health scores, recommendations, predictions, lead scoring | 461 |
+| Home | `/` | Dashboard overview with KPI cards, omnichannel grid, AI insights, activity feed, quick actions | 414 |
+| Contacts | `/contacts` | Contact list with search, filter, pagination, CRUD, 3-tab detail, interactions, CSV export | 1,227 |
+| Bulk Import | `/import` | CSV upload, column mapping, paginated import history | 681 |
+| GHL Import | `/ghl-import` | Pull contacts from GHL with JWT auth and progress tracking | 404 |
+| Campaigns | `/campaigns` | 4-tab campaign studio: Campaigns, Sequences, Flow Builder, Templates | 1,252 |
+| Sync Engine | `/sync` | Sync queue, bidirectional controls, DLQ management, per-platform toggles | 492 |
+| Integrations | `/integrations` | Platform connections, credential management, quick setup guides | 481 |
+| Enrichment | `/enrichment` | Contact data enrichment + per-field completeness analytics | 197 |
+| Analytics | `/analytics` | Campaign metrics, channel breakdown, conversion funnel, performance chart | 372 |
+| Backups | `/backups` | Contact/campaign export, backup creation and download | 254 |
+| Activity Feed | `/activity` | Chronological audit log with type/severity filtering | 138 |
+| Settings | `/settings` | Theme toggle, notifications, timezone, system status, Danger Zone | 364 |
+| AI Insights | `/ai-insights` | AI engine: health scores, recommendations, predictions, lead scoring | 607 |
+| Channels | `/channels` | 13-channel management with provider selection, limits, budgets | 296 |
 | Component Showcase | (internal) | Design system reference with all UI components | 1,437 |
-| Not Found | `/404` | 404 error page | 52 |
+| Not Found | `/404` | 404 error page | 46 |
 
 ### 5.2 Dashboard (Home.tsx)
 
@@ -236,20 +238,22 @@ The dashboard displays four KPI cards at the top: Total Contacts, Active Campaig
 
 ### 5.3 Navigation Structure
 
-The sidebar navigation provides access to all 12 primary pages, organized by function:
+The sidebar navigation provides access to all 16 primary pages, organized by function:
 
-- **Overview** — Dashboard home
-- **Contacts** — Contact management
-- **Bulk Import** — Data ingestion
-- **Campaigns** — Outreach management
-- **Sync Engine** — Platform synchronization
-- **Integrations** — Platform connections
-- **Enrichment** — Data enhancement
-- **Analytics** — Performance metrics
+- **Overview** — Dashboard home with KPIs, omnichannel grid, AI quick insights
+- **Contacts** — Contact management with CRUD, interactions, export
+- **Bulk Import** — CSV data ingestion with column mapping
+- **GHL Import** — Pull contacts directly from GoHighLevel
+- **Campaigns** — Campaign studio with sequences, flow builder, templates
+- **Sync Engine** — Bidirectional platform synchronization
+- **Integrations** — Platform connections with setup guides
+- **Channels** — 13-channel management with provider configuration
+- **Enrichment** — Data completeness analytics
+- **Analytics** — Campaign performance metrics and funnels
 - **AI Insights** — AI engine: health scores, recommendations, predictions, lead scoring
-- **Backups** — Data export
-- **Activity** — Audit log
-- **Settings** — Theme, notifications, timezone preferences
+- **Backups** — Data export and backup management
+- **Activity** — Audit log with filtering
+- **Settings** — Theme, notifications, timezone, system status, Danger Zone
 
 ---
 
@@ -354,7 +358,7 @@ Additionally, Google Drive data was synced in two passes: v1 (948 created, 354 u
 
 ## 8. Testing Strategy
 
-The test suite spans 10 files organized into three tiers: unit tests, integration tests, and live end-to-end tests.
+The test suite spans 15 files (4,502 lines) organized into three tiers: unit tests, integration tests, and live end-to-end tests. All 256 non-live tests pass consistently; the 4 live test files require real platform credentials and are expected to skip/fail in sandbox environments.
 
 ### 8.1 Test File Inventory
 
@@ -380,14 +384,14 @@ This isolation was implemented after discovering that the test suite's `disconne
 ### 8.3 Running Tests
 
 ```bash
-# Run all non-live tests (144 tests)
+# Run all non-live tests (256 tests, 11 files)
 pnpm vitest run --exclude='**/live-*.test.ts'
 
 # Run specific live test suites (requires real credentials in DB)
 pnpm vitest run server/live-smsit-dripify.test.ts
 pnpm vitest run server/live-orchestrator-sync.test.ts
 
-# Run all tests including live (205 tests)
+# Run all tests including live (15 files)
 pnpm vitest run
 ```
 
@@ -494,11 +498,13 @@ When resuming the sync after 270,219 contacts were already in GHL, the checkpoin
 
 ### 11.4 Placeholder UI Elements
 
-Several UI pages contain structural placeholders for features that are not yet fully implemented. Coming-soon features use disabled buttons with tooltips instead of misleading interactions:
+All placeholder UI elements use disabled buttons with tooltips or toast notifications instead of misleading interactions:
 
-- **Enrichment page**: "Enrich All" button disabled with tooltip (pending PDL integration)
-- **Backups page**: "Restore" button disabled with tooltip (restore workflow not yet implemented)
-- **Analytics page**: Some chart drill-down interactions are placeholder
+- **Enrichment page**: "Enrich All" button disabled with tooltip (pending People Data Labs API key)
+- **Backups page**: "Restore" button disabled with tooltip (restore is a destructive operation requiring careful implementation)
+- **Contact enrichment execution**: UI ready, pipeline not connected (requires PDL subscription)
+- **Scheduled automatic backups**: Not yet implemented (manual backup creation works)
+- **Sequence conditional branching**: Not yet implemented (linear sequences work)
 
 ---
 
@@ -508,8 +514,8 @@ Several UI pages contain structural placeholders for features that are not yet f
 
 | File | Lines | Purpose |
 |---|---|---|
-| `server/routers.ts` | 1,130 | All tRPC procedures (65 endpoints) |
-| `server/db.ts` | 373 | Database query helpers |
+| `server/routers.ts` | 1,882 | All tRPC procedures (~100 endpoints across 12 routers) |
+| `server/db.ts` | 768 | Database query helpers |
 | `server/services/ghl.ts` | 600 | GoHighLevel API integration |
 | `server/services/syncWorker.ts` | 465 | Sync queue processing engine |
 | `server/services/orchestrator.ts` | 310 | Multi-platform sequence orchestration |
@@ -518,32 +524,34 @@ Several UI pages contain structural placeholders for features that are not yet f
 | `server/services/dripify.ts` | 215 | Dripify/LinkedIn automation integration |
 | `server/services/smsit.ts` | 181 | SMS-iT API integration |
 | `server/services/credentials.ts` | 124 | Credential loading and normalization |
-| `server/services/aiEngine.ts` | 735 | AI/agentic engine: health scores, predictions, recommendations, lead scoring |
-| `server/services/campaignEngine.ts` | 405 | Campaign lifecycle: 13-channel routing, social/call/mail queues |
-| `drizzle/schema.ts` | 280 | Database schema (11 tables) |
+| `server/services/aiEngine.ts` | 750 | AI/agentic engine: health scores, predictions, recommendations, lead scoring |
+| `server/services/ghlImport.ts` | 508 | GHL contact import service |
+| `server/services/webhooks.ts` | 469 | Webhook processing |
+| `drizzle/schema.ts` | 369 | Database schema (14 tables) |
 
 ### 12.2 Client Files
 
 | File | Lines | Purpose |
 |---|---|---|
 | `client/src/pages/ComponentShowcase.tsx` | 1,437 | Design system reference |
-| `client/src/pages/BulkImport.tsx` | 558 | CSV import with column mapping |
-| `client/src/pages/Campaigns.tsx` | 527 | Campaign management UI |
-| `client/src/pages/Contacts.tsx` | 494 | Contact list, CRUD, detail modal, mobile cards |
-| `client/src/pages/Integrations.tsx` | 384 | Platform connection management |
-| `client/src/pages/Analytics.tsx` | 294 | Performance metrics dashboard |
-| `client/src/pages/Home.tsx` | 255 | Dashboard overview with quick actions |
-| `client/src/pages/SyncEngine.tsx` | 236 | Sync queue visualization |
-| `client/src/pages/Settings.tsx` | 226 | Theme, notifications, preferences |
-| `client/src/pages/Backups.tsx` | 151 | Export management |
-| `client/src/pages/Enrichment.tsx` | 132 | Data enrichment workflows |
-| `client/src/pages/ActivityFeed.tsx` | 123 | Audit log viewer |
-| `client/src/pages/AIInsights.tsx` | 461 | AI continuous improvement engine dashboard |
-| `client/src/pages/NotFound.tsx` | 52 | 404 error page |
+| `client/src/pages/BulkImport.tsx` | 681 | CSV import with column mapping + paginated history |
+| `client/src/pages/Campaigns.tsx` | 1,252 | Campaign management UI + Flow Builder + Detail |
+| `client/src/pages/Contacts.tsx` | 1,227 | Contact list, CRUD, detail modal, export, interactions |
+| `client/src/pages/Integrations.tsx` | 481 | Platform connections + setup guides |
+| `client/src/pages/Analytics.tsx` | 372 | Performance metrics dashboard |
+| `client/src/pages/Home.tsx` | 414 | Dashboard overview with quick actions + AI insights |
+| `client/src/pages/SyncEngine.tsx` | 492 | Sync queue + bidirectional controls |
+| `client/src/pages/Settings.tsx` | 364 | Theme, notifications, preferences + Danger Zone |
+| `client/src/pages/Backups.tsx` | 254 | Export management |
+| `client/src/pages/Enrichment.tsx` | 197 | Data enrichment + completeness analytics |
+| `client/src/pages/ActivityFeed.tsx` | 138 | Audit log viewer |
+| `client/src/pages/AIInsights.tsx` | 607 | AI continuous improvement engine dashboard |
+| `client/src/pages/GhlImport.tsx` | 404 | GHL-specific contact import |
+| `client/src/pages/NotFound.tsx` | 46 | 404 error page |
 | `client/src/App.tsx` | 70 | Routing, lazy loading, layout |
 | `client/src/components/DashboardLayout.tsx` | 323 | Sidebar, header, mobile drawer |
 | `client/src/components/AIChatBox.tsx` | 335 | AI chat interface |
-| `client/src/components/GlobalSearch.tsx` | 160 | Cmd+K search overlay |
+| `client/src/components/GlobalSearch.tsx` | 216 | Cmd+K search overlay |
 | `client/src/components/Map.tsx` | 155 | Map component |
 | `client/src/components/NotificationCenter.tsx` | 130 | Bell icon + activity popover |
 | `client/src/components/ManusDialog.tsx` | 89 | Dialog wrapper |
@@ -565,6 +573,11 @@ Several UI pages contain structural placeholders for features that are not yet f
 | `server/live-campaign.test.ts` | Live E2E | Live campaign execution E2E |
 | `server/live-e2e.test.ts` | Live E2E | Live GHL API E2E |
 | `server/live-smsit-dripify.test.ts` | Live E2E | Live SMS-iT + Dripify E2E |
+| `server/bidirectional-sync.test.ts` | Integration | Bidirectional sync, push/pull, dirty batch |
+| `server/ghlImport.test.ts` | Integration | GHL import service tests |
+| `server/multi-platform-push.test.ts` | Integration | Multi-platform push (GHL, SMS-iT, Dripify) |
+| `server/next-steps.test.ts` | Integration | Admin purge, import pagination, setup guides |
+| `server/webhooks.test.ts` | Unit | Webhook processing tests |
 | `server/auth.logout.test.ts` | Unit | Auth logout reference test |
 
 ### 12.4 Standalone Scripts
