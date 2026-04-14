@@ -4,7 +4,7 @@ import { type Server } from "http";
 import { nanoid } from "nanoid";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import viteConfig from "../../vite.config";
+import getViteConfig from "../../vite.config";
 
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
@@ -13,10 +13,11 @@ export async function setupVite(app: Express, server: Server) {
     allowedHosts: true as const,
   };
 
+  const resolvedConfig = typeof getViteConfig === 'function' ? await (getViteConfig as any)({} as any) : getViteConfig;
   const vite = await createViteServer({
-    ...viteConfig,
+    ...resolvedConfig,
     configFile: false,
-    server: serverOptions,
+    server: { ...resolvedConfig.server, ...serverOptions },
     appType: "custom",
   });
 

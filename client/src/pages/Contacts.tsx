@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationEllipsis } from "@/components/ui/pagination";
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
@@ -47,6 +48,7 @@ import {
   ExternalLink, Mail, Phone, Building2, MapPin, Eye, MessageSquare, Linkedin, Clock,
   PhoneIncoming, PhoneOutgoing, Globe, MessageCircle, Calendar, Facebook, Instagram,
   Twitter, Video, Send, ArrowDownLeft, ArrowUpRight, Loader2, Download, Megaphone,
+  ArrowUpFromLine, ArrowDownToLine, CheckCircle2, AlertCircle, CloudOff,
   type LucideIcon
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,6 +67,12 @@ const TIER_COLORS: Record<string, string> = {
   silver: "bg-muted/50 text-muted-foreground border-border/50",
   bronze: "bg-orange-500/15 text-orange-400 border-orange-500/20",
   unscored: "bg-muted text-muted-foreground border-border",
+};
+const SYNC_STATUS_CONFIG: Record<string, { icon: typeof CheckCircle2; color: string; label: string }> = {
+  synced: { icon: CheckCircle2, color: "text-emerald-400", label: "Synced" },
+  dirty: { icon: AlertCircle, color: "text-amber-400", label: "Pending" },
+  local_only: { icon: CloudOff, color: "text-muted-foreground/50", label: "Local" },
+  conflict: { icon: AlertCircle, color: "text-red-400", label: "Conflict" },
 };
 
 export default function Contacts() {
@@ -90,16 +98,42 @@ export default function Contacts() {
   const createMut = trpc.contacts.create.useMutation({ onSuccess: () => { refetch(); setCreateOpen(false); toast.success("Contact created"); }, onError: (err) => toast.error(err.message) });
   const updateMut = trpc.contacts.update.useMutation({ onSuccess: () => { refetch(); setEditOpen(false); toast.success("Contact updated"); }, onError: (err) => toast.error(err.message) });
   const deleteMut = trpc.contacts.delete.useMutation({ onSuccess: () => { refetch(); toast.success("Contact deleted"); }, onError: (err) => toast.error(err.message) });
+  const pushToGhlMut = trpc.contacts.pushToGhl.useMutation({
+    onSuccess: () => { refetch(); toast.success("Pushed to GoHighLevel"); },
+    onError: (err) => toast.error(`Push failed: ${err.message}`),
+  });
+  const refreshFromGhlMut = trpc.contacts.refreshFromGhl.useMutation({
+    onSuccess: (data) => {
+      refetch();
+      if (detailContact) setDetailContact({ ...detailContact, ...data });
+      toast.success("Refreshed from GoHighLevel");
+    },
+    onError: (err) => toast.error(`Pull failed: ${err.message}`),
+  });
 
   const totalPages = Math.ceil((data?.total || 0) / limit);
 
   const [form, setForm] = useState<any>({});
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const openCreate = () => { setForm({}); setFormErrors({}); setCreateOpen(true); };
+  const [tagInput, setTagInput] = useState("");
+  const openCreate = () => { setForm({}); setFormErrors({}); setTagInput(""); setCreateOpen(true); };
   const openEdit = (c: any) => {
     let tags: string[] = [];
     try { tags = c.tags ? (typeof c.tags === "string" ? JSON.parse(c.tags) : c.tags) : []; } catch { tags = []; }
-    setForm({ ...c, tags }); setFormErrors({}); setEditContact(c); setEditOpen(true);
+    setForm({ ...c, tags }); setFormErrors({}); setTagInput(""); setEditContact(c); setEditOpen(true);
+  };
+
+  const addTag = () => {
+    const tag = tagInput.trim().toLowerCase();
+    if (!tag) return;
+    const current = form.tags || [];
+    if (!current.includes(tag)) {
+      setForm({ ...form, tags: [...current, tag] });
+    }
+    setTagInput("");
+  };
+  const removeTag = (tag: string) => {
+    setForm({ ...form, tags: (form.tags || []).filter((t: string) => t !== tag) });
   };
 
   const validateForm = (): boolean => {
@@ -126,6 +160,19 @@ export default function Contacts() {
     }
   };
 
+  // Build page numbers for pagination
+  const getPageNumbers = () => {
+    if (totalPages <= 7) return Array.from({ length: totalPages }, (_, i) => i);
+    const pages: (number | "ellipsis")[] = [0];
+    if (page > 2) pages.push("ellipsis");
+    for (let i = Math.max(1, page - 1); i <= Math.min(totalPages - 2, page + 1); i++) {
+      pages.push(i);
+    }
+    if (page < totalPages - 3) pages.push("ellipsis");
+    pages.push(totalPages - 1);
+    return pages;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -139,9 +186,9 @@ export default function Contacts() {
           <Button variant="outline" size="sm" className="gap-2 min-h-[44px] sm:min-h-0" onClick={() => {
             const rows = data?.contacts || [];
             if (rows.length === 0) { toast.error("No contacts to export"); return; }
-            const headers = ["First Name","Last Name","Email","Phone","Company","Segment","Tier","Address","City","State","Zip","Country","Source","Website","GHL ID","Score"];
+            const headers = ["First Name","Last Name","Email","Phone","Company","Segment","Tier","Address","City","State","Zip","Country","Source","Website","GHL ID","Score","Sync Status","Tags"];
             const csvRows = [headers.join(","), ...rows.map((c: any) =>
-              [c.firstName, c.lastName, c.email, c.phone, c.companyName, c.segment, c.tier, c.address, c.city, c.state, c.postalCode, c.country, c.source, c.website, c.ghlContactId, c.propensityScore]
+              [c.firstName, c.lastName, c.email, c.phone, c.companyName, c.segment, c.tier, c.address, c.city, c.state, c.postalCode, c.country, c.source, c.website, c.ghlContactId, c.propensityScore, c.syncStatus, (() => { try { return typeof c.tags === "string" ? JSON.parse(c.tags).join(";") : (c.tags || []).join(";"); } catch { return ""; } })()]
                 .map((v: unknown) => `"${(v || "").toString().replace(/"/g, '""')}"`)
                 .join(",")
             )];
@@ -211,7 +258,9 @@ export default function Contacts() {
             </div>
           ) : data?.contacts?.length ? (
             <div className="divide-y divide-border/30">
-              {data.contacts.map((c: any) => (
+              {data.contacts.map((c: any) => {
+                const syncCfg = SYNC_STATUS_CONFIG[c.syncStatus] || SYNC_STATUS_CONFIG.local_only;
+                return (
                 <button key={c.id} className="w-full text-left p-4 hover:bg-muted/10 transition-colors" onClick={() => setDetailContact(c)}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -219,27 +268,22 @@ export default function Contacts() {
                         <p className="font-medium text-foreground truncate">
                           {[c.firstName, c.lastName].filter(Boolean).join(" ") || "—"}
                         </p>
-                        <Badge className={`text-[9px] capitalize shrink-0 ${TIER_COLORS[c.tier] || TIER_COLORS.unscored}`}>{c.tier}</Badge>
+                        <syncCfg.icon className={`h-3 w-3 shrink-0 ${syncCfg.color}`} />
                       </div>
                       {c.companyName && <p className="text-xs text-muted-foreground mt-0.5 truncate">{c.companyName}</p>}
-                      <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground">
-                        {c.email && <span className="truncate">{c.email}</span>}
-                        {c.phone && <span className="tabular-nums shrink-0">{c.phone}</span>}
-                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 truncate">{c.email || c.phone || "No contact info"}</p>
                     </div>
-                    <div className="flex items-center gap-1 shrink-0 mt-1">
-                      <div className={`h-5 px-1 rounded text-[8px] flex items-center ${c.ghlContactId ? "bg-blue-500/15 text-blue-400" : "bg-muted/30 text-muted-foreground/30"}`}>GHL</div>
-                      <div className={`h-5 px-1 rounded text-[8px] flex items-center ${c.phone ? "bg-emerald-500/15 text-emerald-400" : "bg-muted/30 text-muted-foreground/30"}`}>SMS</div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <Badge className={`text-[9px] ${TIER_COLORS[c.tier] || TIER_COLORS.unscored}`}>{c.tier}</Badge>
+                      <Badge variant="outline" className="text-[9px]">{SEGMENT_LABELS[c.segment] || c.segment}</Badge>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant="outline" className="text-[9px] capitalize">{SEGMENT_LABELS[c.segment] || c.segment}</Badge>
                   </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           ) : (
-            <div className="p-6 sm:p-12 text-center">
+            <div className="p-8 text-center">
               <Users className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-muted-foreground">No contacts found</p>
               <p className="text-xs text-muted-foreground/60 mt-1">Import contacts or create one to get started.</p>
@@ -247,7 +291,7 @@ export default function Contacts() {
           )}
         </div>
 
-        {/* Desktop Table View */}
+        {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -257,6 +301,7 @@ export default function Contacts() {
                 <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Phone</th>
                 <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Segment</th>
                 <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Tier</th>
+                <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Sync</th>
                 <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Platforms</th>
                 <th className="text-right p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Actions</th>
               </tr>
@@ -265,13 +310,16 @@ export default function Contacts() {
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-border/30">
-                    {Array.from({ length: 7 }).map((_, j) => (
+                    {Array.from({ length: 8 }).map((_, j) => (
                       <td key={j} className="p-3"><div className="h-4 bg-muted/30 rounded animate-pulse" /></td>
                     ))}
                   </tr>
                 ))
               ) : data?.contacts?.length ? (
-                data.contacts.map((c: any) => (
+                data.contacts.map((c: any) => {
+                  const syncCfg = SYNC_STATUS_CONFIG[c.syncStatus] || SYNC_STATUS_CONFIG.local_only;
+                  const SyncIcon = syncCfg.icon;
+                  return (
                   <tr key={c.id} className="border-b border-border/30 hover:bg-muted/10 transition-colors">
                     <td className="p-3">
                       <button className="text-left group" onClick={() => setDetailContact(c)}>
@@ -288,6 +336,12 @@ export default function Contacts() {
                     </td>
                     <td className="p-3">
                       <Badge className={`text-[10px] capitalize ${TIER_COLORS[c.tier] || TIER_COLORS.unscored}`}>{c.tier}</Badge>
+                    </td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-1.5" title={syncCfg.label}>
+                        <SyncIcon className={`h-3.5 w-3.5 ${syncCfg.color}`} />
+                        <span className={`text-[10px] ${syncCfg.color}`}>{syncCfg.label}</span>
+                      </div>
                     </td>
                     <td className="p-3">
                       <div className="flex items-center gap-1">
@@ -310,10 +364,11 @@ export default function Contacts() {
                       </div>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               ) : (
                 <tr>
-                  <td colSpan={7} className="p-6 sm:p-12 text-center">
+                  <td colSpan={8} className="p-6 sm:p-12 text-center">
                     <Users className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
                     <p className="text-muted-foreground">No contacts found</p>
                     <p className="text-xs text-muted-foreground/60 mt-1">Import contacts or create one to get started.</p>
@@ -327,16 +382,41 @@ export default function Contacts() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between p-3 border-t border-border/30">
             <p className="text-xs text-muted-foreground">
-              Page {page + 1} of {totalPages}
+              Showing {page * limit + 1}–{Math.min((page + 1) * limit, data?.total || 0)} of {(data?.total || 0).toLocaleString()}
             </p>
-            <div className="flex gap-1">
-              <Button variant="outline" size="icon" className="h-11 w-11 sm:h-7 sm:w-7" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" className="h-11 w-11 sm:h-7 sm:w-7" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
+            <Pagination className="w-auto mx-0">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => page > 0 && setPage(p => p - 1)}
+                    className={page === 0 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                {getPageNumbers().map((p, i) =>
+                  p === "ellipsis" ? (
+                    <PaginationItem key={`e-${i}`}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={p}>
+                      <PaginationLink
+                        isActive={page === p}
+                        onClick={() => setPage(p as number)}
+                        className="cursor-pointer"
+                      >
+                        {(p as number) + 1}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                )}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => page < totalPages - 1 && setPage(p => p + 1)}
+                    className={page >= totalPages - 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           </div>
         )}
       </Card>
@@ -393,6 +473,28 @@ export default function Contacts() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            {/* Tags */}
+            <div className="col-span-2 space-y-2">
+              <Label className="text-xs text-muted-foreground">Tags</Label>
+              <div className="flex flex-wrap gap-1.5 min-h-[32px] p-2 rounded-md border border-border/50 bg-muted/30">
+                {(form.tags || []).map((tag: string) => (
+                  <Badge key={tag} variant="outline" className="text-[10px] gap-1 pr-1">
+                    {tag}
+                    <button type="button" onClick={() => removeTag(tag)} className="hover:text-destructive transition-colors">
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  </Badge>
+                ))}
+                <Input
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(); } }}
+                  onBlur={addTag}
+                  placeholder={form.tags?.length ? "" : "Type and press Enter..."}
+                  className="border-0 bg-transparent h-6 p-0 text-xs shadow-none focus-visible:ring-0 flex-1 min-w-[80px]"
+                />
+              </div>
             </div>
             <div className="col-span-2 space-y-2">
               <Label className="text-xs text-muted-foreground">Address</Label>
@@ -485,8 +587,14 @@ export default function Contacts() {
               <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium shrink-0">
                 {detailContact?.firstName?.charAt(0)?.toUpperCase() || detailContact?.email?.charAt(0)?.toUpperCase() || "?"}
               </div>
-              <div>
-                <div>{[detailContact?.firstName, detailContact?.lastName].filter(Boolean).join(" ") || "Unknown"}</div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="truncate">{[detailContact?.firstName, detailContact?.lastName].filter(Boolean).join(" ") || "Unknown"}</span>
+                  {(() => {
+                    const cfg = SYNC_STATUS_CONFIG[detailContact?.syncStatus] || SYNC_STATUS_CONFIG.local_only;
+                    return <span title={cfg.label}><cfg.icon className={`h-4 w-4 shrink-0 ${cfg.color}`} /></span>;
+                  })()}
+                </div>
                 {detailContact?.companyName && (
                   <p className="text-xs text-muted-foreground font-normal mt-0.5">{detailContact.companyName}</p>
                 )}
@@ -521,11 +629,17 @@ export default function Contacts() {
                     </a>
                   </div>
                 )}
+                {detailContact?.companyName && (
+                  <div className="flex items-center gap-3 min-h-[36px]">
+                    <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="text-sm text-foreground">{detailContact.companyName}</span>
+                  </div>
+                )}
                 {(detailContact?.address || detailContact?.city) && (
                   <div className="flex items-center gap-3 min-h-[36px]">
                     <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
                     <span className="text-sm text-foreground">
-                      {[detailContact.address, detailContact.city, detailContact.state, detailContact.postalCode].filter(Boolean).join(", ")}
+                      {[detailContact.address, detailContact.city, detailContact.state, detailContact.postalCode, detailContact.country].filter(Boolean).join(", ")}
                     </span>
                   </div>
                 )}
@@ -547,9 +661,43 @@ export default function Contacts() {
                 </div>
                 <div className="p-3 rounded-lg bg-muted/10">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Sync Status</p>
-                  <p className="text-sm font-medium text-foreground capitalize">{detailContact?.syncStatus || "unknown"}</p>
+                  {(() => {
+                    const cfg = SYNC_STATUS_CONFIG[detailContact?.syncStatus] || SYNC_STATUS_CONFIG.local_only;
+                    return (
+                      <div className="flex items-center gap-1.5">
+                        <cfg.icon className={`h-3.5 w-3.5 ${cfg.color}`} />
+                        <span className={`text-sm font-medium capitalize ${cfg.color}`}>{cfg.label}</span>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
+
+              {/* Push / Pull Actions */}
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 gap-1.5 text-xs"
+                  disabled={pushToGhlMut.isPending || !detailContact}
+                  onClick={() => detailContact && pushToGhlMut.mutate({ id: detailContact.id })}
+                >
+                  {pushToGhlMut.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ArrowUpFromLine className="h-3 w-3" />}
+                  Push to GHL
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 gap-1.5 text-xs"
+                  disabled={refreshFromGhlMut.isPending || !detailContact?.ghlContactId}
+                  onClick={() => detailContact && refreshFromGhlMut.mutate({ id: detailContact.id })}
+                  title={!detailContact?.ghlContactId ? "No GHL ID — push first" : "Pull latest from GHL"}
+                >
+                  {refreshFromGhlMut.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ArrowDownToLine className="h-3 w-3" />}
+                  Pull from GHL
+                </Button>
+              </div>
+
               {/* Tags */}
               {detailContact?.tags && (
                 <>

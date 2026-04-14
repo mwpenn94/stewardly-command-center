@@ -193,7 +193,7 @@ export default function SyncEngine() {
                     <div className="flex items-center gap-2 mb-1">
                       <Icon className={`h-3.5 w-3.5 ${platform === "ghl" ? "text-blue-400" : platform === "smsit" ? "text-emerald-400" : "text-sky-400"}`} />
                       <span className="text-xs font-medium text-foreground">{PLATFORM_LABELS[platform]}</span>
-                      <div className={`ml-auto h-1.5 w-1.5 rounded-full ${isEnabled ? "bg-emerald-400" : "bg-muted-foreground"}`} />
+                      <div className={`ml-auto h-1.5 w-1.5 rounded-full ${!isEnabled ? "bg-muted-foreground" : lastSync ? "bg-emerald-400" : "bg-amber-400"}`} />
                     </div>
                     <p className="text-[10px] text-muted-foreground">
                       {lastSync ? `Last: ${formatDistanceToNow(new Date(lastSync), { addSuffix: true })}` : "No sync yet"}

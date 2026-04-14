@@ -342,3 +342,75 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] Add sync settings page for configuring auto-sync interval and direction (integrated into Sync Engine page)
 - [x] Write tests for bidirectional sync (20 tests passing: buildPushPayloadFromLocal, scheduler status, push/pull procedures)
 - [x] Run initial import to pull all ~420K contacts from GHL (user-triggered via GHL Import page — Start New Import button)
+
+## Continuous Build Loop — Pass 1 (Initialization) — COMPLETED
+- [x] Reconcile README: already matches scope (logged in PROMPT_ISSUES.md as stale known issue)
+- [x] Create docs/PROMPT_ISSUES.md (3 issues: readme-scope-mismatch stale, stack-mismatch, convergence-criteria-scope)
+- [x] Create docs/PARITY.md (Appendix D) — already existed from prior passes
+- [x] Create docs/CRUD_PARITY.md (scope #1, 24 rows, 42% match rate)
+- [x] Create docs/SYNC_PARITY.md (scope #2, 22 rows, 36% match rate)
+- [x] Create docs/BULK_IMPORT_PARITY.md (scope #3, 21 rows, 48% match rate)
+- [x] Create docs/BACKUP_PARITY.md (scope #4, 21 rows, 33% match rate)
+- [x] Create docs/CAMPAIGN_ORCHESTRATION_PARITY.md (scope #5, 25 rows, 28% match rate)
+- [x] Create docs/UI_REGRESSION_LOG.md
+- [x] Create docs/PLATFORM_INTEGRATIONS.md (4 platforms assessed)
+- [x] Create docs/CURRENT_BEST.md (baseline state documented)
+- [x] Create docs/LOOP_DASHBOARD.md (all metrics baselined)
+- [x] Create docs/CONVERGENCE_LOG.md
+- [x] Create BLOCKED_ON.md at repo root
+- [x] Populate Platform Integration Status with initial auth state for each platform
+
+## Continuous Build Loop — Pass 2 (CRUD scope, Persona 1)
+- [x] P0 FIX: Blank page — async vite config not resolved in vite.ts (spreading function instead of object)
+- [x] P1: Add pagination to contacts list (shadcn Pagination component with page numbers, ellipsis, showing X-Y of Z)
+- [x] P1: Add per-contact Push to GHL / Pull from GHL buttons in contact detail view
+- [x] P1: Add sync status column to contacts table (icon + label: Synced/Pending/Local/Conflict)
+- [x] P1: Add tags field to create/edit contact form (inline tag input with Enter/comma to add, X to remove)
+- [x] P2: Show company/address in contact detail Info tab (Building2 icon + full address with country)
+- [ ] P2: Clean up test data or add bulk delete
+
+## Continuous Build Loop — Pass 3 (Sync scope, Persona 2)
+- [x] P1: Fix platform status dots on Sync Engine — green when "No sync yet" now amber, green only after successful sync
+- [x] P2: "Push Dirty Batch" button already exists in Pending Push card (shows when dirtyCount > 0)
+- [x] P2: Improve disabled state styling for "Pull from GHL" button — already uses disabled prop with title tooltip explaining why
+
+## Continuous Build Loop — Pass 4 (Depth virtual-user, a11y, dark mode)
+- [x] Verify Add Contact form: all fields present, tags input works, Additional Fields collapsible
+- [x] Verify Edit Contact form: pre-populated data, tags shown as removable badges
+- [x] Verify GHL Import page: Start New Import button, empty state, Refresh
+- [x] Verify Backups page: Platform Data Mirror, Create Backup, Backup History with Download/Restore
+- [x] Verify Overview dashboard: KPI cards, Omnichannel Overview, Contact Segments, Recent Activity, Platform Health
+- [x] Verify Integrations page: 4 platform cards with correct status, Configure/Disconnect/Edit buttons
+- [x] Dark mode: entire app uses dark theme consistently (bg-background/text-foreground)
+- [x] No P0 or P1 issues found — Pass 4 is clean
+
+## Continuous Build Loop — Pass 5 (Convergence Check #2)
+- [x] P1: Fix missing contact_interactions table — created and applied 0004_add_contact_interactions.sql migration
+- [x] Verified Overview page loads correctly with real data (127 contacts, 133 campaigns, 3 platforms)
+- [x] Verified no new console errors after migration fix
+- Counter: RESET to 0 (1 fix applied)
+
+## Continuous Build Loop — Pass 6 (Convergence Check #1)
+- [x] Full test suite: 200 passed, 12 live-E2E expected failures (require running daemons/real creds)
+- [x] Individual test file runs: all 4 "suspect" files pass independently (110/110)
+- [x] Confirmed: test interference in parallel runs, not code regressions
+- [x] No P0/P1/P2 issues found
+- Counter: 1 of 3 (CLEAN pass)
+
+## Continuous Build Loop — Pass 7 (Convergence Check #2)
+- [x] UI walkthrough: Contacts page renders correctly (sync status, pagination, platform badges, tier badges)
+- [x] UI walkthrough: Sync Engine page renders correctly (scheduler controls, platform cards, pending push, queue stats)
+- [x] Browser console: 0 errors
+- [x] Dev server log: 0 errors
+- [x] No P0/P1/P2 issues found
+- Counter: 2 of 3 (CLEAN pass)
+
+## Continuous Build Loop — Pass 8 (Convergence Check #3)
+- [x] UI walkthrough: Campaigns page renders correctly (channel cards, tabs, buttons)
+- [x] UI walkthrough: Analytics page renders correctly (KPI cards, per-channel breakdown, tier distribution)
+- [x] UI walkthrough: Integrations page renders correctly (4 platform cards with status)
+- [x] UI walkthrough: Overview dashboard renders correctly (KPI cards, omnichannel, quick actions)
+- [x] Browser console: 0 errors across all pages
+- [x] Network requests: 0 failed API calls (no 4xx/5xx)
+- [x] No P0/P1 issues found
+- Counter: 3 of 3 (CLEAN pass) — CONVERGED
