@@ -290,9 +290,9 @@ export default function Integrations() {
                     )}
                   </div>
                   <div className="flex gap-1.5">
-                    {status === "connected" && (
+                    {(status === "connected" || status === "error") && (
                       <Button variant="ghost" size="sm" className="h-7 min-h-[44px] text-xs text-destructive hover:text-destructive" onClick={() => handleDisconnect(platform.id)}>
-                        <Trash2 className="h-3 w-3 mr-1" /> Disconnect
+                        <Trash2 className="h-3 w-3 mr-1" /> {status === "error" ? "Reset" : "Disconnect"}
                       </Button>
                     )}
                     <Button variant="outline" size="sm" className="h-7 min-h-[44px] text-xs gap-1.5" onClick={() => openConfig(platform)}>

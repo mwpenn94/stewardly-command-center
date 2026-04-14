@@ -742,3 +742,27 @@ export async function getContactWithCustomFields(id: number, userId: number) {
 
   return { ...contact[0], customFields };
 }
+
+
+// ─── CSV Export ──────────────────────────────────────────────────────────
+export async function getContactsForExport(userId: number, opts: {
+  search?: string; segment?: string; tier?: string;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = [eq(contacts.userId, userId)];
+  if (opts.segment && opts.segment !== "all") conditions.push(eq(contacts.segment, opts.segment as any));
+  if (opts.tier && opts.tier !== "all") conditions.push(eq(contacts.tier, opts.tier as any));
+  if (opts.search) {
+    conditions.push(or(
+      like(contacts.firstName, `%${opts.search}%`),
+      like(contacts.lastName, `%${opts.search}%`),
+      like(contacts.email, `%${opts.search}%`),
+      like(contacts.phone, `%${opts.search}%`),
+      like(contacts.companyName, `%${opts.search}%`),
+    )!);
+  }
+  const where = and(...conditions);
+  // No limit — export all matching contacts
+  return db.select().from(contacts).where(where).orderBy(desc(contacts.updatedAt));
+}

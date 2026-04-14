@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 import * as ghlService from "./services/ghl";
@@ -209,6 +209,13 @@ describe("SyncSchedulerManager direct", () => {
 // ─── Contact Push/Pull Router Procedures ─────────────────────────
 
 describe("Contact Push/Pull Procedures", () => {
+  // Clean up any GHL credentials left by other test files (e.g. e2e.test.ts)
+  beforeAll(async () => {
+    try {
+      await caller.integrations.disconnect({ platform: "ghl" });
+    } catch { /* ignore if not connected */ }
+  });
+
   it("pushToGhl rejects non-existent contact", async () => {
     await expect(
       caller.contacts.pushToGhl({ id: 999999 })

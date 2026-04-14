@@ -126,6 +126,7 @@ export default function Contacts() {
     onSuccess: () => { refetch(); toast.success("Pushed to SMS-iT"); },
     onError: (err) => toast.error(`SMS-iT push failed: ${err.message}`),
   });
+  const exportCsvMut = trpc.contacts.exportCsv.useMutation();
   const pushToDripifyMut = trpc.contacts.pushToDripify.useMutation({
     onError: (err) => toast.error(`Dripify push failed: ${err.message}`),
   });
@@ -242,22 +243,20 @@ export default function Contacts() {
           </p>
         </div>
         <div className="flex gap-2 shrink-0">
-          <Button variant="outline" size="sm" className="gap-2 min-h-[44px] sm:min-h-0" onClick={() => {
-            const rows = data?.contacts || [];
-            if (rows.length === 0) { toast.error("No contacts to export"); return; }
-            const headers = ["First Name","Last Name","Email","Phone","Company","Segment","Tier","Address","City","State","Zip","Country","Source","Website","GHL ID","Score","Sync Status","Tags"];
-            const csvRows = [headers.join(","), ...rows.map((c: any) =>
-              [c.firstName, c.lastName, c.email, c.phone, c.companyName, c.segment, c.tier, c.address, c.city, c.state, c.postalCode, c.country, c.source, c.website, c.ghlContactId, c.propensityScore, c.syncStatus, (() => { try { return typeof c.tags === "string" ? JSON.parse(c.tags).join(";") : (c.tags || []).join(";"); } catch { return ""; } })()]
-                .map((v: unknown) => `"${(v || "").toString().replace(/"/g, '""')}"`)
-                .join(",")
-            )];
-            const blob = new Blob([csvRows.join("\n")], { type: "text/csv" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a"); a.href = url; a.download = `contacts-${new Date().toISOString().split("T")[0]}.csv`; a.click();
-            URL.revokeObjectURL(url);
-            toast.success(`Exported ${rows.length} contacts`);
+          <Button variant="outline" size="sm" className="gap-2 min-h-[44px] sm:min-h-0" disabled={exportCsvMut.isPending} onClick={() => {
+            exportCsvMut.mutate({ search, segment, tier }, {
+              onSuccess: (result) => {
+                if (result.count === 0) { toast.error("No contacts to export"); return; }
+                const blob = new Blob([result.csv], { type: "text/csv;charset=utf-8;" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a"); a.href = url; a.download = `contacts-${new Date().toISOString().split("T")[0]}.csv`; a.click();
+                URL.revokeObjectURL(url);
+                toast.success(`Exported ${result.count} contacts to CSV`);
+              },
+              onError: (err) => toast.error(err.message),
+            });
           }}>
-            <Download className="h-4 w-4" /> Export
+            {exportCsvMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />} Export All
           </Button>
           <Button onClick={openCreate} size="sm" className="gap-2 min-h-[44px] sm:min-h-0">
             <Plus className="h-4 w-4" /> Add Contact

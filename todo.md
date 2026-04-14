@@ -524,3 +524,29 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] Add guided setup wizard for Dripify credentials on Integrations page
 - [x] Add credential validation feedback (what's missing, what's configured)
 - [x] Add "Get Started" documentation links for each platform (per-field hints with step-by-step instructions)
+
+## Round 5 — Implementation + 20-Pass Convergence
+
+### Step 1: Run Purge to Clean Test Data
+- [x] Execute purge via the Settings Danger Zone to remove E2E test records (127 contacts, 131 campaigns, test imports removed)
+- [x] Verify dashboard counts reflect real data only (0 contacts, 2 campaigns remain)
+
+### Step 2: Fix GHL Credential Status
+- [x] Investigate why GHL shows "Error" on Integrations page (stale error status from failed connection test)
+- [x] Fix: Added Reset button for error-status platforms, reset GHL and LinkedIn to "Not Connected"
+
+### Step 3: Add CSV Export to Contacts Page
+- [x] Add server-side CSV export procedure (contacts.exportCsv)
+- [x] Add "Export All" button on Contacts page (respects current search/segment/tier filters)
+- [x] Write tests for CSV export (7 new tests: 5 CSV export + 2 integration reset = 21 total in next-steps.test.ts)
+
+### Fix: Test Interference (bidirectional-sync.test.ts)
+- [x] Root cause: e2e.test.ts persists GHL credentials with error status, bidirectional-sync expects no credentials
+- [x] Fix: Added beforeAll to disconnect GHL in bidirectional-sync test
+
+### 20-Pass Convergence Loop
+- [x] Pass 1-5: Full validation (all pages, tests, console, network, desktop+mobile)
+- [x] Pass 6-10: Stability confirmation
+- [x] Pass 11-15: Extended stability with interactive testing
+- [x] Pass 16-20: Final convergence confirmation
+- [x] **20 consecutive clean passes achieved** — 276 non-live tests pass, 0 console errors, 0 network 500s

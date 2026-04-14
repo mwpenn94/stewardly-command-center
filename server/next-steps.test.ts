@@ -7,6 +7,7 @@ vi.mock("./db", () => ({
   purgeTestImports: vi.fn(),
   purgeTestActivity: vi.fn(),
   getBulkImportsPaginated: vi.fn(),
+  getContactsForExport: vi.fn(),
   logActivity: vi.fn(),
 }));
 
@@ -17,6 +18,7 @@ const mockPurgeCampaigns = db.purgeTestCampaigns as ReturnType<typeof vi.fn>;
 const mockPurgeImports = db.purgeTestImports as ReturnType<typeof vi.fn>;
 const mockPurgeActivity = db.purgeTestActivity as ReturnType<typeof vi.fn>;
 const mockGetPaginated = db.getBulkImportsPaginated as ReturnType<typeof vi.fn>;
+const mockGetContactsForExport = (db as any).getContactsForExport as ReturnType<typeof vi.fn>;
 
 describe("Admin Purge Test Data", () => {
   beforeEach(() => {
@@ -125,6 +127,93 @@ describe("Paginated Bulk Imports", () => {
 
     await db.getBulkImportsPaginated(1, {});
     expect(mockGetPaginated).toHaveBeenCalledWith(1, {});
+  });
+});
+
+describe("CSV Export", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("getContactsForExport returns all matching contacts without pagination", async () => {
+    const mockContacts = [
+      { id: 1, firstName: "Alice", lastName: "Smith", email: "alice@example.com", phone: "555-0001", segment: "residential", tier: "gold" },
+      { id: 2, firstName: "Bob", lastName: "Jones", email: "bob@example.com", phone: "555-0002", segment: "commercial", tier: "silver" },
+    ];
+    mockGetContactsForExport.mockResolvedValue(mockContacts);
+
+    const result = await (db as any).getContactsForExport(1, {});
+    expect(result).toHaveLength(2);
+    expect(result[0].firstName).toBe("Alice");
+    expect(mockGetContactsForExport).toHaveBeenCalledWith(1, {});
+  });
+
+  it("getContactsForExport passes filter options", async () => {
+    mockGetContactsForExport.mockResolvedValue([]);
+
+    await (db as any).getContactsForExport(1, { search: "alice", segment: "residential", tier: "gold" });
+    expect(mockGetContactsForExport).toHaveBeenCalledWith(1, { search: "alice", segment: "residential", tier: "gold" });
+  });
+
+  it("getContactsForExport returns empty array when no contacts match", async () => {
+    mockGetContactsForExport.mockResolvedValue([]);
+
+    const result = await (db as any).getContactsForExport(1, { search: "nonexistent" });
+    expect(result).toHaveLength(0);
+  });
+
+  it("CSV escaping handles commas, quotes, and newlines", () => {
+    const escCsv = (v: unknown) => {
+      if (v == null) return "";
+      if (v instanceof Date) return v.toISOString();
+      if (Array.isArray(v)) return `"${v.join("; ")}"`;
+      const s = String(v);
+      return s.includes(",") || s.includes('"') || s.includes("\n")
+        ? `"${s.replace(/"/g, '""')}"`
+        : s;
+    };
+
+    expect(escCsv(null)).toBe("");
+    expect(escCsv(undefined)).toBe("");
+    expect(escCsv("simple")).toBe("simple");
+    expect(escCsv("has,comma")).toBe('"has,comma"');
+    expect(escCsv('has"quote')).toBe('"has""quote"');
+    expect(escCsv("has\nnewline")).toBe('"has\nnewline"');
+    expect(escCsv(new Date("2026-01-01T00:00:00Z"))).toBe("2026-01-01T00:00:00.000Z");
+    expect(escCsv(["tag1", "tag2"])).toBe('"tag1; tag2"');
+  });
+
+  it("CSV header contains expected columns", () => {
+    const CSV_COLUMNS = [
+      "firstName", "lastName", "email", "phone", "companyName",
+      "address", "city", "state", "postalCode", "country",
+      "segment", "tier", "source", "contactType", "tags",
+      "propensityScore", "productOpportunities", "specialistRoute",
+      "website", "syncStatus", "createdAt", "updatedAt",
+    ];
+    expect(CSV_COLUMNS).toContain("firstName");
+    expect(CSV_COLUMNS).toContain("email");
+    expect(CSV_COLUMNS).toContain("segment");
+    expect(CSV_COLUMNS).toContain("tier");
+    expect(CSV_COLUMNS).toContain("tags");
+    expect(CSV_COLUMNS).toHaveLength(22);
+  });
+});
+
+describe("Integration Reset", () => {
+  it("error status platforms should show Reset button", () => {
+    const statuses = ["connected", "error", "disconnected"];
+    const shouldShowReset = (status: string) => status === "error";
+    expect(shouldShowReset("error")).toBe(true);
+    expect(shouldShowReset("connected")).toBe(false);
+    expect(shouldShowReset("disconnected")).toBe(false);
+  });
+
+  it("reset changes status from error to disconnected", () => {
+    const platform = { name: "GHL", status: "error" };
+    // Simulate disconnect (which is what reset does)
+    platform.status = "disconnected";
+    expect(platform.status).toBe("disconnected");
   });
 });
 

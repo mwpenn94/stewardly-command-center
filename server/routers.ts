@@ -57,6 +57,36 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         return db.getContacts(ctx.user.id, input || {});
       }),
+    exportCsv: protectedProcedure
+      .input(z.object({
+        search: z.string().optional(),
+        segment: z.string().optional(),
+        tier: z.string().optional(),
+      }).optional())
+      .mutation(async ({ ctx, input }) => {
+        const rows = await db.getContactsForExport(ctx.user.id, input || {});
+        const CSV_COLUMNS = [
+          "firstName", "lastName", "email", "phone", "companyName",
+          "address", "city", "state", "postalCode", "country",
+          "segment", "tier", "source", "contactType", "tags",
+          "propensityScore", "productOpportunities", "specialistRoute",
+          "website", "syncStatus", "createdAt", "updatedAt",
+        ] as const;
+        const escCsv = (v: unknown) => {
+          if (v == null) return "";
+          if (v instanceof Date) return v.toISOString();
+          if (Array.isArray(v)) return `"${v.join("; ")}"`;
+          const s = String(v);
+          return s.includes(",") || s.includes('"') || s.includes("\n")
+            ? `"${s.replace(/"/g, '""')}"`
+            : s;
+        };
+        const header = CSV_COLUMNS.join(",");
+        const lines = rows.map(r =>
+          CSV_COLUMNS.map(col => escCsv((r as any)[col])).join(",")
+        );
+        return { csv: [header, ...lines].join("\n"), count: rows.length };
+      }),
     get: protectedProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ ctx, input }) => {
