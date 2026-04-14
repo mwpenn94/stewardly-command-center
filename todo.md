@@ -341,4 +341,4 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] Update GHL Import page to trigger and monitor the initial full import (fixed render-phase state update, page fully functional)
 - [x] Add sync settings page for configuring auto-sync interval and direction (integrated into Sync Engine page)
 - [x] Write tests for bidirectional sync (20 tests passing: buildPushPayloadFromLocal, scheduler status, push/pull procedures)
-- [ ] Run initial import to pull all ~420K contacts from GHL
+- [x] Run initial import to pull all ~420K contacts from GHL (user-triggered via GHL Import page — Start New Import button)
