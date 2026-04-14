@@ -367,7 +367,7 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] P1: Add sync status column to contacts table (icon + label: Synced/Pending/Local/Conflict)
 - [x] P1: Add tags field to create/edit contact form (inline tag input with Enter/comma to add, X to remove)
 - [x] P2: Show company/address in contact detail Info tab (Building2 icon + full address with country)
-- [ ] P2: Clean up test data or add bulk delete
+- [x] P2: Clean up test data or add bulk delete (checkbox selection + AlertDialog confirmation + bulkDelete procedure, max 500 at a time)
 
 ## Continuous Build Loop — Pass 3 (Sync scope, Persona 2)
 - [x] P1: Fix platform status dots on Sync Engine — green when "No sync yet" now amber, green only after successful sync

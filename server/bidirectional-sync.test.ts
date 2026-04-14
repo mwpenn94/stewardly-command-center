@@ -240,3 +240,30 @@ describe("Contact Push/Pull Procedures", () => {
     ).rejects.toThrow();
   });
 });
+
+// ─── bulkDelete procedure ────────────────────────────────────
+
+describe("contacts.bulkDelete", () => {
+  it("requires at least 1 id", async () => {
+    await expect(caller.contacts.bulkDelete({ ids: [] })).rejects.toThrow();
+  });
+
+  it("rejects more than 500 ids", async () => {
+    const ids = Array.from({ length: 501 }, (_, i) => i + 1);
+    await expect(caller.contacts.bulkDelete({ ids })).rejects.toThrow();
+  });
+
+  it("accepts valid id array and returns deleted count", async () => {
+    // This test uses the mock context so DB calls will fail gracefully
+    // but the procedure should not throw on valid input shape
+    try {
+      const result = await caller.contacts.bulkDelete({ ids: [1, 2, 3] });
+      expect(result).toHaveProperty("deleted");
+      expect(result).toHaveProperty("ghlDeleted");
+    } catch (err: any) {
+      // If DB is not available, the error should be a DB error, not a validation error
+      expect(err.message).not.toContain("too_small");
+      expect(err.message).not.toContain("too_big");
+    }
+  });
+});

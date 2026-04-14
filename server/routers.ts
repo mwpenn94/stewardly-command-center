@@ -256,6 +256,41 @@ export const appRouter = router({
         });
         return { success: true };
       }),
+    bulkDelete: protectedProcedure
+      .input(z.object({ ids: z.array(z.number()).min(1).max(500) }))
+      .mutation(async ({ ctx, input }) => {
+        let ghlDeletedCount = 0;
+        // Attempt GHL deletes for synced contacts
+        const ghlCreds = await credentialHelper.getGhlCredentials(ctx.user.id);
+        for (const id of input.ids) {
+          const contact = await db.getContactById(id, ctx.user.id);
+          if (contact?.ghlContactId && ghlCreds && (ghlCreds.apiKey || ghlCreds.jwt)) {
+            try {
+              await ghlService.deleteContact(ghlCreds, contact.ghlContactId);
+              ghlDeletedCount++;
+            } catch (err: any) {
+              console.error(`[Contacts] GHL bulk delete failed for #${id}:`, err.message);
+            }
+          }
+        }
+        // Delete from local DB
+        const dbInstance = await (await import("./db")).getDb();
+        if (dbInstance) {
+          const { contacts } = await import("../drizzle/schema");
+          const { inArray, and, eq } = await import("drizzle-orm");
+          await dbInstance.delete(contacts).where(
+            and(eq(contacts.userId, ctx.user.id), inArray(contacts.id, input.ids))
+          );
+        }
+        await db.logActivity({
+          userId: ctx.user.id,
+          type: "sync",
+          action: "contacts_bulk_deleted",
+          description: `Bulk deleted ${input.ids.length} contacts (${ghlDeletedCount} from GHL)`,
+          severity: "warning",
+        });
+        return { deleted: input.ids.length, ghlDeleted: ghlDeletedCount };
+      }),
     stats: protectedProcedure.query(async ({ ctx }) => {
       return db.getContactStats(ctx.user.id);
     }),

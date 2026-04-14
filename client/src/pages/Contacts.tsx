@@ -11,6 +11,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationEllipsis } from "@/components/ui/pagination";
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { formatDistanceToNow } from "date-fns";
 
 const TIMELINE_CHANNEL_ICONS: Record<string, LucideIcon> = {
@@ -84,6 +86,8 @@ export default function Contacts() {
   const [editContact, setEditContact] = useState<any>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [detailContact, setDetailContact] = useState<any>(null);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const limit = 25;
 
   const queryInput = useMemo(() => ({
@@ -101,6 +105,10 @@ export default function Contacts() {
   const pushToGhlMut = trpc.contacts.pushToGhl.useMutation({
     onSuccess: () => { refetch(); toast.success("Pushed to GoHighLevel"); },
     onError: (err) => toast.error(`Push failed: ${err.message}`),
+  });
+  const bulkDeleteMut = trpc.contacts.bulkDelete.useMutation({
+    onSuccess: (data) => { refetch(); setSelected(new Set()); toast.success(`Deleted ${data.deleted} contacts${data.ghlDeleted ? ` (${data.ghlDeleted} from GHL)` : ""}`); setBulkDeleteOpen(false); },
+    onError: (err) => toast.error(`Bulk delete failed: ${err.message}`),
   });
   const refreshFromGhlMut = trpc.contacts.refreshFromGhl.useMutation({
     onSuccess: (data) => {
@@ -175,6 +183,42 @@ export default function Contacts() {
 
   return (
     <div className="space-y-6">
+      {/* Bulk Actions Bar */}
+      {selected.size > 0 && (
+        <div className="flex items-center gap-3 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+          <Checkbox checked={true} onCheckedChange={() => setSelected(new Set())} />
+          <span className="text-sm text-foreground font-medium">{selected.size} selected</span>
+          <div className="flex-1" />
+          <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())} className="text-muted-foreground">Clear</Button>
+          <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" className="gap-2" disabled={bulkDeleteMut.isPending}>
+                {bulkDeleteMut.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                Delete {selected.size}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete {selected.size} contacts?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete {selected.size} contacts from the local database. Contacts synced with GoHighLevel will also be removed from GHL. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => bulkDeleteMut.mutate({ ids: Array.from(selected) })}
+                  disabled={bulkDeleteMut.isPending}
+                >
+                  {bulkDeleteMut.isPending ? "Deleting..." : `Delete ${selected.size} contacts`}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl tracking-tight text-foreground">Contacts</h1>
@@ -296,6 +340,18 @@ export default function Contacts() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border/50 bg-muted/20">
+                <th className="p-3 w-10">
+                  <Checkbox
+                    checked={data?.contacts?.length ? data.contacts.every((c: any) => selected.has(c.id)) : false}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelected(new Set(data?.contacts?.map((c: any) => c.id) || []));
+                      } else {
+                        setSelected(new Set());
+                      }
+                    }}
+                  />
+                </th>
                 <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Name</th>
                 <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Email</th>
                 <th className="text-left p-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">Phone</th>
@@ -310,7 +366,7 @@ export default function Contacts() {
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-border/30">
-                    {Array.from({ length: 8 }).map((_, j) => (
+                    {Array.from({ length: 9 }).map((_, j) => (
                       <td key={j} className="p-3"><div className="h-4 bg-muted/30 rounded animate-pulse" /></td>
                     ))}
                   </tr>
@@ -320,7 +376,17 @@ export default function Contacts() {
                   const syncCfg = SYNC_STATUS_CONFIG[c.syncStatus] || SYNC_STATUS_CONFIG.local_only;
                   const SyncIcon = syncCfg.icon;
                   return (
-                  <tr key={c.id} className="border-b border-border/30 hover:bg-muted/10 transition-colors">
+                  <tr key={c.id} className={`border-b border-border/30 hover:bg-muted/10 transition-colors ${selected.has(c.id) ? "bg-primary/5" : ""}`}>
+                    <td className="p-3">
+                      <Checkbox
+                        checked={selected.has(c.id)}
+                        onCheckedChange={(checked) => {
+                          const next = new Set(selected);
+                          if (checked) next.add(c.id); else next.delete(c.id);
+                          setSelected(next);
+                        }}
+                      />
+                    </td>
                     <td className="p-3">
                       <button className="text-left group" onClick={() => setDetailContact(c)}>
                         <div className="font-medium text-foreground group-hover:text-primary transition-colors">
@@ -368,7 +434,7 @@ export default function Contacts() {
                 })
               ) : (
                 <tr>
-                  <td colSpan={8} className="p-6 sm:p-12 text-center">
+                  <td colSpan={9} className="p-6 sm:p-12 text-center">
                     <Users className="h-8 w-8 text-muted-foreground/30 mx-auto mb-3" />
                     <p className="text-muted-foreground">No contacts found</p>
                     <p className="text-xs text-muted-foreground/60 mt-1">Import contacts or create one to get started.</p>
