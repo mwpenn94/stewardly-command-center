@@ -106,15 +106,29 @@ export default function Campaigns() {
   const { data: platformHealth } = trpc.orchestrator.platformHealth.useQuery();
   const { data: sequences, refetch: refetchSeq } = trpc.orchestrator.listSequences.useQuery(undefined, { refetchInterval: 3000 });
 
+  const [campaignPage, setCampaignPage] = useState(1);
+  const CAMPAIGNS_PER_PAGE = 20;
+  const totalCampaignPages = Math.max(1, Math.ceil((campaigns?.length || 0) / CAMPAIGNS_PER_PAGE));
+  const paginatedCampaigns = useMemo(() => {
+    if (!campaigns) return [];
+    const start = (campaignPage - 1) * CAMPAIGNS_PER_PAGE;
+    return campaigns.slice(start, start + CAMPAIGNS_PER_PAGE);
+  }, [campaigns, campaignPage]);
+
   const createCampaign = trpc.campaigns.create.useMutation({
     onSuccess: () => { refetch(); setCreateOpen(false); toast.success("Campaign created"); },
     onError: (err) => toast.error(err.message),
   });
   const launchCampaign = trpc.campaigns.launch.useMutation({
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       refetch(); setLaunchOpen(false);
-      if (data.success) toast.success(`Campaign sent to ${data.sent} contacts!`);
-      else toast.warning(`Sent: ${data.sent}, Failed: ${data.failed}`);
+      if (data.scheduled) {
+        toast.success(`Campaign scheduled for ${new Date(data.scheduledAt).toLocaleString()}`);
+      } else if (data.success) {
+        toast.success(`Campaign sent to ${data.sent} contacts!`);
+      } else {
+        toast.warning(`Sent: ${data.sent}, Failed: ${data.failed}`);
+      }
     },
     onError: (err) => toast.error(err.message),
   });
@@ -176,6 +190,7 @@ export default function Campaigns() {
       body: launchForm.body,
       subject: launchForm.subject || undefined,
       contactIds: ids,
+      scheduledAt: launchForm.sendMode === "schedule" && launchForm.scheduledAt ? new Date(launchForm.scheduledAt).toISOString() : undefined,
     });
   };
 
@@ -291,7 +306,8 @@ export default function Campaigns() {
               <Card key={i} className="bg-card border-border/50"><CardContent className="p-5"><div className="h-16 bg-muted/30 rounded animate-pulse" /></CardContent></Card>
             ))
           ) : campaigns?.length ? (
-            campaigns.map((c) => {
+            <>
+            {paginatedCampaigns.map((c) => {
               const ch = CHANNEL_CONFIG[c.channel] || CHANNEL_CONFIG.email;
               const Icon = ch.icon;
               let metrics: Record<string, unknown> | null = null;
@@ -328,7 +344,35 @@ export default function Campaigns() {
                   </CardContent>
                 </Card>
               );
-            })
+            })}
+            {totalCampaignPages > 1 && (
+              <div className="flex items-center justify-between pt-3">
+                <p className="text-xs text-muted-foreground">
+                  Showing {((campaignPage - 1) * CAMPAIGNS_PER_PAGE) + 1}–{Math.min(campaignPage * CAMPAIGNS_PER_PAGE, campaigns.length)} of {campaigns.length}
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button variant="outline" size="sm" disabled={campaignPage === 1} onClick={() => setCampaignPage(p => p - 1)}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  {Array.from({ length: Math.min(totalCampaignPages, 7) }, (_, i) => {
+                    let page: number;
+                    if (totalCampaignPages <= 7) { page = i + 1; }
+                    else if (campaignPage <= 4) { page = i + 1; }
+                    else if (campaignPage >= totalCampaignPages - 3) { page = totalCampaignPages - 6 + i; }
+                    else { page = campaignPage - 3 + i; }
+                    return (
+                      <Button key={page} variant={page === campaignPage ? "default" : "outline"} size="sm" className="h-8 w-8 p-0" onClick={() => setCampaignPage(page)}>
+                        {page}
+                      </Button>
+                    );
+                  })}
+                  <Button variant="outline" size="sm" disabled={campaignPage === totalCampaignPages} onClick={() => setCampaignPage(p => p + 1)}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            </>
           ) : (
             <Card className="bg-card border-border/50">
               <CardContent className="p-6 sm:p-12 text-center">
@@ -680,7 +724,7 @@ export default function Campaigns() {
       {/* ─── Template Dialog ─── */}
       <Dialog open={templateOpen} onOpenChange={setTemplateOpen}>
         <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-md">
-          <DialogHeader><DialogTitle>New Template</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>New Template</DialogTitle><DialogDescription className="sr-only">Create a reusable message template</DialogDescription></DialogHeader>
           <div className="space-y-3">
             <div><Label>Name</Label><Input value={tplForm.name || ""} onChange={(e) => setTplForm({ ...tplForm, name: e.target.value })} /></div>
             <div><Label>Channel</Label>

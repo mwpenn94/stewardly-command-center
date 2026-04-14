@@ -283,6 +283,59 @@ export default function Integrations() {
       </div>
       )}
 
+      {/* Webhook Configuration */}
+      <Card className="bg-card border-border/50">
+        <CardContent className="p-5">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+              <Zap className="h-5 w-5 text-amber-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">Webhook Endpoints</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Configure these URLs in each platform to receive real-time updates when contacts or campaigns change.
+              </p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            {[
+              { platform: "GoHighLevel", path: "/api/webhooks/ghl", events: "contact.create, contact.update, contact.delete", color: "text-blue-400" },
+              { platform: "SMS-iT", path: "/api/webhooks/smsit", events: "contact.updated, message.received, message.status", color: "text-emerald-400" },
+              { platform: "Dripify", path: "/api/webhooks/dripify", events: "lead.replied, campaign.completed, lead.status_changed", color: "text-violet-400" },
+            ].map((wh) => {
+              const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+              const fullUrl = `${baseUrl}${wh.path}`;
+              return (
+                <div key={wh.path} className="flex items-center gap-3 p-3 rounded-lg border border-border/30 hover:bg-muted/5 transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-medium ${wh.color}`}>{wh.platform}</span>
+                    </div>
+                    <code className="text-[11px] text-muted-foreground font-mono block mt-1 truncate">{fullUrl}</code>
+                    <p className="text-[10px] text-muted-foreground/60 mt-0.5">Events: {wh.events}</p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs shrink-0"
+                    onClick={() => {
+                      navigator.clipboard.writeText(fullUrl);
+                      toast.success(`${wh.platform} webhook URL copied`);
+                    }}
+                  >
+                    Copy URL
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-[10px] text-muted-foreground/60 mt-3 flex items-center gap-1">
+            <Shield className="h-3 w-3 shrink-0" />
+            All webhooks use HMAC-SHA256 signature verification. Set your webhook secret in each platform's credential config above.
+          </p>
+        </CardContent>
+      </Card>
+
       {/* How it works */}
       <Card className="bg-card/50 border-border/30">
         <CardContent className="p-5">

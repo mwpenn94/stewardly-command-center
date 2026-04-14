@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -508,6 +508,7 @@ export default function Contacts() {
         <DialogContent className="sm:max-w-lg bg-card">
           <DialogHeader>
             <DialogTitle className="text-foreground">{editContact ? "Edit Contact" : "New Contact"}</DialogTitle>
+            <DialogDescription className="sr-only">{editContact ? "Edit contact details" : "Create a new contact"}</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4 py-4">
             <div className="space-y-2">
@@ -681,6 +682,7 @@ export default function Contacts() {
                 )}
               </div>
             </DialogTitle>
+            <DialogDescription className="sr-only">Contact details and interaction history</DialogDescription>
           </DialogHeader>
 
           <Tabs defaultValue="info" className="w-full">

@@ -1075,6 +1075,7 @@ export const appRouter = router({
           tier: z.string().optional(),
           search: z.string().optional(),
         }).optional(),
+        scheduledAt: z.string().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Get campaign
@@ -1098,6 +1099,40 @@ export const appRouter = router({
 
         // Get platform credentials
         const allCreds = await credentialHelper.getAllCredentials(ctx.user.id);
+
+        // Handle scheduling
+        if (input.scheduledAt) {
+          const scheduledDate = new Date(input.scheduledAt);
+          if (scheduledDate.getTime() <= Date.now()) {
+            throw new Error("Scheduled time must be in the future");
+          }
+          await db.updateCampaign(input.campaignId, ctx.user.id, {
+            status: "scheduled",
+            audienceCount: contacts.length,
+            metrics: JSON.stringify({
+              scheduledAt: scheduledDate.toISOString(),
+              body: input.body,
+              subject: input.subject,
+              contactIds: input.contactIds,
+              audienceFilter: input.audienceFilter,
+            }),
+          } as any);
+          await db.logActivity({
+            userId: ctx.user.id,
+            type: "campaign",
+            action: "campaign_scheduled",
+            description: `Scheduled campaign "${campaign.name}" for ${scheduledDate.toLocaleString()} to ${contacts.length} contacts`,
+            severity: "info",
+          });
+          return {
+            success: true,
+            sent: 0,
+            failed: 0,
+            errors: [],
+            scheduled: true,
+            scheduledAt: scheduledDate.toISOString(),
+          };
+        }
 
         // Update campaign status
         await db.updateCampaign(input.campaignId, ctx.user.id, {

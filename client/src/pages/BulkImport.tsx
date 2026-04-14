@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import {
   Upload, FileText, Play, Pause, CheckCircle2, XCircle, Clock,
@@ -503,6 +503,7 @@ export default function BulkImport() {
               <Key className="h-4 w-4 text-amber-400" />
               Update GHL JWT Token
             </DialogTitle>
+            <DialogDescription className="sr-only">Update your GoHighLevel JWT token for sync</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">

@@ -3,12 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { formatDistanceToNow } from "date-fns";
+import { Link } from "wouter";
 import {
   Download, Play, Pause, Square, RefreshCw, Loader2, CheckCircle2,
-  XCircle, Clock, ArrowDownToLine, AlertTriangle, RotateCcw
+  XCircle, Clock, ArrowDownToLine, AlertTriangle, RotateCcw, Link2,
+  ShieldCheck, ShieldAlert, ExternalLink, Info, Database
 } from "lucide-react";
 import QueryError from "@/components/QueryError";
 
@@ -30,6 +33,16 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
 
 export default function GhlImport() {
   const [activeJobId, setActiveJobId] = useState<number | null>(null);
+
+  // Check GHL credential status
+  const { data: integrations, isLoading: integrationsLoading } = trpc.integrations.list.useQuery();
+  const ghlIntegration = useMemo(() => {
+    if (!integrations) return null;
+    return integrations.find((i: any) => i.platform === "ghl") || null;
+  }, [integrations]);
+
+  const isGhlConnected = ghlIntegration?.status === "connected";
+  const hasGhlCredentials = !!ghlIntegration;
 
   const { data: jobs, isLoading: jobsLoading, error: jobsError, refetch: refetchJobs } = trpc.ghlImport.list.useQuery();
   const startMut = trpc.ghlImport.start.useMutation({
@@ -88,6 +101,15 @@ export default function GhlImport() {
     : 0;
   const pct = liveProgress?.totalContacts ? Math.round((processed / liveProgress.totalContacts) * 100) : 0;
 
+  // Compute import history stats
+  const completedJobs = useMemo(() => {
+    if (!jobs) return [];
+    return jobs.filter((j: any) => j.status === "completed");
+  }, [jobs]);
+  const totalImported = useMemo(() => {
+    return completedJobs.reduce((sum: number, j: any) => sum + (j.importedCount || 0) + (j.updatedCount || 0), 0);
+  }, [completedJobs]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -110,7 +132,8 @@ export default function GhlImport() {
             size="sm"
             className="gap-2"
             onClick={() => startMut.mutate({})}
-            disabled={startMut.isPending || (liveProgress?.status === "running")}
+            disabled={startMut.isPending || (liveProgress?.status === "running") || !isGhlConnected}
+            title={!isGhlConnected ? "Connect GHL credentials first" : undefined}
           >
             {startMut.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -121,6 +144,104 @@ export default function GhlImport() {
           </Button>
         </div>
       </div>
+
+      {/* Credential Status Banner */}
+      {!integrationsLoading && (
+        <Card className={`border-l-4 ${isGhlConnected ? "border-l-emerald-500 bg-emerald-500/5" : hasGhlCredentials ? "border-l-amber-500 bg-amber-500/5" : "border-l-red-500 bg-red-500/5"}`}>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                {isGhlConnected ? (
+                  <ShieldCheck className="h-5 w-5 text-emerald-400 shrink-0" />
+                ) : (
+                  <ShieldAlert className="h-5 w-5 text-amber-400 shrink-0" />
+                )}
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {isGhlConnected
+                      ? "GoHighLevel Connected"
+                      : hasGhlCredentials
+                        ? "GoHighLevel — Connection Needs Verification"
+                        : "GoHighLevel Not Connected"}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {isGhlConnected
+                      ? `API credentials verified. Ready to import contacts.${ghlIntegration?.lastCheckedAt ? ` Last checked ${formatDistanceToNow(new Date(ghlIntegration.lastCheckedAt), { addSuffix: true })}.` : ""}`
+                      : hasGhlCredentials
+                        ? "Credentials saved but not verified. Please test the connection on the Integrations page."
+                        : "You need to configure GHL API credentials before importing contacts."}
+                  </p>
+                </div>
+              </div>
+              {!isGhlConnected && (
+                <Link href="/integrations">
+                  <Button variant="outline" size="sm" className="gap-1.5 shrink-0">
+                    <Link2 className="h-3.5 w-3.5" />
+                    {hasGhlCredentials ? "Verify Connection" : "Connect GHL"}
+                    <ExternalLink className="h-3 w-3" />
+                  </Button>
+                </Link>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Import Summary Stats */}
+      {completedJobs.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <Card className="bg-card border-border/50">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Database className="h-4 w-4 text-blue-400" />
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Imported</span>
+              </div>
+              <p className="text-lg font-semibold text-foreground tabular-nums">{totalImported.toLocaleString()}</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border/50">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Completed Jobs</span>
+              </div>
+              <p className="text-lg font-semibold text-foreground tabular-nums">{completedJobs.length}</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border/50">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Jobs</span>
+              </div>
+              <p className="text-lg font-semibold text-foreground tabular-nums">{jobs?.length || 0}</p>
+            </CardContent>
+          </Card>
+          <Card className="bg-card border-border/50">
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 mb-1">
+                <XCircle className="h-4 w-4 text-red-400" />
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Failed Jobs</span>
+              </div>
+              <p className="text-lg font-semibold text-foreground tabular-nums">
+                {jobs?.filter((j: any) => j.status === "failed").length || 0}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Large Dataset Guidance */}
+      {!liveProgress && isGhlConnected && completedJobs.length === 0 && (
+        <Alert className="bg-blue-500/5 border-blue-500/20">
+          <Info className="h-4 w-4 text-blue-400" />
+          <AlertDescription className="text-xs text-muted-foreground">
+            <strong className="text-foreground">First import?</strong> For large GHL accounts (100K+ contacts), the initial import may take 30-60 minutes.
+            The import runs in batches with automatic pagination. You can pause and resume at any time — progress is saved.
+            We recommend starting during off-peak hours for best performance.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Active Import Progress */}
       {liveProgress && (liveProgress.status === "running" || liveProgress.status === "paused") && (
@@ -225,7 +346,9 @@ export default function GhlImport() {
               <Download className="h-10 w-10 text-muted-foreground/30 mx-auto mb-3" />
               <p className="text-sm text-muted-foreground">No import jobs yet</p>
               <p className="text-xs text-muted-foreground/60 mt-1">
-                Click "Start New Import" to pull contacts from GoHighLevel
+                {isGhlConnected
+                  ? 'Click "Start New Import" to pull contacts from GoHighLevel'
+                  : "Connect your GHL credentials first, then start an import"}
               </p>
             </div>
           ) : (
