@@ -118,6 +118,17 @@ export default function Contacts() {
     },
     onError: (err) => toast.error(`Pull failed: ${err.message}`),
   });
+  const bulkPushToGhlMut = trpc.contacts.bulkPushToGhl.useMutation({
+    onSuccess: (data) => { refetch(); setSelected(new Set()); toast.success(`Pushed ${data.pushed} contacts to GHL${data.failed ? ` (${data.failed} failed)` : ""}`); },
+    onError: (err) => toast.error(`Bulk push failed: ${err.message}`),
+  });
+  const pushToSmsitMut = trpc.contacts.pushToSmsit.useMutation({
+    onSuccess: () => { refetch(); toast.success("Pushed to SMS-iT"); },
+    onError: (err) => toast.error(`SMS-iT push failed: ${err.message}`),
+  });
+  const pushToDripifyMut = trpc.contacts.pushToDripify.useMutation({
+    onError: (err) => toast.error(`Dripify push failed: ${err.message}`),
+  });
 
   const totalPages = Math.ceil((data?.total || 0) / limit);
 
@@ -190,6 +201,10 @@ export default function Contacts() {
           <span className="text-sm text-foreground font-medium">{selected.size} selected</span>
           <div className="flex-1" />
           <Button variant="ghost" size="sm" onClick={() => setSelected(new Set())} className="text-muted-foreground">Clear</Button>
+          <Button variant="outline" size="sm" className="gap-2 border-blue-500/30 text-blue-400 hover:bg-blue-500/10" disabled={bulkPushToGhlMut.isPending} onClick={() => bulkPushToGhlMut.mutate({ ids: Array.from(selected) })}>
+            {bulkPushToGhlMut.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ArrowUpFromLine className="h-3.5 w-3.5" />}
+            Push {selected.size} to GHL
+          </Button>
           <AlertDialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm" className="gap-2" disabled={bulkDeleteMut.isPending}>
@@ -740,28 +755,57 @@ export default function Contacts() {
               </div>
 
               {/* Push / Pull Actions */}
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 gap-1.5 text-xs"
-                  disabled={pushToGhlMut.isPending || !detailContact}
-                  onClick={() => detailContact && pushToGhlMut.mutate({ id: detailContact.id })}
-                >
-                  {pushToGhlMut.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ArrowUpFromLine className="h-3 w-3" />}
-                  Push to GHL
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 gap-1.5 text-xs"
-                  disabled={refreshFromGhlMut.isPending || !detailContact?.ghlContactId}
-                  onClick={() => detailContact && refreshFromGhlMut.mutate({ id: detailContact.id })}
-                  title={!detailContact?.ghlContactId ? "No GHL ID — push first" : "Pull latest from GHL"}
-                >
-                  {refreshFromGhlMut.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ArrowDownToLine className="h-3 w-3" />}
-                  Pull from GHL
-                </Button>
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Platform Sync</p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-1.5 text-xs"
+                    disabled={pushToGhlMut.isPending || !detailContact}
+                    onClick={() => detailContact && pushToGhlMut.mutate({ id: detailContact.id })}
+                  >
+                    {pushToGhlMut.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ArrowUpFromLine className="h-3 w-3" />}
+                    Push to GHL
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-1.5 text-xs"
+                    disabled={refreshFromGhlMut.isPending || !detailContact?.ghlContactId}
+                    onClick={() => detailContact && refreshFromGhlMut.mutate({ id: detailContact.id })}
+                    title={!detailContact?.ghlContactId ? "No GHL ID — push first" : "Pull latest from GHL"}
+                  >
+                    {refreshFromGhlMut.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <ArrowDownToLine className="h-3 w-3" />}
+                    Pull from GHL
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-1.5 text-xs border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                    disabled={pushToSmsitMut.isPending || !detailContact?.phone}
+                    onClick={() => detailContact && pushToSmsitMut.mutate({ id: detailContact.id })}
+                    title={!detailContact?.phone ? "Phone required for SMS-iT" : "Push to SMS-iT"}
+                  >
+                    {pushToSmsitMut.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <MessageSquare className="h-3 w-3" />}
+                    Push to SMS-iT
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-1.5 text-xs border-sky-500/30 text-sky-400 hover:bg-sky-500/10"
+                    disabled={!detailContact}
+                    onClick={() => {
+                      toast.info("Select a Dripify campaign to add this contact as a lead", { description: "Use the Campaigns page to manage Dripify campaigns" });
+                    }}
+                    title="Add as lead to a Dripify campaign"
+                  >
+                    <Linkedin className="h-3 w-3" />
+                    Push to Dripify
+                  </Button>
+                </div>
               </div>
 
               {/* Tags */}

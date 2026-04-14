@@ -158,6 +158,85 @@ export async function getTemplates(
   }
 }
 
+/** Update a contact in SMS-iT. */
+export async function updateContact(
+  creds: SmsitCredentials,
+  contactId: string,
+  contact: { phone?: string; firstName?: string; lastName?: string; email?: string; tags?: string[] }
+): Promise<{ success: boolean; error?: string }> {
+  const baseUrl = creds.baseUrl || DEFAULT_BASE_URL;
+  try {
+    const payload: any = {};
+    if (contact.phone) payload.phone = contact.phone;
+    if (contact.firstName) payload.first_name = contact.firstName;
+    if (contact.lastName) payload.last_name = contact.lastName;
+    if (contact.email) payload.email = contact.email;
+    if (contact.tags) payload.tags = contact.tags;
+    const res = await fetch(`${baseUrl}/contacts/${contactId}`, {
+      method: "PUT",
+      headers: getHeaders(creds),
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) return { success: true };
+    return { success: false, error: `SMS-iT ${res.status}: ${(await res.text()).slice(0, 300)}` };
+  } catch (err: any) {
+    return { success: false, error: `Contact update error: ${err.message}` };
+  }
+}
+
+/** Delete a contact from SMS-iT. */
+export async function deleteContact(
+  creds: SmsitCredentials,
+  contactId: string
+): Promise<{ success: boolean; error?: string }> {
+  const baseUrl = creds.baseUrl || DEFAULT_BASE_URL;
+  try {
+    const res = await fetch(`${baseUrl}/contacts/${contactId}`, {
+      method: "DELETE",
+      headers: getHeaders(creds),
+    });
+    if (res.ok) return { success: true };
+    return { success: false, error: `SMS-iT ${res.status}: ${(await res.text()).slice(0, 300)}` };
+  } catch (err: any) {
+    return { success: false, error: `Contact delete error: ${err.message}` };
+  }
+}
+
+/** Get a single contact from SMS-iT by ID. */
+export async function getContact(
+  creds: SmsitCredentials,
+  contactId: string
+): Promise<{ success: boolean; contact?: any; error?: string }> {
+  const baseUrl = creds.baseUrl || DEFAULT_BASE_URL;
+  try {
+    const res = await fetch(`${baseUrl}/contacts/${contactId}`, { headers: getHeaders(creds) });
+    if (res.ok) {
+      const data = await res.json();
+      return { success: true, contact: data.data || data };
+    }
+    return { success: false, error: `SMS-iT ${res.status}: ${(await res.text()).slice(0, 300)}` };
+  } catch (err: any) {
+    return { success: false, error: `Contact get error: ${err.message}` };
+  }
+}
+
+/** Build an SMS-iT push payload from a local contact record. */
+export function buildPushPayloadFromLocal(
+  contact: Record<string, any>
+): { phone: string; firstName?: string; lastName?: string; email?: string; tags?: string[] } {
+  const payload: any = { phone: contact.phone || "" };
+  if (contact.firstName) payload.firstName = contact.firstName;
+  if (contact.lastName) payload.lastName = contact.lastName;
+  if (contact.email) payload.email = contact.email;
+  if (contact.tags) {
+    try {
+      const parsed = typeof contact.tags === "string" ? JSON.parse(contact.tags) : contact.tags;
+      if (Array.isArray(parsed)) payload.tags = parsed;
+    } catch { /* ignore */ }
+  }
+  return payload;
+}
+
 /** Test SMS-iT connection by checking credit balance. */
 export async function testConnection(
   creds: SmsitCredentials

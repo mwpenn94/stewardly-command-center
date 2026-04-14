@@ -176,6 +176,95 @@ export function processWebhookEvent(payload: any): {
   };
 }
 
+/** Add a lead to a Dripify campaign. */
+export async function addLeadToCampaign(
+  creds: DripifyCredentials,
+  campaignId: string,
+  lead: { linkedinUrl?: string; email?: string; firstName?: string; lastName?: string }
+): Promise<{ success: boolean; leadId?: string; error?: string }> {
+  try {
+    const res = await fetch(`${DRIPIFY_API}/campaign/${campaignId}/leads`, {
+      method: "POST",
+      headers: getHeaders(creds),
+      body: JSON.stringify({ leads: [lead] }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const addedLeads = Array.isArray(data) ? data : data.leads || data.data || [];
+      return { success: true, leadId: addedLeads[0]?.id || addedLeads[0]?._id };
+    }
+    return { success: false, error: `Dripify ${res.status}: ${(await res.text()).slice(0, 200)}` };
+  } catch (err: any) {
+    return { success: false, error: `Dripify add lead error: ${err.message}` };
+  }
+}
+
+/** Remove a lead from a Dripify campaign. */
+export async function removeLeadFromCampaign(
+  creds: DripifyCredentials,
+  campaignId: string,
+  leadId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${DRIPIFY_API}/campaign/${campaignId}/leads/${leadId}`, {
+      method: "DELETE",
+      headers: getHeaders(creds),
+    });
+    if (res.ok) return { success: true };
+    return { success: false, error: `Dripify ${res.status}: ${(await res.text()).slice(0, 200)}` };
+  } catch (err: any) {
+    return { success: false, error: `Dripify remove lead error: ${err.message}` };
+  }
+}
+
+/** Update a campaign in Dripify (name, message, status). */
+export async function updateCampaign(
+  creds: DripifyCredentials,
+  campaignId: string,
+  updates: { name?: string; message?: string; status?: string }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${DRIPIFY_API}/campaign/${campaignId}`, {
+      method: "PUT",
+      headers: getHeaders(creds),
+      body: JSON.stringify(updates),
+    });
+    if (res.ok) return { success: true };
+    return { success: false, error: `Dripify ${res.status}: ${(await res.text()).slice(0, 200)}` };
+  } catch (err: any) {
+    return { success: false, error: `Dripify update campaign error: ${err.message}` };
+  }
+}
+
+/** Delete a campaign from Dripify. */
+export async function deleteCampaign(
+  creds: DripifyCredentials,
+  campaignId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${DRIPIFY_API}/campaign/${campaignId}`, {
+      method: "DELETE",
+      headers: getHeaders(creds),
+    });
+    if (res.ok) return { success: true };
+    return { success: false, error: `Dripify ${res.status}: ${(await res.text()).slice(0, 200)}` };
+  } catch (err: any) {
+    return { success: false, error: `Dripify delete campaign error: ${err.message}` };
+  }
+}
+
+/** Build a Dripify lead payload from a local contact record. */
+export function buildPushPayloadFromLocal(
+  contact: Record<string, any>
+): { linkedinUrl?: string; email?: string; firstName?: string; lastName?: string } {
+  const payload: any = {};
+  if (contact.linkedinUrl || contact.linkedin) payload.linkedinUrl = contact.linkedinUrl || contact.linkedin;
+  if (contact.email) payload.email = contact.email;
+  if (contact.firstName) payload.firstName = contact.firstName;
+  if (contact.lastName) payload.lastName = contact.lastName;
+  return payload;
+}
+
 /** Test Dripify connection by fetching user profile. Also attempts token refresh if expired. */
 export async function testConnection(
   creds: DripifyCredentials

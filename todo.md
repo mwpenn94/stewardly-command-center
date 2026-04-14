@@ -414,3 +414,42 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] Network requests: 0 failed API calls (no 4xx/5xx)
 - [x] No P0/P1 issues found
 - Counter: 3 of 3 (CLEAN pass) — CONVERGED
+
+## Recommended Next Steps — Implementation
+- [x] Add bulk push to GHL: bulkPushToGhl procedure + "Push N to GHL" button in bulk actions bar
+- [x] Implement SMS-iT write/push: createContact, updateContact, deleteContact, getContact, buildPushPayloadFromLocal + pushToSmsit, pullFromSmsit procedures
+- [x] Implement Dripify write/push: addLeadToCampaign, removeLeadFromCampaign, updateCampaign, deleteCampaign, buildPushPayloadFromLocal + pushToDripify, pullFromDripify procedures
+- [x] Add bulk push button to Contacts page bulk actions bar (alongside bulk delete)
+- [x] Add per-contact SMS-iT and Dripify push buttons in contact detail view
+- [x] Write tests for multi-platform push/pull (24 tests passing)
+
+## Continuous Build Loop 2 - Pass 1 (Full Walkthrough)
+- [x] P2: Add Push buttons to SMS-iT and Dripify platform cards on Sync Engine (previously only GHL had Push)
+- [x] P2: Add Push direction toggles for SMS-iT and Dripify in Sync Configuration settings
+- [x] Verified Contacts page: table, sync status, pagination, platform badges all render correctly
+- [x] Verified Contact detail: Push to GHL, Pull from GHL, Push to SMS-iT, Push to Dripify all present
+- [x] Verified Sync Engine: scheduler controls, all 3 platforms with Pull + Push buttons
+- [x] Tests: 47/47 passing (bidirectional-sync + multi-platform-push)
+- Counter: RESET to 0 (2 fixes applied)
+
+## Continuous Build Loop 2 - Pass 2 (Full Verification)
+- [x] Overview dashboard: KPIs populated (127 contacts, 133 campaigns, 0 sync queue, 3 platforms)
+- [x] Sync Engine: All 3 platform cards (GHL, SMS-iT, Dripify) now show both Pull + Push buttons
+- [x] Console: 0 errors (1 minor DialogContent aria-describedby warning — cosmetic only)
+- [x] Network: All API calls returning 200 with correct data
+- Counter: 1 of 3 (no fixes applied)
+
+## Continuous Build Loop 2 - Pass 3 (Remaining Pages + Tests)
+- [x] Campaigns: 133 campaigns listed, all tabs (Campaigns/Flow Builder/Sequences/Templates), Launch + Delete buttons
+- [x] Integrations: GHL (Error), Dripify (Connected, 5 creds), LinkedIn (Error), SMS-iT (Connected, 1 cred)
+- [x] Tests: 104/104 passing across 4 test files (bidirectional-sync, multi-platform-push, orchestrator, features)
+- [x] No console errors, no failed API calls
+- Counter: 2 of 3 (no fixes applied)
+
+## Continuous Build Loop 2 - Pass 4 (Final Convergence Check)
+- [x] Enrichment: 127 contacts, 40% completeness, 8 fields tracked, tier/segment distribution
+- [x] Settings: Profile, Appearance, Notifications, General, Quick Links — all rendering
+- [x] Activity: 50+ events with type/severity filters, timestamps, expandable detail
+- [x] Console: 0 errors
+- [x] Network: 0 failed requests
+- Counter: **3 of 3 — CONVERGED**

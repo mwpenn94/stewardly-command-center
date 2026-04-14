@@ -55,11 +55,17 @@ export default function SyncEngine() {
   const [ghlPush, setGhlPush] = useState(() =>
     localStorage.getItem("sync-ghl-push") !== "false"
   );
-  const [smsitEnabled, setSmsitEnabled] = useState(() =>
-    localStorage.getItem("sync-smsit-enabled") !== "false"
+  const [smsitPull, setSmsitPull] = useState(() =>
+    localStorage.getItem("sync-smsit-pull") !== "false"
   );
-  const [dripifyEnabled, setDripifyEnabled] = useState(() =>
-    localStorage.getItem("sync-dripify-enabled") !== "false"
+  const [smsitPush, setSmsitPush] = useState(() =>
+    localStorage.getItem("sync-smsit-push") !== "false"
+  );
+  const [dripifyPull, setDripifyPull] = useState(() =>
+    localStorage.getItem("sync-dripify-pull") !== "false"
+  );
+  const [dripifyPush, setDripifyPush] = useState(() =>
+    localStorage.getItem("sync-dripify-push") !== "false"
   );
   const [autoStart, setAutoStart] = useState(() =>
     localStorage.getItem("sync-auto-start") === "true"
@@ -74,8 +80,8 @@ export default function SyncEngine() {
       intervalMs: parseInt(syncInterval),
       platforms: {
         ghl: { enabled: ghlPull || ghlPush, pullContacts: ghlPull, pushContacts: ghlPush },
-        smsit: { enabled: smsitEnabled, pullContacts: smsitEnabled },
-        dripify: { enabled: dripifyEnabled, pullLeads: dripifyEnabled },
+        smsit: { enabled: smsitPull || smsitPush, pullContacts: smsitPull, pushContacts: smsitPush },
+        dripify: { enabled: dripifyPull || dripifyPush, pullLeads: dripifyPull, pushLeads: dripifyPush },
       },
     };
     if (schedulerStatus?.isRunning) {
@@ -204,11 +210,9 @@ export default function SyncEngine() {
                       <Button size="sm" variant="ghost" className="h-6 text-[10px] flex-1 gap-1" onClick={() => forcePull.mutate({ platform })} disabled={forcePull.isPending}>
                         <ArrowDownToLine className="h-2.5 w-2.5" /> Pull
                       </Button>
-                      {platform === "ghl" && (
-                        <Button size="sm" variant="ghost" className="h-6 text-[10px] flex-1 gap-1 text-emerald-400" onClick={() => forcePush.mutate()} disabled={forcePush.isPending}>
-                          <ArrowUpFromLine className="h-2.5 w-2.5" /> Push
-                        </Button>
-                      )}
+                      <Button size="sm" variant="ghost" className="h-6 text-[10px] flex-1 gap-1 text-emerald-400" onClick={() => forcePush.mutate()} disabled={forcePush.isPending}>
+                        <ArrowUpFromLine className="h-2.5 w-2.5" /> Push
+                      </Button>
                     </div>
                   </div>
                 );
@@ -269,18 +273,30 @@ export default function SyncEngine() {
                   {/* SMS-iT */}
                   <div className="space-y-3">
                     <Label className="text-xs text-muted-foreground">SMS-iT</Label>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-foreground">Pull contacts</span>
-                      <Switch checked={smsitEnabled} onCheckedChange={(v) => { setSmsitEnabled(v); saveSyncPref("sync-smsit-enabled", String(v)); }} />
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-foreground">Pull from SMS-iT</span>
+                        <Switch checked={smsitPull} onCheckedChange={(v) => { setSmsitPull(v); saveSyncPref("sync-smsit-pull", String(v)); }} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-foreground">Push to SMS-iT</span>
+                        <Switch checked={smsitPush} onCheckedChange={(v) => { setSmsitPush(v); saveSyncPref("sync-smsit-push", String(v)); }} />
+                      </div>
                     </div>
                   </div>
 
                   {/* Dripify */}
                   <div className="space-y-3">
                     <Label className="text-xs text-muted-foreground">Dripify</Label>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-foreground">Pull leads</span>
-                      <Switch checked={dripifyEnabled} onCheckedChange={(v) => { setDripifyEnabled(v); saveSyncPref("sync-dripify-enabled", String(v)); }} />
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-foreground">Pull from Dripify</span>
+                        <Switch checked={dripifyPull} onCheckedChange={(v) => { setDripifyPull(v); saveSyncPref("sync-dripify-pull", String(v)); }} />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-foreground">Push to Dripify</span>
+                        <Switch checked={dripifyPush} onCheckedChange={(v) => { setDripifyPush(v); saveSyncPref("sync-dripify-push", String(v)); }} />
+                      </div>
                     </div>
                   </div>
                 </div>

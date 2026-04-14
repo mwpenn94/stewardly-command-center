@@ -516,6 +516,157 @@ export const appRouter = router({
 
         return { pushed, failed, remaining: Math.max(0, dirtyContacts.length - pushed - failed) };
       }),
+    // Bulk push selected contacts to GHL
+    bulkPushToGhl: protectedProcedure
+      .input(z.object({ ids: z.array(z.number()).min(1).max(500) }))
+      .mutation(async ({ ctx, input }) => {
+        const ghlCreds = await credentialHelper.getGhlCredentials(ctx.user.id);
+        if (!ghlCreds || (!ghlCreds.apiKey && !ghlCreds.jwt)) throw new Error("GHL not configured");
+
+        let pushed = 0, failed = 0;
+        for (const id of input.ids) {
+          try {
+            const contact = await db.getContactById(id, ctx.user.id);
+            if (!contact) { failed++; continue; }
+            const customFields = await db.getContactCustomFields(id);
+            const cfPayload = customFields.map(cf => ({ ghlFieldId: cf.ghlFieldId, value: cf.value || "" }));
+            const payload = ghlService.buildPushPayloadFromLocal(contact, cfPayload);
+            payload.locationId = ghlCreds.locationId;
+
+            let result;
+            if (contact.ghlContactId) {
+              result = await ghlService.updateContact(ghlCreds, contact.ghlContactId, payload);
+            } else {
+              result = await ghlService.upsertContact(ghlCreds, payload);
+            }
+            if (result.success || result.contactId) {
+              await db.markContactSynced(id, ctx.user.id, result.contactId || contact.ghlContactId || undefined);
+              pushed++;
+            } else { failed++; }
+          } catch { failed++; }
+        }
+        await db.logActivity({
+          userId: ctx.user.id, type: "sync", action: "bulk_push_ghl",
+          description: `Bulk pushed ${pushed} contacts to GHL (${failed} failed)`,
+          severity: pushed > 0 ? "success" : "warning",
+        });
+        return { pushed, failed };
+      }),
+    // Push a single contact to SMS-iT
+    pushToSmsit: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const contact = await db.getContactById(input.id, ctx.user.id);
+        if (!contact) throw new Error("Contact not found");
+        if (!contact.phone) throw new Error("Contact has no phone number (required for SMS-iT)");
+        const smsitCreds = await credentialHelper.getSmsitCredentials(ctx.user.id);
+        if (!smsitCreds) throw new Error("SMS-iT not configured");
+
+        const payload = smsitService.buildPushPayloadFromLocal(contact);
+        const result = await smsitService.createContact(smsitCreds, payload);
+        if (result.success) {
+          await db.logActivity({
+            userId: ctx.user.id, type: "sync", action: "push_to_smsit",
+            description: `Pushed contact ${contact.firstName} ${contact.lastName} to SMS-iT`,
+            severity: "success",
+          });
+          return { success: true, smsitContactId: result.contactId };
+        }
+        throw new Error(result.error || "SMS-iT push failed");
+      }),
+    // Pull contacts from SMS-iT
+    pullFromSmsit: protectedProcedure
+      .input(z.object({ page: z.number().optional(), perPage: z.number().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const smsitCreds = await credentialHelper.getSmsitCredentials(ctx.user.id);
+        if (!smsitCreds) throw new Error("SMS-iT not configured");
+
+        const result = await smsitService.listContacts(smsitCreds, { page: input.page, perPage: input.perPage });
+        if (!result.success || !result.contacts) throw new Error(result.error || "Failed to pull SMS-iT contacts");
+
+        let imported = 0, skipped = 0;
+        for (const smsitContact of result.contacts) {
+          try {
+            const phone = smsitContact.phone || smsitContact.receiver;
+            if (!phone) { skipped++; continue; }
+            // Check if contact already exists by phone
+            const existing = await db.getContacts(ctx.user.id, { search: phone, limit: 1 });
+            if (existing.contacts.length > 0) { skipped++; continue; }
+            await db.createContact({
+              userId: ctx.user.id,
+              firstName: smsitContact.first_name || smsitContact.firstName || "",
+              lastName: smsitContact.last_name || smsitContact.lastName || "",
+              email: smsitContact.email || "",
+              phone,
+              source: "smsit",
+              syncStatus: "synced",
+            });
+            imported++;
+          } catch { skipped++; }
+        }
+        await db.logActivity({
+          userId: ctx.user.id, type: "sync", action: "pull_from_smsit",
+          description: `Pulled ${imported} contacts from SMS-iT (${skipped} skipped)`,
+          severity: "success",
+        });
+        return { imported, skipped, total: result.total };
+      }),
+    // Push a single contact to Dripify (add as lead to a campaign)
+    pushToDripify: protectedProcedure
+      .input(z.object({ id: z.number(), campaignId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const contact = await db.getContactById(input.id, ctx.user.id);
+        if (!contact) throw new Error("Contact not found");
+        const dripifyCreds = await credentialHelper.getDripifyCredentials(ctx.user.id);
+        if (!dripifyCreds) throw new Error("Dripify not configured");
+
+        const payload = dripifyService.buildPushPayloadFromLocal(contact);
+        const result = await dripifyService.addLeadToCampaign(dripifyCreds, input.campaignId, payload);
+        if (result.success) {
+          await db.logActivity({
+            userId: ctx.user.id, type: "sync", action: "push_to_dripify",
+            description: `Pushed contact ${contact.firstName} ${contact.lastName} to Dripify campaign ${input.campaignId}`,
+            severity: "success",
+          });
+          return { success: true, leadId: result.leadId };
+        }
+        throw new Error(result.error || "Dripify push failed");
+      }),
+    // Pull leads from a Dripify campaign
+    pullFromDripify: protectedProcedure
+      .input(z.object({ campaignId: z.string(), page: z.number().optional(), limit: z.number().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const dripifyCreds = await credentialHelper.getDripifyCredentials(ctx.user.id);
+        if (!dripifyCreds) throw new Error("Dripify not configured");
+
+        const result = await dripifyService.getCampaignLeads(dripifyCreds, input.campaignId, { page: input.page, limit: input.limit });
+        if (!result.success || !result.leads) throw new Error(result.error || "Failed to pull Dripify leads");
+
+        let imported = 0, skipped = 0;
+        for (const lead of result.leads) {
+          try {
+            const email = lead.email;
+            if (!email) { skipped++; continue; }
+            const existing = await db.getContacts(ctx.user.id, { search: email, limit: 1 });
+            if (existing.contacts.length > 0) { skipped++; continue; }
+            await db.createContact({
+              userId: ctx.user.id,
+              firstName: lead.firstName || lead.first_name || "",
+              lastName: lead.lastName || lead.last_name || "",
+              email,
+              source: "dripify",
+              syncStatus: "synced",
+            });
+            imported++;
+          } catch { skipped++; }
+        }
+        await db.logActivity({
+          userId: ctx.user.id, type: "sync", action: "pull_from_dripify",
+          description: `Pulled ${imported} leads from Dripify campaign (${skipped} skipped)`,
+          severity: "success",
+        });
+        return { imported, skipped, total: result.total };
+      }),
   }),
 
   // ─── GHL Import (Pull contacts FROM GHL into local DB) ─────────────
