@@ -504,3 +504,23 @@ Note: SMS-iT, Dripify, and LinkedIn tests deferred until those platform credenti
 - [x] Mobile responsive code audit: DashboardLayout uses Sheet overlay on mobile, Contacts uses card view, responsive grids throughout
 - [x] Interactive validation: dialogs (add/edit/view contact, campaign detail), search filtering, tab switching, pagination, sidebar navigation
 - [x] 20 passes completed — 16 consecutive clean passes (passes 5-20), 256 non-live tests pass, 0 console errors, 0 network 500s
+
+## Recommended Next Steps — Implementation Round 4
+
+### Step 1: Clean Up Test Data (Admin Purge Action)
+- [x] Add admin purge procedure to delete E2E test contacts (matching e2e-* emails and john.doe.*@test.com patterns)
+- [x] Add admin purge procedure to delete E2E test campaigns (matching "E2E Test" and "Test Campaign" name patterns)
+- [x] Add admin purge procedure to delete E2E test import jobs (matching test-import.csv and e2e_test_import.csv filenames)
+- [x] Add "Purge Test Data" button to Settings page (admin-only, with confirmation dialog)
+- [x] Write tests for purge procedures (14 tests in next-steps.test.ts)
+
+### Step 2: Add Pagination to Import History
+- [x] Add server-side pagination to importJobs.list procedure (limit/offset)
+- [x] Add pagination UI to Import History section on Bulk Import page
+- [x] Write tests for paginated import job listing
+
+### Step 3: SMS-iT and Dripify Credential Configuration
+- [x] Add guided setup wizard for SMS-iT credentials on Integrations page
+- [x] Add guided setup wizard for Dripify credentials on Integrations page
+- [x] Add credential validation feedback (what's missing, what's configured)
+- [x] Add "Get Started" documentation links for each platform (per-field hints with step-by-step instructions)

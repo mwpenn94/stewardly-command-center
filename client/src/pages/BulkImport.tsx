@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import {
   Upload, FileText, Play, Pause, CheckCircle2, XCircle, Clock,
   RotateCcw, StopCircle, Zap, Key, AlertTriangle, Loader2,
-  ArrowUpCircle, Table2, Timer
+  ArrowUpCircle, Table2, Timer, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -69,7 +69,13 @@ function parseCSV(text: string): { headers: string[]; rows: Record<string, strin
 }
 
 export default function BulkImport() {
-  const { data: imports, isLoading, refetch } = trpc.imports.list.useQuery();
+  const IMPORTS_PER_PAGE = 10;
+  const [importPage, setImportPage] = useState(0);
+  const importQueryInput = useMemo(() => ({ limit: IMPORTS_PER_PAGE, offset: importPage * IMPORTS_PER_PAGE }), [importPage]);
+  const { data: paginatedImports, isLoading, refetch } = trpc.imports.listPaginated.useQuery(importQueryInput);
+  const imports = paginatedImports?.imports;
+  const totalImports = paginatedImports?.total ?? 0;
+  const totalImportPages = Math.max(1, Math.ceil(totalImports / IMPORTS_PER_PAGE));
   const { data: syncProgress, refetch: refetchProgress } = trpc.imports.syncProgress.useQuery(undefined, {
     refetchInterval: 3000,
   });
@@ -532,7 +538,14 @@ export default function BulkImport() {
 
       {/* Import History */}
       <div className="space-y-4">
-        <h2 className="text-sm font-medium text-muted-foreground">Import History</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-medium text-muted-foreground">Import History</h2>
+          {totalImports > 0 && (
+            <span className="text-xs text-muted-foreground/60 tabular-nums">
+              {totalImports} total import{totalImports !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
         {isLoading ? (
           Array.from({ length: 3 }).map((_, i) => (
             <Card key={i} className="bg-card border-border/50">
@@ -603,6 +616,64 @@ export default function BulkImport() {
               <p className="text-xs text-muted-foreground/60 mt-1">Upload a CSV file to start importing contacts to GHL.</p>
             </CardContent>
           </Card>
+        )}
+
+        {/* Pagination controls */}
+        {totalImportPages > 1 && (
+          <div className="flex items-center justify-center gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              disabled={importPage === 0}
+              onClick={() => setImportPage((p) => Math.max(0, p - 1))}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalImportPages }, (_, i) => {
+                // Show first, last, current, and neighbors
+                if (
+                  i === 0 ||
+                  i === totalImportPages - 1 ||
+                  Math.abs(i - importPage) <= 1
+                ) {
+                  return (
+                    <Button
+                      key={i}
+                      variant={i === importPage ? "default" : "outline"}
+                      size="sm"
+                      className="h-8 w-8 p-0 text-xs tabular-nums"
+                      onClick={() => setImportPage(i)}
+                    >
+                      {i + 1}
+                    </Button>
+                  );
+                }
+                // Show ellipsis
+                if (
+                  (i === 1 && importPage > 2) ||
+                  (i === totalImportPages - 2 && importPage < totalImportPages - 3)
+                ) {
+                  return (
+                    <span key={i} className="text-xs text-muted-foreground px-1">
+                      …
+                    </span>
+                  );
+                }
+                return null;
+              })}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              disabled={importPage >= totalImportPages - 1}
+              onClick={() => setImportPage((p) => Math.min(totalImportPages - 1, p + 1))}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         )}
       </div>
     </div>

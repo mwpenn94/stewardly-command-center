@@ -12,8 +12,13 @@ import { useState } from "react";
 import {
   Sun, Moon, Bell, Shield, Globe, Palette, User, Mail, Clock,
   ChevronRight, Plug, Archive, Radio, Brain, BarChart3, Upload,
-  CheckCircle2, XCircle
+  CheckCircle2, XCircle, Trash2, Loader2, AlertTriangle
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Badge } from "@/components/ui/badge";
@@ -274,6 +279,86 @@ export default function Settings() {
           ))}
         </CardContent>
       </Card>
+
+      {/* Admin: Purge Test Data */}
+      {user?.role === "admin" && (
+        <Card className="bg-card border-red-500/20">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium text-foreground flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-red-400" />
+              Danger Zone
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-foreground">Purge Test Data</p>
+                <p className="text-xs text-muted-foreground">
+                  Remove contacts, campaigns, imports, and activity entries created by E2E tests.
+                  This only removes records matching test patterns (e.g., "E2E Test", "e2e-*").
+                </p>
+              </div>
+              <PurgeTestDataButton />
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
+  );
+}
+
+function PurgeTestDataButton() {
+  const utils = trpc.useUtils();
+  const purgeMut = trpc.admin.purgeTestData.useMutation({
+    onSuccess: (data) => {
+      const total = data.contactsPurged + data.campaignsPurged + data.importsPurged + data.activityPurged;
+      if (total === 0) {
+        toast.info("No test data found to purge.");
+      } else {
+        toast.success(
+          `Purged ${data.contactsPurged} contacts, ${data.campaignsPurged} campaigns, ${data.importsPurged} imports, ${data.activityPurged} activity entries.`
+        );
+      }
+      utils.dashboard.stats.invalidate();
+      utils.contacts.list.invalidate();
+      utils.campaigns.list.invalidate();
+      utils.imports.listPaginated.invalidate();
+      utils.activity.list.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button variant="outline" size="sm" className="text-red-400 border-red-500/30 hover:bg-red-500/10 gap-1.5 shrink-0">
+          <Trash2 className="h-3.5 w-3.5" />
+          Purge
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Purge Test Data?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will permanently delete contacts, campaigns, import jobs, and activity log entries
+            that match E2E test patterns. Real data will not be affected. This action cannot be undone.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={() => purgeMut.mutate()}
+            className="bg-red-600 hover:bg-red-700 text-white"
+            disabled={purgeMut.isPending}
+          >
+            {purgeMut.isPending ? (
+              <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Purging...</>
+            ) : (
+              <>Confirm Purge</>
+            )}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

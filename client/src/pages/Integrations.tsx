@@ -9,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Plug, CheckCircle2, XCircle, AlertTriangle, Settings, Zap, Shield, Eye, EyeOff, Loader2, Trash2, Info } from "lucide-react";
+import { Plug, CheckCircle2, XCircle, AlertTriangle, Settings, Zap, Shield, Eye, EyeOff, Loader2, Trash2, Info, ListOrdered } from "lucide-react";
 import QueryError from "@/components/QueryError";
 
 const PLATFORMS = [
@@ -23,6 +23,12 @@ const PLATFORMS = [
       { key: "Location ID", required: false, hint: "Auto-extracted from JWT, or enter manually for API Key auth" },
       { key: "Company ID", required: false, hint: "Found in Settings → Company → Company ID (optional)" },
     ],
+    setupGuide: [
+      "Log in to GoHighLevel at app.gohighlevel.com",
+      "Go to Settings → Business Profile → API Key, or use JWT from browser",
+      "Paste your API Key or JWT Token below",
+      "Location ID is auto-extracted from JWT, or enter manually for API Key auth",
+    ],
     color: "text-blue-400",
     bgColor: "bg-blue-500/10",
   },
@@ -31,9 +37,15 @@ const PLATFORMS = [
     name: "Dripify",
     description: "LinkedIn outreach automation and drip campaigns",
     fields: [
-      { key: "API Key", required: false, hint: "Found in Dripify → Settings → API (use this OR Session Cookie)" },
-      { key: "Session Cookie", required: false, hint: "Paste your Dripify session cookie from browser DevTools as failover auth" },
-      { key: "Webhook URL", required: false, hint: "Auto-generated webhook endpoint for event ingestion" },
+      { key: "API Key", required: false, hint: "Step 1: Log in to Dripify → Settings → API → Copy your API key. This is the primary auth method." },
+      { key: "Session Cookie", required: false, hint: "Alternative: Open browser DevTools (F12) → Application → Cookies → dripify.io → copy the session cookie value. Use this if you don't have an API key." },
+      { key: "Webhook URL", required: false, hint: "Optional: Auto-generated webhook endpoint for receiving lead status updates and campaign events." },
+    ],
+    setupGuide: [
+      "Log in to your Dripify account at dripify.io",
+      "Navigate to Settings → API section",
+      "Copy your API Key and paste it below",
+      "If no API section is available, use the Session Cookie method instead",
     ],
     color: "text-violet-400",
     bgColor: "bg-violet-500/10",
@@ -47,6 +59,11 @@ const PLATFORMS = [
       { key: "Session Cookie", required: false, hint: "Paste li_at cookie from browser DevTools as failover auth" },
       { key: "JSESSIONID", required: false, hint: "Paste JSESSIONID cookie (optional, improves session stability)" },
     ],
+    setupGuide: [
+      "Go to LinkedIn Developer Portal or use browser cookies",
+      "For OAuth: Copy your Access Token from the developer portal",
+      "For cookie auth: Open DevTools (F12) → Application → Cookies → copy li_at value",
+    ],
     color: "text-sky-400",
     bgColor: "bg-sky-500/10",
   },
@@ -55,10 +72,17 @@ const PLATFORMS = [
     name: "SMS-iT",
     description: "SMS messaging and campaign delivery",
     fields: [
-      { key: "API Key", required: false, hint: "Found in SMS-iT → Settings → API Keys (primary auth method)" },
-      { key: "Session Token", required: false, hint: "Paste session token from SMS-iT dashboard as failover auth" },
-      { key: "Sender ID", required: false, hint: "Your registered sender ID for outbound SMS" },
-      { key: "Webhook Secret", required: false, hint: "Webhook signing secret for delivery status callbacks" },
+      { key: "API Key", required: false, hint: "Step 1: Log in to SMS-iT → Settings → API Keys → Generate or copy your API key. This is the primary auth method." },
+      { key: "Session Token", required: false, hint: "Alternative: Copy the session token from your SMS-iT dashboard (browser DevTools → Application → Cookies). Use this if API key is unavailable." },
+      { key: "Sender ID", required: false, hint: "Step 2: Enter your registered sender ID (e.g., your business name or phone number) for outbound SMS messages." },
+      { key: "Webhook Secret", required: false, hint: "Optional: Found in SMS-iT → Settings → Webhooks → Signing Secret. Used to verify delivery status callbacks." },
+    ],
+    setupGuide: [
+      "Log in to your SMS-iT account at app.smsit.ai",
+      "Navigate to Settings → API Keys",
+      "Generate a new API key or copy your existing one",
+      "Enter your registered Sender ID for outbound messages",
+      "Optionally configure the webhook secret for delivery tracking",
     ],
     color: "text-emerald-400",
     bgColor: "bg-emerald-500/10",
@@ -369,6 +393,21 @@ export default function Integrations() {
           </DialogHeader>
 
           <div className="space-y-4 py-2">
+            {/* Setup guide */}
+            {activePlatform?.setupGuide && (
+              <div className="rounded-lg bg-primary/5 border border-primary/10 p-3 space-y-2">
+                <p className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                  <ListOrdered className="h-3.5 w-3.5 text-primary" />
+                  Quick Setup Guide
+                </p>
+                <ol className="text-[11px] text-muted-foreground space-y-1 pl-5 list-decimal">
+                  {activePlatform.setupGuide.map((step, i) => (
+                    <li key={i}>{step}</li>
+                  ))}
+                </ol>
+              </div>
+            )}
+
             {activePlatform?.fields.map((field) => (
               <div key={field.key} className="space-y-1.5">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1">

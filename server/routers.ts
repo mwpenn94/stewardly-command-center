@@ -851,6 +851,14 @@ export const appRouter = router({
     list: protectedProcedure.query(async ({ ctx }) => {
       return db.getBulkImports(ctx.user.id);
     }),
+    listPaginated: protectedProcedure
+      .input(z.object({
+        limit: z.number().min(1).max(50).optional(),
+        offset: z.number().min(0).optional(),
+      }).optional())
+      .query(async ({ ctx, input }) => {
+        return db.getBulkImportsPaginated(ctx.user.id, input || {});
+      }),
     create: protectedProcedure
       .input(z.object({
         fileName: z.string(),
@@ -1814,6 +1822,29 @@ export const appRouter = router({
         severity: "success",
       });
       return { scored: updated, total: contacts.length };
+    }),
+  }),
+
+  // ─── Admin: Purge Test Data ──────────────────────────────────────────
+  admin: router({
+    purgeTestData: protectedProcedure.mutation(async ({ ctx }) => {
+      if (ctx.user.role !== "admin") {
+        throw new Error("Only admins can purge test data");
+      }
+      const [contactsPurged, campaignsPurged, importsPurged, activityPurged] = await Promise.all([
+        db.purgeTestContacts(ctx.user.id),
+        db.purgeTestCampaigns(ctx.user.id),
+        db.purgeTestImports(ctx.user.id),
+        db.purgeTestActivity(ctx.user.id),
+      ]);
+      await db.logActivity({
+        userId: ctx.user.id,
+        type: "system",
+        action: "purge_test_data",
+        description: `Purged test data: ${contactsPurged} contacts, ${campaignsPurged} campaigns, ${importsPurged} imports, ${activityPurged} activity entries`,
+        severity: "warning",
+      });
+      return { contactsPurged, campaignsPurged, importsPurged, activityPurged };
     }),
   }),
 });

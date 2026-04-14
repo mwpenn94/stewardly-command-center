@@ -648,6 +648,87 @@ export async function getCustomFieldDefinitionsByCategory(category: string) {
 }
 
 // ─── Contact with Custom Fields (joined query) ─────────────────────────────
+// ─── Admin: Purge Test Data ─────────────────────────────────────────────────
+export async function purgeTestContacts(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  // Delete contacts matching e2e/test patterns
+  const result = await db.delete(contacts).where(
+    and(
+      eq(contacts.userId, userId),
+      or(
+        like(contacts.email, 'e2e-%'),
+        like(contacts.email, 'john.doe.%@test.com'),
+        like(contacts.email, '%@e2e-test.com'),
+        like(contacts.firstName, 'E2E Test%'),
+        like(contacts.firstName, 'Test Contact%'),
+      )!
+    )
+  );
+  return (result as any)[0]?.affectedRows ?? 0;
+}
+
+export async function purgeTestCampaigns(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.delete(campaigns).where(
+    and(
+      eq(campaigns.userId, userId),
+      or(
+        like(campaigns.name, 'E2E Test%'),
+        like(campaigns.name, 'Test Campaign%'),
+        like(campaigns.name, 'e2e_%'),
+      )!
+    )
+  );
+  return (result as any)[0]?.affectedRows ?? 0;
+}
+
+export async function purgeTestImports(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.delete(bulkImports).where(
+    and(
+      eq(bulkImports.userId, userId),
+      or(
+        like(bulkImports.fileName, 'test-import%'),
+        like(bulkImports.fileName, 'e2e_test_import%'),
+        like(bulkImports.fileName, 'E2E%'),
+      )!
+    )
+  );
+  return (result as any)[0]?.affectedRows ?? 0;
+}
+
+export async function purgeTestActivity(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.delete(activityLog).where(
+    and(
+      eq(activityLog.userId, userId),
+      or(
+        like(activityLog.description, '%E2E Test%'),
+        like(activityLog.description, '%e2e-%'),
+        like(activityLog.description, '%john.doe.%@test.com%'),
+        like(activityLog.description, '%Test Campaign%'),
+      )!
+    )
+  );
+  return (result as any)[0]?.affectedRows ?? 0;
+}
+
+// ─── Paginated Bulk Imports ─────────────────────────────────────────────────
+export async function getBulkImportsPaginated(userId: number, opts: { limit?: number; offset?: number }) {
+  const db = await getDb();
+  if (!db) return { imports: [], total: 0 };
+  const where = eq(bulkImports.userId, userId);
+  const [rows, totalResult] = await Promise.all([
+    db.select().from(bulkImports).where(where).orderBy(desc(bulkImports.createdAt)).limit(opts.limit || 10).offset(opts.offset || 0),
+    db.select({ count: count() }).from(bulkImports).where(where),
+  ]);
+  return { imports: rows, total: totalResult[0]?.count || 0 };
+}
+
 export async function getContactWithCustomFields(id: number, userId: number) {
   const db = await getDb();
   if (!db) return null;
