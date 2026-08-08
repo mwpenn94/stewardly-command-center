@@ -2,6 +2,83 @@
 
 All notable changes to the Stewardly Command Center project will be documented in this file.
 
+## [0.14.0] - 2026-04-13
+
+### Added
+- **Keyboard shortcuts** — `?` opens help dialog showing all shortcuts; `G` + letter navigates (H=home, C=contacts, M=campaigns, S=sync, A=analytics); `⌘K` opens search; `Esc` closes dialogs
+- **KeyboardShortcuts dialog** — Accessible reference panel for all keyboard shortcuts
+
+### Changed
+- Campaign Studio tabs now full-width on mobile for easier touch targets
+- Sequence builder dialog has better mobile max-height handling
+
+## [0.13.0] - 2026-04-13
+
+### Added
+- **Contact form validation** — Required field check (name or email), email format validation, phone format validation with inline error messages and red border highlights
+- **QueryError component** — Reusable error state with retry button for failed tRPC queries
+- Graceful degradation on dashboard platform health section when API is unavailable
+
+## [0.12.0] - 2026-04-13
+
+### Added
+- **Notification center** — Bell icon in desktop header and mobile top bar; shows 10 most recent activities with severity icons (success/info/warning/error), click navigates to source page, auto-refreshes every 30 seconds, alert badge count for warnings/errors
+- **Mobile contact cards** — Contacts page shows touch-friendly card layout on mobile (<768px) with name, tier badge, email, phone, platform indicators, and segment badge; desktop keeps full table view
+
+### Changed
+- Contacts table reduced from 8 to 7 columns on desktop (removed Score column for cleaner layout)
+- Desktop header now shows search bar + notification bell
+
+## [0.11.0] - 2026-04-13
+
+### Added
+- **Dashboard clickthrough navigation** — Activity feed items navigate to source pages (sync → /sync, campaign → /campaigns, etc.); "View all activity" link at bottom
+- **Actionable empty states** — Empty contacts section shows Import/Create links; empty platforms shows Connect link; all empty states have clear CTAs
+
+### Changed
+- **Vendor chunk splitting** — Main bundle reduced from 527KB to 346KB (52% total reduction from 725KB original); React, Radix UI, and Query libraries split into cacheable vendor chunks
+- Dashboard stat cards now show hover scale animation on icons
+
+## [0.10.0] - 2026-04-13
+
+### Added
+- **Contact detail modal** — Click contact name or eye icon to view full info: email/phone/address with clickable links, segment/tier/score classification, platform connection status (GHL, SMS-iT, LinkedIn), tags display, and edit shortcut
+- **Dashboard quick actions** — 4 action buttons: New Contact, New Campaign, Bulk Import, Force Sync; stat cards now clickable with keyboard support
+- **Accessibility** — Skip-to-content link (visible on Tab), global `:focus-visible` ring on all interactive elements, ARIA `role="button"` on stat cards
+
+## [0.9.0] - 2026-04-13
+
+### Added
+- **Light mode theme** — Full OKLCH light color palette (warm white backgrounds, darker gold accent, proper contrast) with smooth dark/light switching
+- **Code splitting** — All routes lazy-loaded via `React.lazy()` + `Suspense`; main bundle reduced from 725KB to 527KB, pages load as 4-34KB separate chunks
+- **Global search** — `⌘K` / `Ctrl+K` shortcut opens search from anywhere; searches contacts and campaigns with dropdown results; available in both desktop header and mobile top bar
+- Page loading spinner for lazy route transitions
+
+### Changed
+- CSS restructured: `:root` now defines light theme, `.dark` class overrides with dark theme (was inverted)
+- Card hover effects adapt to light/dark mode
+
+## [0.8.0] - 2026-04-13
+
+### Added
+- **Settings page** — Theme toggle (dark/light), notification preferences, timezone/date format configuration, profile display, integration quick links
+- Dark/light theme switching now functional via ThemeProvider `switchable` flag
+
+### Fixed
+- **Mobile responsiveness** across all pages:
+  - Campaign Studio: platform health grid stacks on mobile (was 3-col fixed)
+  - Sync Engine: scheduler controls and platform grid stack on mobile
+  - All page headers: title + action buttons stack vertically on mobile
+  - 44px minimum touch targets on all mobile action buttons
+  - Main content padding reduced from `p-6` to `p-4` on mobile
+  - Filter rows wrap properly on small screens
+- Settings link in user dropdown now routes to `/settings` (was `/integrations`)
+
+### Changed
+- **Complete documentation rewrite** — README.md, ARCHITECTURE.md, and PARITY.md now accurately describe the actual tRPC/shadcn/Drizzle full-stack application (were describing an outdated Zustand-based frontend)
+- Sidebar navigation now includes Settings page with Settings icon
+- PARITY.md feature matrix fully rewritten to track actual features (28 items vs old 35 that tracked non-existent features)
+
 ## [0.7.1] - 2026-04-13
 
 ### Changed
