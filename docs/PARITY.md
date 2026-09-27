@@ -140,6 +140,8 @@
 | G113 | Home.tsx zero `any` types | Done | 3 | 5 `any` casts in Home.tsx replaced with explicit typed interfaces for crossChannelMetrics, aiRecommendations, contactStats, activityLog, platformHealth | Pass 42 |
 | G114 | Contact CSV export | Done | 3 | Export button on Contacts header; exports current page contacts as CSV with 9 columns (name, email, phone, company, segment, tier, city, state); client-side Blob download | Pass 40 (CTE7c) |
 | G115 | Campaign scheduling | Done | 3 | Launch dialog Send Now / Schedule toggle; datetime-local picker for future scheduling; button text and summary update based on mode; disabled when scheduled but no date | Pass 40 (CTE7c) |
+| G116 | Campaign scheduler executor | Done | 4 | Background service (campaignScheduler.ts) checks every 60s for scheduled campaigns whose time has arrived; auto-launches with stored audience/body/subject; updates status to running→completed/failed; logs activity for each transition | Pass 41 (CTE7c) |
+| G117 | Test fix — time-dependent webhook test | Done | 2 | Fixed webhooks.test.ts scheduled campaign test that used hardcoded 2026-05-01 (now past); changed to Date.now()+24h for future-proof assertion | Pass 41 (CTE7c) |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->
@@ -228,6 +230,7 @@
 - Home.tsx zero any types: all tRPC result callbacks use explicit interfaces
 - Contact CSV export: client-side Blob download with 9 columns
 - Campaign scheduling: Send Now / Schedule toggle with datetime picker in launch dialog
+- Campaign scheduler executor: background service auto-fires scheduled campaigns when due
 
 ## Known-Bad
 <!-- Dead ends and approaches that failed — don't retry these -->
@@ -289,3 +292,4 @@
 - Pass 42 (parallel) · settings system status + type safety · G112-G113 done · 4a894e0 · 2 items completed
 - Pass 39 (CTE7c) · documentation accuracy + README · G108 done · 551744c · 1 item completed
 - Pass 40 (CTE7c) · CSV export + campaign scheduling · G114-G115 done; contact CSV export, Send Now/Schedule toggle · 0855d93 · 2 items completed
+- Pass 41 (CTE7c) · scheduled campaign executor + test fix · G116-G117 done; background campaignScheduler service, webhook test time-fix · PENDING · 2 items completed

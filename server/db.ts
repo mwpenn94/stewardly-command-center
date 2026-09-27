@@ -299,6 +299,12 @@ export async function updateCampaign(id: number, userId: number, data: Partial<I
   await db.update(campaigns).set(data).where(and(eq(campaigns.id, id), eq(campaigns.userId, userId)));
 }
 
+export async function getScheduledCampaignsDue() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(campaigns).where(eq(campaigns.status, "scheduled" as any));
+}
+
 export async function deleteCampaign(id: number, userId: number) {
   const db = await getDb();
   if (!db) return;

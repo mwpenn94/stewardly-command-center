@@ -172,7 +172,7 @@ describe("Campaign Dispatch", () => {
     });
 
     it("should transition from draft to scheduled when scheduledAt is provided", () => {
-      const scheduledAt = new Date("2026-05-01T10:00:00Z").getTime();
+      const scheduledAt = Date.now() + 86400000; // 24 hours from now
       const now = Date.now();
       const isScheduled = scheduledAt > now;
       expect(isScheduled).toBe(true);

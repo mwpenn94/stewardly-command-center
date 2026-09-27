@@ -4,6 +4,14 @@ All notable changes to the Stewardly Command Center project will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.5.0] - 2026-09-27
+
+### Added
+- **Campaign scheduler executor** — Background service (`campaignScheduler.ts`) that automatically fires scheduled campaigns when their scheduled time arrives. Checks every 60 seconds for due campaigns, launches them with stored audience and message content, updates status through running→completed/failed lifecycle, and logs all transitions to the activity feed
+
+### Fixed
+- **Time-dependent test fix** — `webhooks.test.ts` scheduled campaign test used hardcoded `2026-05-01` which is now in the past; changed to `Date.now() + 24h` for a future-proof assertion (29/29 webhook tests pass)
+
 ## [2.4.0] - 2026-04-14
 
 ### Added
