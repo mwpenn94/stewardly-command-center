@@ -382,7 +382,7 @@ export default function GhlImport() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 shrink-0"
+                        className="h-8 w-8 min-h-[44px] min-w-[44px] shrink-0"
                         onClick={() => {
                           startMut.mutate({ resumeJobId: job.id });
                           setActiveJobId(job.id);

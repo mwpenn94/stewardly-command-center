@@ -367,7 +367,7 @@ export default function Campaigns() {
                     else if (campaignPage >= totalCampaignPages - 3) { page = totalCampaignPages - 6 + i; }
                     else { page = campaignPage - 3 + i; }
                     return (
-                      <Button key={page} variant={page === campaignPage ? "default" : "outline"} size="sm" className="h-8 w-8 p-0" onClick={() => setCampaignPage(page)}>
+                      <Button key={page} variant={page === campaignPage ? "default" : "outline"} size="sm" className="h-8 w-8 min-h-[44px] min-w-[44px] p-0" onClick={() => setCampaignPage(page)}>
                         {page}
                       </Button>
                     );
@@ -689,7 +689,7 @@ export default function Campaigns() {
                           </div>
                         )}
                         {seqForm.steps.length > 1 && (
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeSeqStep(idx)}>
+                          <Button variant="ghost" size="icon" className="h-6 w-6 min-h-[44px] min-w-[44px]" onClick={() => removeSeqStep(idx)}>
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         )}

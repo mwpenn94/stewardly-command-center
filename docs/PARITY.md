@@ -142,6 +142,8 @@
 | G115 | Campaign scheduling | Done | 3 | Launch dialog Send Now / Schedule toggle; datetime-local picker for future scheduling; button text and summary update based on mode; disabled when scheduled but no date | Pass 40 (CTE7c) |
 | G116 | Campaign scheduler executor | Done | 4 | Background service (campaignScheduler.ts) checks every 60s for scheduled campaigns whose time has arrived; auto-launches with stored audience/body/subject; updates status to running→completed/failed; logs activity for each transition | Pass 41 (CTE7c) |
 | G117 | Test fix — time-dependent webhook test | Done | 2 | Fixed webhooks.test.ts scheduled campaign test that used hardcoded 2026-05-01 (now past); changed to Date.now()+24h for future-proof assertion | Pass 41 (CTE7c) |
+| G118 | Mobile touch targets — new features | Done | 3 | GhlImport resume/retry 44px, Settings Danger Zone responsive flex + 44px purge button, Campaign pagination buttons 44px, Sequence step remove button 44px | Pass 43 (CTE7c) |
+| G119 | Campaign list scheduled date display | Done | 2 | Campaigns with status "scheduled" show locale-formatted scheduledAt date instead of creation date; Reschedule button on scheduled campaigns | Pass 42 (CTE7c) |
 
 ## Protected Improvements
 <!-- Items that must never be weakened by subsequent passes -->

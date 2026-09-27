@@ -290,7 +290,7 @@ export default function Settings() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-medium text-foreground">Purge Test Data</p>
                 <p className="text-xs text-muted-foreground">
@@ -331,7 +331,7 @@ function PurgeTestDataButton() {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="outline" size="sm" className="text-red-400 border-red-500/30 hover:bg-red-500/10 gap-1.5 shrink-0">
+        <Button variant="outline" size="sm" className="text-red-400 border-red-500/30 hover:bg-red-500/10 gap-1.5 shrink-0 min-h-[44px] sm:min-h-0">
           <Trash2 className="h-3.5 w-3.5" />
           Purge
         </Button>
