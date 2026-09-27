@@ -134,8 +134,8 @@ async function processScheduledCampaigns() {
 
 export function startCampaignScheduler(intervalMs = 60_000) {
   if (schedulerInterval) return;
+  console.log(`Campaign scheduler started (checking every ${intervalMs / 1000}s)`);
   schedulerInterval = setInterval(processScheduledCampaigns, intervalMs);
-  // Also run immediately on start
   processScheduledCampaigns();
 }
 

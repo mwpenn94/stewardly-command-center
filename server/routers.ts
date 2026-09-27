@@ -1876,6 +1876,11 @@ export const appRouter = router({
       });
       return { contactsPurged, campaignsPurged, importsPurged, activityPurged };
     }),
+
+    schedulerStatus: protectedProcedure.query(() => {
+      const { isSchedulerRunning } = require("./services/campaignScheduler");
+      return { running: isSchedulerRunning() };
+    }),
   }),
 });
 

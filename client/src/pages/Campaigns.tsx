@@ -327,14 +327,20 @@ export default function Campaigns() {
                         {ch.label} via {ch.platform} &middot; {c.audienceCount || 0} recipients
                         {metrics?.sent ? ` · ${String(metrics.sent)} sent` : ""}
                         {metrics?.failed ? ` · ${String(metrics.failed)} failed` : ""}
-                        {" · "}
-                        {c.createdAt ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true }) : "—"}
+                        {c.status === "scheduled" && metrics?.scheduledAt
+                          ? ` · Scheduled for ${new Date(String(metrics.scheduledAt)).toLocaleString()}`
+                          : ` · ${c.createdAt ? formatDistanceToNow(new Date(c.createdAt), { addSuffix: true }) : "—"}`}
                       </p>
                     </div>
                     <div className="flex gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                       {c.status === "draft" && (
                         <Button variant="outline" size="sm" className="h-9 min-h-[44px] text-xs gap-1" onClick={() => openLaunch(c)}>
                           <Send className="h-3.5 w-3.5" /> Launch
+                        </Button>
+                      )}
+                      {c.status === "scheduled" && (
+                        <Button variant="outline" size="sm" className="h-9 min-h-[44px] text-xs gap-1" onClick={() => openLaunch(c)}>
+                          <Clock className="h-3.5 w-3.5" /> Reschedule
                         </Button>
                       )}
                       <Button variant="ghost" size="icon" className="h-9 w-9 min-h-[44px] min-w-[44px] text-destructive hover:text-destructive" disabled={deleteCampaign.isPending} onClick={() => { if (confirm("Delete campaign?")) deleteCampaign.mutate({ id: c.id }); }}>
