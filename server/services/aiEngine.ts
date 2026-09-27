@@ -344,6 +344,43 @@ export async function generateInsightsReport(userId: number): Promise<AIInsights
     });
   }
 
+  const scheduledCampaigns = campaigns_.filter(c => c.status === "scheduled");
+  if (scheduledCampaigns.length > 0) {
+    const nextScheduled = scheduledCampaigns.reduce((earliest, c) => {
+      try {
+        const m = c.metrics ? (typeof c.metrics === "string" ? JSON.parse(c.metrics) : c.metrics) as Record<string, unknown> : null;
+        const scheduledAt = m?.scheduledAt ? new Date(String(m.scheduledAt)).getTime() : Infinity;
+        return scheduledAt < earliest ? scheduledAt : earliest;
+      } catch { return earliest; }
+    }, Infinity);
+    recommendations.push({
+      id: "rec-scheduled-campaigns",
+      category: "campaigns",
+      priority: "low",
+      title: `${scheduledCampaigns.length} campaign${scheduledCampaigns.length > 1 ? "s" : ""} scheduled`,
+      description: nextScheduled < Infinity
+        ? `Next campaign fires ${new Date(nextScheduled).toLocaleString()}. The campaign scheduler auto-launches scheduled campaigns when their time arrives.`
+        : `${scheduledCampaigns.length} campaigns are scheduled for future delivery.`,
+      impact: "Scheduled campaigns will fire automatically — no manual action needed",
+      actionType: "info",
+    });
+  }
+
+  const failedCampaignsList = campaigns_.filter(c => c.status === "failed");
+  if (failedCampaignsList.length > 0) {
+    recommendations.push({
+      id: "rec-failed-campaigns",
+      category: "campaigns",
+      priority: "high",
+      title: `${failedCampaignsList.length} failed campaign${failedCampaignsList.length > 1 ? "s" : ""} need attention`,
+      description: "Some campaigns failed to send. Check platform credentials and connectivity, then retry or recreate them.",
+      impact: "Resolve failed campaigns to reach intended audience",
+      actionType: "manual",
+      actionLabel: "View Campaigns",
+      actionRoute: "/campaigns",
+    });
+  }
+
   // Sync recommendations
   if (syncDlq > 0) {
     recommendations.push({
